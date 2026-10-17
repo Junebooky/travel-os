@@ -4,7 +4,12 @@ import { COUNTRIES } from '../src/data/countries';
 import { Place } from '../src/types/travel';
 import { t } from '../src/lib/i18n';
 
-test('E2E User Journey Logic — Complete MVP Flow Simulation', () => {
+/**
+ * Logical State Transition & Contract Simulation Test
+ * Note: This test verifies business logic, data models, and state transitions in memory.
+ * It does NOT drive a physical mobile browser (which requires full E2E runner setup).
+ */
+test('Logical State Transition & Contract Simulation (In-memory user flow logic)', () => {
   // 1. Initial State (Unonboarded)
   let onboardingCompleted = false;
   let currentCountry = COUNTRIES[0]; // Japan

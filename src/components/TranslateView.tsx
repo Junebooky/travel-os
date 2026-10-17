@@ -63,6 +63,8 @@ export default function TranslateView() {
     () => defaultPhrase.romanizations?.[targetLang] || defaultPhrase.romanizations?.['ja'] || ''
   );
   const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [suggestedAlternatives, setSuggestedAlternatives] = useState<Array<{ id: string; korean: string; translation: string; romanization: string }>>([]);
   const [isFullscreenModalOpen, setIsFullscreenModalOpen] = useState<boolean>(false);
   const [isFlipped, setIsFlipped] = useState<boolean>(false);
 
@@ -75,6 +77,7 @@ export default function TranslateView() {
   const handleTranslate = useCallback(async (textToTranslate: string) => {
     if (!textToTranslate.trim()) return;
     setIsLoading(true);
+    setErrorMessage(null);
 
     try {
       const res = await fetch('/api/translate', {
@@ -87,43 +90,55 @@ export default function TranslateView() {
         }),
       });
 
-      if (res.ok) {
-        const data = await res.json();
+      const data = await res.json();
+
+      if (res.ok && data.success) {
         setTranslatedText(data.translation || '');
         setRomanization(data.romanization || '');
+        setErrorMessage(null);
+        setSuggestedAlternatives([]);
       } else {
-        // Fallback locally
-        const match = QUICK_PHRASES.find(
-          (p) => p.korean.replace(/[.?!]/g, '').trim() === textToTranslate.replace(/[.?!]/g, '').trim()
+        // Translation service error or key missing:
+        // Strictly preserve user input, DO NOT show fake translation
+        setTranslatedText('');
+        setRomanization('');
+        setErrorMessage(
+          data.message || t('common.error.service_unavailable')
         );
-        if (match && match.targetTranslations[targetLang]) {
-          setTranslatedText(match.targetTranslations[targetLang]);
-          setRomanization(match.romanizations?.[targetLang] || '');
-        } else {
-          setTranslatedText(textToTranslate);
-          setRomanization('');
+        if (data.suggestedPhrases) {
+          setSuggestedAlternatives(data.suggestedPhrases);
         }
       }
     } catch {
+      // Local check if matches verified phrases
       const match = QUICK_PHRASES.find(
         (p) => p.korean.replace(/[.?!]/g, '').trim() === textToTranslate.replace(/[.?!]/g, '').trim()
       );
       if (match && match.targetTranslations[targetLang]) {
         setTranslatedText(match.targetTranslations[targetLang]);
         setRomanization(match.romanizations?.[targetLang] || '');
+        setErrorMessage(null);
       } else {
-        setTranslatedText(textToTranslate);
+        setTranslatedText('');
+        setRomanization('');
+        setErrorMessage(t('common.error.service_unavailable'));
       }
     } finally {
       setIsLoading(false);
     }
   }, [sourceLang, targetLang]);
 
-  const handleSelectPhrase = (phrase: QuickPhrase) => {
+  const handleSelectPhrase = (phrase: QuickPhrase | { id: string; korean: string; translation: string; romanization: string }) => {
     setInputText(phrase.korean);
-    const trans = phrase.targetTranslations[targetLang] || phrase.targetTranslations['en'] || phrase.korean;
-    setTranslatedText(trans);
-    setRomanization(phrase.romanizations?.[targetLang] || '');
+    setErrorMessage(null);
+    if ('targetTranslations' in phrase) {
+      const trans = phrase.targetTranslations[targetLang] || phrase.targetTranslations['en'] || phrase.korean;
+      setTranslatedText(trans);
+      setRomanization(phrase.romanizations?.[targetLang] || '');
+    } else {
+      setTranslatedText(phrase.translation);
+      setRomanization(phrase.romanization);
+    }
   };
 
   const handleSwapLanguages = () => {
@@ -301,6 +316,53 @@ export default function TranslateView() {
             </button>
           </div>
         </div>
+
+        {/* Translation Error & Safety Card */}
+        {errorMessage && (
+          <div className="bg-amber-950/40 border border-amber-800/60 rounded-2xl p-4 shadow-xl space-y-3 animate-in fade-in duration-200">
+            <div className="flex items-start gap-2.5">
+              <AlertCircle className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
+              <div className="flex-1 min-w-0">
+                <div className="text-xs font-semibold text-amber-300 mb-1">
+                  {t('common.error.generic_title')}
+                </div>
+                <div className="text-xs text-amber-200/90 leading-relaxed">
+                  {errorMessage}
+                </div>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2 pt-1 border-t border-amber-900/50">
+              <button
+                onClick={() => handleTranslate(inputText)}
+                className="py-2 px-3 rounded-xl bg-amber-900/60 hover:bg-amber-850 text-amber-200 text-xs font-semibold transition-all active:scale-95"
+              >
+                {t('common.action.retry')}
+              </button>
+            </div>
+
+            {/* Suggested verified travel phrases if available */}
+            {suggestedAlternatives.length > 0 && (
+              <div className="pt-2 border-t border-amber-900/50 space-y-2">
+                <span className="text-[11px] font-semibold text-amber-300 block">
+                  안전한 추천 상황별 문장 사용하기
+                </span>
+                <div className="space-y-1.5">
+                  {suggestedAlternatives.map((alt) => (
+                    <button
+                      key={alt.id}
+                      onClick={() => handleSelectPhrase(alt)}
+                      className="w-full text-left p-2.5 rounded-xl bg-slate-900/80 hover:bg-slate-900 border border-amber-900/40 hover:border-amber-700/60 text-xs transition-all text-slate-200"
+                    >
+                      <div className="font-semibold text-slate-100">{alt.korean}</div>
+                      <div className="text-[11px] text-blue-400">{alt.translation}</div>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        )}
 
         {/* Translation Result Card */}
         {translatedText && (

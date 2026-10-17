@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { useTravel } from '@/context/TravelContext';
 import { t } from '@/lib/i18n';
 import { Place, PlaceCategory } from '@/types/travel';
@@ -60,9 +60,48 @@ export default function MapView() {
   const [zoomLevel, setZoomLevel] = useState<number>(1);
   const [isDragging, setIsDragging] = useState<boolean>(false);
   const [dragStart, setDragStart] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
+  const [apiPlaces, setApiPlaces] = useState<Place[] | null>(null);
+  const [isDemoMode, setIsDemoMode] = useState<boolean>(true);
+  const [isSearchingPlaces, setIsSearchingPlaces] = useState<boolean>(false);
 
-  // Filtered places
+  // Connect to /api/places/search with debouncing
+  useEffect(() => {
+    let ignore = false;
+    const timer = setTimeout(async () => {
+      try {
+        setIsSearchingPlaces(true);
+        const params = new URLSearchParams({
+          country: country.code,
+          category: selectedCategory,
+          query: searchQuery,
+          lat: String(country.defaultCenter.lat),
+          lng: String(country.defaultCenter.lng),
+        });
+
+        const res = await fetch(`/api/places/search?${params.toString()}`);
+        if (res.ok) {
+          const data = await res.json();
+          if (!ignore && data.places) {
+            setApiPlaces(data.places);
+            setIsDemoMode(Boolean(data.isDemo));
+          }
+        }
+      } catch (err) {
+        console.warn('[MapView] Place search fetch error:', err);
+      } finally {
+        if (!ignore) setIsSearchingPlaces(false);
+      }
+    }, 250);
+
+    return () => {
+      ignore = true;
+      clearTimeout(timer);
+    };
+  }, [searchQuery, selectedCategory, country]);
+
+  // Filtered places from live API or fallback
   const filteredPlaces = useMemo(() => {
+    if (apiPlaces !== null) return apiPlaces;
     return country.popularPlaces.filter((p) => {
       const matchCategory = selectedCategory === 'all' || p.category === selectedCategory;
       const matchQuery =
@@ -72,7 +111,7 @@ export default function MapView() {
         (p.description && p.description.toLowerCase().includes(searchQuery.toLowerCase()));
       return matchCategory && matchQuery;
     });
-  }, [country.popularPlaces, selectedCategory, searchQuery]);
+  }, [apiPlaces, country.popularPlaces, selectedCategory, searchQuery]);
 
   // Touch & Mouse Drag handlers for Vector Map
   const handleMouseDown = (e: React.MouseEvent) => {
@@ -204,12 +243,38 @@ export default function MapView() {
           })}
         </div>
 
-        {/* Search Results Count Badge */}
-        {searchQuery.trim() && (
+        {/* Demo Mode / Live Places Status Notice */}
+        {isDemoMode ? (
+          <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-900/90 border border-amber-600/70 shadow-lg text-[11px] text-amber-300 backdrop-blur-md">
+            <span className="px-1.5 py-0.5 rounded font-bold bg-amber-500/20 text-amber-300 border border-amber-500/40 shrink-0">
+              데모 모드
+            </span>
+            <span className="text-slate-300 truncate">
+              추천 예시 장소를 표시 중이에요 (실제 검색은 Google Maps API 키 필요)
+            </span>
+          </div>
+        ) : (
+          <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-900/90 border border-blue-500/60 shadow-lg text-[11px] text-blue-300 backdrop-blur-md">
+            <span className="px-1.5 py-0.5 rounded font-bold bg-blue-500/20 text-blue-300 border border-blue-500/40 shrink-0">
+              실시간 장소
+            </span>
+            <span className="text-slate-300 truncate">
+              실제 주변 장소 검색이 연결되어 있습니다.
+            </span>
+          </div>
+        )}
+
+        {/* Searching indicator or Results Count Badge */}
+        {isSearchingPlaces ? (
+          <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-slate-900/90 border border-slate-800 text-[11px] text-blue-300">
+            <Compass className="w-3 h-3 animate-spin text-blue-400" />
+            <span>{t('map.search.loading')}</span>
+          </div>
+        ) : searchQuery.trim() ? (
           <div className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-slate-900/90 border border-slate-800 text-[11px] text-blue-300">
             {t('map.search.results', { count: filteredPlaces.length })}
           </div>
-        )}
+        ) : null}
       </div>
 
       {/* Interactive Vector Map Canvas */}

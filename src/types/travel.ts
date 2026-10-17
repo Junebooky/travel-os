@@ -73,4 +73,5 @@ export interface ExchangeRateData {
   rateDate: string;
   rates: Record<string, number>;
   base: string;
+  isStale?: boolean;
 }

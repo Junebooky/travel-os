@@ -1,18 +1,14 @@
 import { NextResponse } from 'next/server';
 
-// Standard fallback exchange rates (base: KRW)
-// 1 KRW = x Foreign Currency
-const FALLBACK_RATES: Record<string, number> = {
-  KRW: 1.0,
-  JPY: 0.11, // 100 JPY ≈ 909 KRW -> 1 KRW ≈ 0.11 JPY
-  USD: 0.00073, // 1 USD ≈ 1,370 KRW
-  EUR: 0.00067, // 1 EUR ≈ 1,490 KRW
-  TWD: 0.023, // 1 TWD ≈ 43.5 KRW
-  THB: 0.026, // 1 THB ≈ 38.5 KRW
-  VND: 18.5, // 1 KRW ≈ 18.5 VND (10,000 VND ≈ 540 KRW)
-  GBP: 0.00057, // 1 GBP ≈ 1,750 KRW
-  SGD: 0.00096, // 1 SGD ≈ 1,040 KRW
-};
+interface RateCache {
+  rates: Record<string, number>;
+  rateDate: string;
+  cachedAt: number;
+  provider: string;
+}
+
+// In-memory cache for genuinely fetched rates
+let genuineRateCache: RateCache | null = null;
 
 export async function GET() {
   try {
@@ -24,30 +20,62 @@ export async function GET() {
       headers: {
         'Accept': 'application/json',
       },
-      next: { revalidate: 3600 }, // Cache 1 hour
+      next: { revalidate: 3600 },
     });
     clearTimeout(timeoutId);
 
     if (res.ok) {
       const data = await res.json();
-      return NextResponse.json({
-        provider: 'open.er-api',
-        rateDate: data.time_last_update_utc
+      if (data && data.rates) {
+        const rateDate = data.time_last_update_utc
           ? new Date(data.time_last_update_utc).toISOString().split('T')[0]
-          : new Date().toISOString().split('T')[0],
-        base: 'KRW',
-        rates: data.rates || FALLBACK_RATES,
-      });
+          : new Date().toISOString().split('T')[0];
+
+        // Store only genuine fetched rates
+        genuineRateCache = {
+          rates: data.rates,
+          rateDate,
+          cachedAt: Date.now(),
+          provider: 'open.er-api',
+        };
+
+        return NextResponse.json({
+          success: true,
+          provider: 'open.er-api',
+          rateDate,
+          base: 'KRW',
+          rates: data.rates,
+          isCached: false,
+        });
+      }
     }
   } catch (err) {
-    console.warn('[Rates API] Remote fetch failed or timed out, returning fallback rates:', err);
+    if (typeof err === 'object' && err !== null && 'digest' in err) {
+      throw err;
+    }
+    console.warn('[Rates API] Remote fetch failed or timed out:', err);
   }
 
-  // Graceful fallback
-  return NextResponse.json({
-    provider: 'open.er-api (캐시 기준)',
-    rateDate: new Date().toISOString().split('T')[0],
-    base: 'KRW',
-    rates: FALLBACK_RATES,
-  });
+  // If remote fetch failed, check if we have genuine previous cache
+  if (genuineRateCache) {
+    return NextResponse.json({
+      success: true,
+      provider: `${genuineRateCache.provider} (저장된 환율)`,
+      rateDate: genuineRateCache.rateDate,
+      base: 'KRW',
+      rates: genuineRateCache.rates,
+      isCached: true,
+      isStale: true,
+    });
+  }
+
+  // Honest failure: No fabricated rates or fake dates
+  return NextResponse.json(
+    {
+      success: false,
+      error: 'RATES_UNAVAILABLE',
+      message: '환율 정보를 불러오지 못했어요. 인터넷 연결을 확인한 뒤 다시 시도해 주세요.',
+    },
+    { status: 503 }
+  );
 }
