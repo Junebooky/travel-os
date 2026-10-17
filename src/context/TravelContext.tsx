@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect, ReactNode, useCallback } from 'react';
+import React, { createContext, useContext, useState, useEffect, ReactNode, useCallback, useRef } from 'react';
 import { Country, Place, PlaceCategory, ExpenseRecord, ExchangeRateData } from '@/types/travel';
 import { COUNTRIES } from '@/data/countries';
 import { t } from '@/lib/i18n';
@@ -217,6 +217,11 @@ export function TravelProvider({ children }: { children: ReactNode }) {
   const [activePlace, setActivePlace] = useState<Place | null>(null);
   const [activeTab, setActiveTab] = useState<'map' | 'translate' | 'currency' | 'wallet' | 'settings' | 'saved'>('map');
   const [expenses, setExpenses] = useState<ExpenseRecord[]>(getInitialExpenses);
+  const expensesRef = useRef<ExpenseRecord[]>(expenses);
+
+  useEffect(() => {
+    expensesRef.current = expenses;
+  }, [expenses]);
   const [mapViewport, setMapViewportState] = useState<{ center: { lat: number; lng: number }; zoom: number }>(() =>
     getInitialViewport(country)
   );
@@ -427,7 +432,8 @@ export function TravelProvider({ children }: { children: ReactNode }) {
   const addExpense = useCallback(
     (item: Omit<ExpenseRecord, 'id' | 'timestamp'>, options?: AddExpenseOptions): boolean => {
       const now = Date.now();
-      const isDuplicate = expenses.some(
+      const currentExpenses = expensesRef.current;
+      const isDuplicate = currentExpenses.some(
         (e) =>
           e.placeName.trim() === item.placeName.trim() &&
           e.amount === item.amount &&
@@ -446,48 +452,35 @@ export function TravelProvider({ children }: { children: ReactNode }) {
         timestamp: now,
       };
 
-      let actuallySaved = false;
-      setExpenses((prev) => {
-        const isStillDup = prev.some(
-          (e) =>
-            e.placeName.trim() === item.placeName.trim() &&
-            e.amount === item.amount &&
-            e.currency === item.currency &&
-            now - e.timestamp < 2 * 60 * 1000
-        );
-        if (isStillDup && !options?.force) {
-          return prev;
-        }
-        actuallySaved = true;
-        const next = [newRecord, ...prev];
-        safeSetItem(STORAGE_KEY_WALLET, JSON.stringify(next));
-        return next;
-      });
+      const next = [newRecord, ...currentExpenses];
+      // Synchronously update the ref so any rapid consecutive clicks immediately see the new item
+      expensesRef.current = next;
 
-      if (actuallySaved) {
-        showToast(t('wallet.toast.saved'), 'success');
-        return true;
-      } else {
-        showToast(t('wallet.duplicate.blocked'), 'info');
-        return false;
-      }
+      // Pure React state update
+      setExpenses(next);
+
+      // Persistence side effect outside React updater
+      safeSetItem(STORAGE_KEY_WALLET, JSON.stringify(next));
+
+      showToast(t('wallet.toast.saved'), 'success');
+      return true;
     },
-    [expenses, showToast]
+    [showToast]
   );
 
   const deleteExpense = useCallback(
     (id: string) => {
-      setExpenses((prev) => {
-        const next = prev.filter((e) => e.id !== id);
-        safeSetItem(STORAGE_KEY_WALLET, JSON.stringify(next));
-        return next;
-      });
+      const next = expensesRef.current.filter((e) => e.id !== id);
+      expensesRef.current = next;
+      setExpenses(next);
+      safeSetItem(STORAGE_KEY_WALLET, JSON.stringify(next));
       showToast(t('wallet.toast.deleted'), 'info');
     },
     [showToast]
   );
 
   const clearAllExpenses = useCallback(() => {
+    expensesRef.current = [];
     setExpenses([]);
     safeRemoveItem(STORAGE_KEY_WALLET);
     showToast(t('wallet.toast.cleared'), 'info');

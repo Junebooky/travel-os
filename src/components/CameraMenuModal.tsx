@@ -96,8 +96,17 @@ export default function CameraMenuModal({ isOpen, onClose, initialPlace }: Camer
       setImagePreview(base64Data);
       setIsLoading(true);
 
+      // Build verified rates map from TravelContext
+      const verifiedRatesMap: Record<string, number> = {};
+      ['JPY', 'USD', 'EUR', 'VND', 'GBP', 'CNY', 'TWD', 'THB', 'SGD', 'AUD', 'CAD', 'CHF', 'HKD', 'PHP'].forEach((c) => {
+        const conv = convertCurrencyToKrw(1, c);
+        if (conv?.rate && conv.rate > 0 && !conv.isStale) {
+          verifiedRatesMap[c] = conv.rate;
+        }
+      });
+
       const rateConv = convertCurrencyToKrw(100, localCurrency);
-      const currentRateToKrw = rateConv ? rateConv.rate : undefined;
+      const currentRateToKrw = rateConv && !rateConv.isStale ? rateConv.rate : undefined;
 
       try {
         const res = await fetch('/api/camera/translate', {
@@ -108,25 +117,29 @@ export default function CameraMenuModal({ isOpen, onClose, initialPlace }: Camer
             mimeType: file.type || 'image/jpeg',
             countryCode: country.code,
             currency: localCurrency,
+            rateCurrency: localCurrency,
             rateToKrw: currentRateToKrw,
+            ratesMap: verifiedRatesMap,
           }),
         });
 
         const data = await res.json();
         if (data.success && Array.isArray(data.items)) {
           const processedItems: MenuItemOCR[] = data.items.map((item: MenuItemOCR) => {
-            if (item.estimatedKrw === null || item.estimatedKrw === 0) {
-              const conv = convertCurrencyToKrw(item.originalPrice, item.currency || data.currency || localCurrency);
-              return {
-                ...item,
-                estimatedKrw: conv ? conv.krw : null,
-              };
-            }
-            return item;
+            const itemCurrency = (item.currency || data.currency || localCurrency).toUpperCase();
+            // Verify conversion using the actual item currency
+            const conv = convertCurrencyToKrw(item.originalPrice, itemCurrency);
+            const isValid = Boolean(conv && conv.krw !== null && !conv.isStale);
+            return {
+              ...item,
+              currency: itemCurrency,
+              estimatedKrw: isValid ? conv!.krw : null,
+              rateUnverified: !isValid,
+            };
           });
 
           setMenuItems(processedItems);
-          setDetectedCurrency(data.currency || localCurrency);
+          setDetectedCurrency((data.currency || localCurrency).toUpperCase());
           setIsDemo(Boolean(data.isDemo));
           setDemoNotice(data.demoNotice || '');
         } else {
@@ -151,19 +164,19 @@ export default function CameraMenuModal({ isOpen, onClose, initialPlace }: Camer
       return;
     }
 
-    const conversion = item.estimatedKrw !== null
-      ? convertCurrencyToKrw(item.originalPrice, item.currency || detectedCurrency)
-      : null;
+    const itemCurrency = (item.currency || detectedCurrency).toUpperCase();
+    const conversion = convertCurrencyToKrw(item.originalPrice, itemCurrency);
+    const hasValidRate = Boolean(conversion && conversion.krw !== null && !conversion.isStale);
 
     addExpense({
       amount: item.originalPrice,
-      currency: item.currency || detectedCurrency,
-      amountKrw: item.estimatedKrw,
+      currency: itemCurrency,
+      amountKrw: hasValidRate ? conversion!.krw : null,
       placeName: targetPlace?.name || '현지 음식점',
       category: 'food',
       paymentMethod: 'card',
       memo: `메뉴 촬영 인식: ${item.originalName} (${item.translatedName})${isDemo ? ' [데모 예시]' : ''}`,
-      rateUsed: conversion
+      rateUsed: hasValidRate && conversion
         ? {
             rate: conversion.rate,
             provider: conversion.provider,
@@ -186,12 +199,15 @@ export default function CameraMenuModal({ isOpen, onClose, initialPlace }: Camer
       setMenuItems((prev) =>
         prev.map((item) => {
           if (item.id === id) {
-            const conversion = convertCurrencyToKrw(num, item.currency || detectedCurrency);
+            const itemCurrency = (item.currency || detectedCurrency).toUpperCase();
+            const conversion = convertCurrencyToKrw(num, itemCurrency);
+            const isValid = Boolean(conversion && conversion.krw !== null && !conversion.isStale);
             return {
               ...item,
               originalPrice: num,
-              estimatedKrw: conversion ? conversion.krw : null,
-              rateUnverified: !conversion,
+              currency: itemCurrency,
+              estimatedKrw: isValid ? conversion!.krw : null,
+              rateUnverified: !isValid,
             };
           }
           return item;

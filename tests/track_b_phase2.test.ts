@@ -125,34 +125,14 @@ test('TB-P1-02 Regression: Price editing uses verified rates and never arbitrary
   assert.equal(badRateResult, null, 'Zero rate must yield null');
 });
 
-test('TB-P1-03 Regression: Duplicate expense within 2 minutes is blocked unless forced', () => {
-  let expenses: ExpenseRecord[] = [];
+test('TB-P1-03 Regression & Targeted Fix: Synchronous ref-based duplicate prevention and deterministic return value', () => {
+  let expensesState: ExpenseRecord[] = [];
+  const expensesRef = { current: expensesState };
 
-  const existingExpense: ExpenseRecord = {
-    id: 'exp-orig-1',
-    placeName: '이치란 시부야점',
-    amount: 980,
-    currency: 'JPY',
-    amountKrw: 8967,
-    category: 'food',
-    paymentMethod: 'card',
-    timestamp: Date.now() - 30 * 1000, // 30 seconds ago
-  };
-  expenses = [existingExpense];
-
-  // Attempt duplicate addition without force flag
-  const duplicateCandidate = {
-    placeName: '이치란 시부야점',
-    amount: 980,
-    currency: 'JPY',
-    amountKrw: 8967,
-    category: 'food' as const,
-    paymentMethod: 'card' as const,
-  };
-
-  const addExpenseTest = (item: typeof duplicateCandidate, options?: { force?: boolean }): boolean => {
+  const addExpenseTest = (item: { placeName: string; amount: number; currency: string; amountKrw?: number | null; category: ExpenseRecord['category']; paymentMethod: ExpenseRecord['paymentMethod'] }, options?: { force?: boolean }): boolean => {
     const now = Date.now();
-    const isDup = expenses.some(
+    const currentExpenses = expensesRef.current;
+    const isDup = currentExpenses.some(
       (e) =>
         e.placeName.trim() === item.placeName.trim() &&
         e.amount === item.amount &&
@@ -161,48 +141,105 @@ test('TB-P1-03 Regression: Duplicate expense within 2 minutes is blocked unless 
     );
 
     if (isDup && !options?.force) {
-      return false; // Blocked!
+      return false; // Deterministically blocked!
     }
 
-    expenses = [{ ...item, id: 'exp-' + now, timestamp: now }, ...expenses];
-    return true;
+    const newRecord: ExpenseRecord = {
+      ...item,
+      amountKrw: item.amountKrw ?? null,
+      id: 'exp-' + now + '-' + Math.random().toString(36).substring(2, 7),
+      timestamp: now,
+    };
+
+    // Synchronously update the ref so any rapid concurrent click sees the new record immediately
+    const next = [newRecord, ...currentExpenses];
+    expensesRef.current = next;
+    expensesState = next;
+
+    return true; // Deterministically saved!
   };
 
-  // 1. Should be blocked
-  const saved1 = addExpenseTest(duplicateCandidate);
-  assert.equal(saved1, false, 'Duplicate expense must return false and be blocked');
-  assert.equal(expenses.length, 1, 'Expenses length must remain 1');
+  const itemA = {
+    placeName: '시부야 스시잔마이',
+    amount: 3200,
+    currency: 'JPY',
+    category: 'food' as const,
+    paymentMethod: 'card' as const,
+  };
 
-  // 2. Rapid concurrent click with same candidate must still be blocked
-  const saved2 = addExpenseTest(duplicateCandidate);
-  assert.equal(saved2, false, 'Rapid concurrent duplicate must still be blocked');
-  assert.equal(expenses.length, 1);
+  // 1. First save must succeed and return true synchronously
+  const result1 = addExpenseTest(itemA);
+  assert.equal(result1, true, 'First save must return true');
+  assert.equal(expensesRef.current.length, 1, 'Ref must contain 1 expense');
+  assert.equal(expensesState.length, 1, 'State must contain 1 expense');
 
-  // 3. With explicit force: true, saving is permitted
-  const savedForce = addExpenseTest(duplicateCandidate, { force: true });
-  assert.equal(savedForce, true, 'Forced expense must save successfully');
-  assert.equal(expenses.length, 2, 'Expenses length must now be 2');
+  // 2. Rapid second click with identical details (simulating fast double click) must be synchronously blocked
+  const result2 = addExpenseTest(itemA);
+  assert.equal(result2, false, 'Rapid second click must return false immediately');
+  assert.equal(expensesRef.current.length, 1, 'No duplicate should be added on fast click');
+  assert.equal(expensesState.length, 1, 'State length must remain 1');
+
+  // 3. Different expense must succeed
+  const itemB = {
+    placeName: '도쿄 메트로 역',
+    amount: 210,
+    currency: 'JPY',
+    category: 'transit' as const,
+    paymentMethod: 'card' as const,
+  };
+  const result3 = addExpenseTest(itemB);
+  assert.equal(result3, true, 'Different expense must return true');
+  assert.equal(expensesRef.current.length, 2, 'Expenses count must now be 2');
+
+  // 4. Forced duplicate of itemA must succeed when options.force is true
+  const result4 = addExpenseTest(itemA, { force: true });
+  assert.equal(result4, true, 'Forced duplicate must return true');
+  assert.equal(expensesRef.current.length, 3, 'Expenses count must now be 3');
 });
 
-test('TB-P1-04 Regression: Real OCR route requires rate for KRW or sets estimatedKrw to null (never 0)', () => {
-  // Test formatting logic for Gemini OCR results
-  const rawItemFromVision = {
-    originalName: 'Tonkotsu Ramen',
-    translatedName: '돈코츠 라멘',
-    originalPrice: 980,
-    currency: 'JPY',
+test('TB-P1-04 Regression & Targeted Fix: Currency matching validation prevents cross-rate miscalculation', () => {
+  // Simulate OCR calculation helper matching the route.ts logic
+  const calculateOcrKrw = (
+    itemPrice: number,
+    itemCurrency: string,
+    reqCurrency: string,
+    rateToKrw?: number,
+    ratesMap?: Record<string, number>
+  ) => {
+    const normItemCurr = itemCurrency.toUpperCase();
+    const normReqCurr = reqCurrency.toUpperCase();
+
+    if (ratesMap && typeof ratesMap[normItemCurr] === 'number' && ratesMap[normItemCurr] > 0) {
+      return { krw: Math.round(itemPrice * ratesMap[normItemCurr]), rateUnverified: false };
+    } else if (normItemCurr === normReqCurr && typeof rateToKrw === 'number' && rateToKrw > 0) {
+      return { krw: Math.round(itemPrice * rateToKrw), rateUnverified: false };
+    } else {
+      return { krw: null, rateUnverified: true };
+    }
   };
 
-  // Case A: rateToKrw is provided and positive
-  const rateToKrw = 9.17;
-  const computedKrw = rateToKrw && rateToKrw > 0 ? Math.round(rawItemFromVision.originalPrice * rateToKrw) : null;
-  assert.equal(computedKrw, 8987);
+  // Case 1: Travel setting JPY, but OCR detected USD item ($15) with NO USD rate in ratesMap
+  // Must NOT apply JPY rate (9.17) to USD item ($15 * 9.17 = 138 KRW is absurd!)
+  const crossCurrencyMisMatch = calculateOcrKrw(15, 'USD', 'JPY', 9.17, {});
+  assert.equal(crossCurrencyMisMatch.krw, null, 'Must be null when item currency USD does not match request currency JPY and no USD rate');
+  assert.equal(crossCurrencyMisMatch.rateUnverified, true);
 
-  // Case B: rateToKrw is absent or 0
-  const noRateToKrw = undefined;
-  const nullKrw = noRateToKrw && (noRateToKrw as number) > 0 ? Math.round(rawItemFromVision.originalPrice * (noRateToKrw as number)) : null;
-  assert.equal(nullKrw, null, 'estimatedKrw must be null when rate is absent, NEVER 0');
-  assert.notEqual(nullKrw, 0, 'estimatedKrw must never be 0 for a priced item');
+  // Case 2: Travel setting JPY, OCR detected USD item ($15), but ratesMap provides verified USD rate (1380)
+  const crossCurrencyWithRatesMap = calculateOcrKrw(15, 'USD', 'JPY', 9.17, { USD: 1380, JPY: 9.17 });
+  assert.equal(crossCurrencyWithRatesMap.krw, 20700, 'Must accurately use USD rate (15 * 1380 = 20700), not JPY rate');
+  assert.equal(crossCurrencyWithRatesMap.rateUnverified, false);
+
+  // Case 3: 2-currency menu image (Item 1 in JPY 980, Item 2 in USD 15)
+  const item1 = calculateOcrKrw(980, 'JPY', 'JPY', 9.17, { JPY: 9.17, USD: 1380 });
+  const item2 = calculateOcrKrw(15, 'USD', 'JPY', 9.17, { JPY: 9.17, USD: 1380 });
+  assert.equal(item1.krw, 8987, 'JPY item must use JPY rate');
+  assert.equal(item2.krw, 20700, 'USD item must use USD rate');
+
+  // Case 4: Missing provider rate (rateToKrw: undefined, ratesMap: undefined)
+  const missingRate = calculateOcrKrw(980, 'JPY', 'JPY', undefined, undefined);
+  assert.equal(missingRate.krw, null, 'estimatedKrw must be null when provider rate is missing, NEVER 0');
+  assert.notEqual(missingRate.krw, 0, 'estimatedKrw must never be 0 for a priced item');
+  assert.equal(missingRate.rateUnverified, true);
 });
 
 test('TB-P1-05 Regression: Manual wallet expense handles genuine rate and nullable KRW cleanly', () => {

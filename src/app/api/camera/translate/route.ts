@@ -150,6 +150,8 @@ interface CameraTranslateRequest {
   currency?: string;
   isSample?: boolean;
   rateToKrw?: number;
+  rateCurrency?: string;
+  ratesMap?: Record<string, number>;
 }
 
 const ALLOWED_MIME_TYPES = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/heic', 'image/gif'];
@@ -164,6 +166,8 @@ export async function POST(req: NextRequest) {
       currency = 'JPY',
       isSample = false,
       rateToKrw,
+      rateCurrency,
+      ratesMap,
     } = body;
 
     // 1. Explicit Sample Mode or No Image provided: Return authentic sample menu
@@ -239,6 +243,7 @@ Return strict JSON with this structure:
       "originalName": "original foreign text from image",
       "translatedName": "natural Korean translation of dish name",
       "originalPrice": number (numeric price without currency symbols, e.g. 980 or 14.5),
+      "currency": "currency code for this specific item if detected (e.g. USD, EUR, JPY), or omit if same as general currency",
       "description": "brief Korean explanation of what it is",
       "confidence": number between 0.0 and 1.0
     }
@@ -275,27 +280,49 @@ Return strict JSON with this structure:
         if (content) {
           const parsed = JSON.parse(content);
           if (Array.isArray(parsed.items) && parsed.items.length > 0) {
-            const detectedCurrency = parsed.currency || currency;
+            const detectedCurrency = (parsed.currency || currency || 'KRW').toUpperCase();
             interface GeminiRawItem {
               originalName?: string;
               translatedName?: string;
               originalPrice?: number;
+              currency?: string;
               description?: string;
               confidence?: number;
             }
 
+            const reqRateCurrency = (rateCurrency || currency || '').toUpperCase();
+
             const formattedItems: MenuItemOCR[] = parsed.items.map((item: GeminiRawItem, idx: number) => {
               const price = typeof item.originalPrice === 'number' && !isNaN(item.originalPrice) ? item.originalPrice : 0;
-              // TB-P1-04: If rateToKrw is provided and positive, calculate KRW; otherwise set null (never 0)
-              const computedKrw = rateToKrw && rateToKrw > 0 ? Math.round(price * rateToKrw) : null;
+              const itemCurrency = (item.currency || detectedCurrency).toUpperCase();
+
+              // TB-P1-04 (targeted fix): Currency matching validation
+              // Only calculate KRW if:
+              // 1. ratesMap contains a verified positive rate for this specific itemCurrency, OR
+              // 2. itemCurrency matches the request currency for which rateToKrw was provided.
+              // Otherwise, set estimatedKrw to null (never 0, and never cross-currency miscalculated).
+              let computedKrw: number | null = null;
+              let rateUnverified = true;
+
+              if (ratesMap && typeof ratesMap[itemCurrency] === 'number' && ratesMap[itemCurrency] > 0) {
+                computedKrw = Math.round(price * ratesMap[itemCurrency]);
+                rateUnverified = false;
+              } else if (itemCurrency === reqRateCurrency && typeof rateToKrw === 'number' && rateToKrw > 0) {
+                computedKrw = Math.round(price * rateToKrw);
+                rateUnverified = false;
+              } else {
+                computedKrw = null;
+                rateUnverified = true;
+              }
 
               return {
                 id: `ocr-${Date.now()}-${idx}`,
                 originalName: item.originalName || 'Menu Item',
                 translatedName: item.translatedName || item.originalName || '메뉴',
                 originalPrice: price,
-                currency: detectedCurrency,
+                currency: itemCurrency,
                 estimatedKrw: computedKrw,
+                rateUnverified,
                 description: item.description || '',
                 confidence: item.confidence || 0.9,
                 isDemo: false,
