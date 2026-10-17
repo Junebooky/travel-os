@@ -282,10 +282,78 @@ export const QUICK_PHRASES: QuickPhrase[] = [
     },
   },
 
-  // --- 교통 (Transit) ---
+  // --- 편의점/마트 (Market & Convenience) ---
   {
-    id: 'transit-1',
-    category: 'transit',
+    id: 'market-1',
+    category: 'market',
+    korean: '봉투 한 장 주세요.',
+    targetTranslations: {
+      ja: '袋を1枚ください。',
+      en: 'A bag, please.',
+      fr: 'Un sac, s\'il vous plaît.',
+      'zh-TW': '請給我一個袋子。',
+      th: 'ขอถุงหนึ่งใบครับ/ค่ะ',
+      vi: 'Cho tôi xin một cái túi.',
+      it: 'Una busta, per favore.',
+      es: 'Una bolsa, por favor.',
+    },
+    romanizations: {
+      ja: '후쿠로오 이치마이 쿠다사이',
+      en: '어 백, 플리즈',
+      'zh-TW': '칭 게이 워 이 거 다이즈',
+      th: '커 퉁 능 바이 캅/카',
+      vi: '초 또이 신 못 까이 뚜이',
+    },
+  },
+  {
+    id: 'market-2',
+    category: 'market',
+    korean: '따뜻하게 데워주실 수 있나요?',
+    targetTranslations: {
+      ja: '温めてもらえますか？',
+      en: 'Could you heat this up, please?',
+      fr: 'Pouvez-vous le réchauffer ?',
+      'zh-TW': '可以幫我加熱一下嗎？',
+      th: 'ช่วยอุ่นให้หน่อยได้ไหมครับ/ค่ะ',
+      vi: 'Làm nóng giúp tôi được không?',
+      it: 'Può scaldarlo, per favore?',
+      es: '¿Puede calentarlo, por favor?',
+    },
+    romanizations: {
+      ja: '아타타메테 모라에마스카?',
+      en: '쿠쥬 힛 디스 업, 플리즈?',
+      'zh-TW': '커이 빵 워 찌아러 이시아 마?',
+      th: '추아이 운 하이 너이 다이 마이 캅/카',
+      vi: '람 농 줍 또이 드억 콩?',
+    },
+  },
+  {
+    id: 'market-3',
+    category: 'market',
+    korean: '영수증은 괜찮습니다.',
+    targetTranslations: {
+      ja: 'レシートは大丈夫です。',
+      en: 'No receipt, thank you.',
+      fr: 'Pas de reçu, merci.',
+      'zh-TW': '不用發票，謝謝。',
+      th: 'ไม่รับใบเสร็จครับ/ค่ะ',
+      vi: 'Không cần hóa đơn đâu, cảm ơn.',
+      it: 'Niente scontrino, grazie.',
+      es: 'Sin recibo, gracias.',
+    },
+    romanizations: {
+      ja: '레시-토와 다이죠-부데스',
+      en: '노 리시트, 땡큐',
+      'zh-TW': '부용 파퍄오, 시에시에',
+      th: '마이 랍 바이쎗 캅/카',
+      vi: '콩 껀 호아 돈 더우, 깜 언',
+    },
+  },
+
+  // --- 교통 (Transport) ---
+  {
+    id: 'transport-1',
+    category: 'transport',
     korean: '여기로 가주세요 (주소 가리키기)',
     targetTranslations: {
       ja: 'ここへ行ってください。',
@@ -305,8 +373,8 @@ export const QUICK_PHRASES: QuickPhrase[] = [
     },
   },
   {
-    id: 'transit-2',
-    category: 'transit',
+    id: 'transport-2',
+    category: 'transport',
     korean: '가장 가까운 지하철역이 어디인가요?',
     targetTranslations: {
       ja: '一番近い地下鉄の駅はどこですか？',
@@ -325,10 +393,10 @@ export const QUICK_PHRASES: QuickPhrase[] = [
     },
   },
 
-  // --- 긴급 (Emergency) ---
+  // --- 긴급/의료 (Pharmacy & Emergency) ---
   {
-    id: 'emergency-1',
-    category: 'emergency',
+    id: 'pharmacy-4',
+    category: 'pharmacy',
     korean: '도와주세요! 긴급 상황입니다.',
     targetTranslations: {
       ja: '助けてください！緊急事態です。',
@@ -348,8 +416,8 @@ export const QUICK_PHRASES: QuickPhrase[] = [
     },
   },
   {
-    id: 'emergency-2',
-    category: 'emergency',
+    id: 'pharmacy-5',
+    category: 'pharmacy',
     korean: '여권을 분실했어요. 경찰서가 어디인가요?',
     targetTranslations: {
       ja: 'パスポートを紛失しました。警察署はどこですか？',

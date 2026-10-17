@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
 import { t, formatCurrency, formatNumber, formatDate } from '../src/lib/i18n';
+import { MAP_CATEGORIES, TRANSLATE_CATEGORIES, getCategoryLabelKey, normalizeCategory } from '../src/lib/categories';
 
 test('A03 UX Copy Deck Contract — 326 keys verification', () => {
   const jsonPath = path.resolve(__dirname, '../src/locales/ko-KR.json');
@@ -110,5 +111,43 @@ test('i18n Contract Integrity — Every t(...) call in components must exist in 
     0,
     `Found ${missingCalls.length} missing t(...) calls: ${JSON.stringify(missingCalls, null, 2)}`
   );
+});
+
+test('QA-P1-01 Regression: Dynamic category keys contract in MAP_CATEGORIES and TRANSLATE_CATEGORIES', () => {
+  const jsonPath = path.resolve(__dirname, '../src/locales/ko-KR.json');
+  const locale = JSON.parse(fs.readFileSync(jsonPath, 'utf-8'));
+
+  // 1. Every MAP_CATEGORIES labelKey must exist in ko-KR.json
+  for (const cat of MAP_CATEGORIES) {
+    assert.ok(
+      locale[cat.labelKey],
+      `MAP_CATEGORIES key "${cat.labelKey}" (id: ${cat.id}) must exist in ko-KR.json`
+    );
+  }
+
+  // 2. Every TRANSLATE_CATEGORIES labelKey must exist in ko-KR.json
+  for (const cat of TRANSLATE_CATEGORIES) {
+    assert.ok(
+      locale[cat.labelKey],
+      `TRANSLATE_CATEGORIES key "${cat.labelKey}" (id: ${cat.id}) must exist in ko-KR.json`
+    );
+  }
+
+  // 3. Every canonical category mapped by getCategoryLabelKey must exist in ko-KR.json
+  const testCategories = [
+    'all', 'food', 'cafe', 'shopping', 'market', 'stay', 'pharmacy', 'airport', 'transport',
+    // Legacy aliases
+    'convenience', 'transit', 'attraction', 'emergency',
+  ];
+
+  for (const cat of testCategories) {
+    const labelKey = getCategoryLabelKey(cat);
+    assert.ok(
+      locale[labelKey],
+      `Category "${cat}" resolved to "${labelKey}" which must exist in ko-KR.json`
+    );
+    const normalized = normalizeCategory(cat);
+    assert.ok(normalized, `Category "${cat}" should normalize properly`);
+  }
 });
 

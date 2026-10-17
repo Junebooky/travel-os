@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { COUNTRIES } from '@/data/countries';
 import { Place, PlaceCategory } from '@/types/travel';
+import { normalizeCategory } from '@/lib/categories';
 
 interface GooglePlaceItem {
   place_id?: string;
@@ -22,11 +23,24 @@ interface OsmPlaceItem {
   lon: string;
 }
 
+// Server-wide rate limiter & in-memory cache complying with OSM Nominatim Acceptable Use Policy
+// https://operations.osmfoundation.org/policies/nominatim/ (Max 1 request/sec, no autocomplete)
+const NOMINATIM_MIN_INTERVAL_MS = 1050;
+let lastNominatimCallTime = 0;
+
+interface CacheEntry {
+  timestamp: number;
+  places: Place[];
+}
+const nominatimCache = new Map<string, CacheEntry>();
+const CACHE_TTL_MS = 60 * 60 * 1000; // 1 hour TTL
+
 export async function GET(req: NextRequest) {
   try {
     const { searchParams } = new URL(req.url);
     const query = searchParams.get('query')?.trim() || '';
-    const category = (searchParams.get('category')?.trim() || 'all') as PlaceCategory;
+    const rawCategory = (searchParams.get('category')?.trim() || 'all') as PlaceCategory;
+    const category = normalizeCategory(rawCategory);
     const countryCode = searchParams.get('country')?.trim() || 'JP';
     const lat = parseFloat(searchParams.get('lat') || '0');
     const lng = parseFloat(searchParams.get('lng') || '0');
@@ -48,7 +62,7 @@ export async function GET(req: NextRequest) {
             const places: Place[] = data.results.slice(0, 10).map((r: GooglePlaceItem, idx: number) => ({
               id: r.place_id || `google-${idx}`,
               name: r.name,
-              category: category !== 'all' ? category : 'attraction',
+              category: category !== 'all' ? category : 'stay',
               categoryName: r.types?.[0] || '장소',
               address: r.formatted_address || '',
               lat: r.geometry?.location?.lat || lat,
@@ -73,9 +87,32 @@ export async function GET(req: NextRequest) {
       }
     }
 
-    // 2. OpenStreetMap / Nominatim live geocoded search if query is provided and no Google key
+    // 2. OpenStreetMap / Nominatim live geocoded search
+    // Strictly used for EXPLICIT SEARCH SUBMISSIONS (not keystroke autocomplete)
+    // Server enforces: 1req/sec global throttle, 1hr caching, and compliant User-Agent
     if (query && query.length >= 2) {
+      const cacheKey = `${query.toLowerCase()}#${category}#${countryCode}`;
+      const cached = nominatimCache.get(cacheKey);
+
+      if (cached && Date.now() - cached.timestamp < CACHE_TTL_MS) {
+        return NextResponse.json({
+          success: true,
+          isDemo: false,
+          isCached: true,
+          provider: 'OpenStreetMap Nominatim (서버 캐시)',
+          attribution: 'Data © OpenStreetMap contributors, ODbL 1.0 (https://osm.org/copyright)',
+          places: cached.places,
+        });
+      }
+
       try {
+        // Enforce server-wide 1 req/sec throttle
+        const elapsed = Date.now() - lastNominatimCallTime;
+        if (elapsed < NOMINATIM_MIN_INTERVAL_MS) {
+          await new Promise((resolve) => setTimeout(resolve, NOMINATIM_MIN_INTERVAL_MS - elapsed));
+        }
+        lastNominatimCallTime = Date.now();
+
         const viewboxParam =
           lat && lng
             ? `&viewbox=${(lng - 0.25).toFixed(4)},${(lat + 0.25).toFixed(4)},${(lng + 0.25).toFixed(4)},${(lat - 0.25).toFixed(4)}&bounded=0`
@@ -84,12 +121,17 @@ export async function GET(req: NextRequest) {
           query
         )}${viewboxParam}&addressdetails=1&limit=8`;
 
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 6000);
+
         const osmRes = await fetch(nominatimUrl, {
+          signal: controller.signal,
           headers: {
-            'User-Agent': 'TravelOS/1.0 (https://github.com/Junebooky/travel-os; travelos@antigravity.dev)',
+            'User-Agent': 'TravelOS/1.0 (https://github.com/Junebooky/travel-os; travelos-mvp@antigravity.dev)',
             'Accept-Language': 'ko,en',
           },
         });
+        clearTimeout(timeoutId);
 
         if (osmRes.ok) {
           const osmData = await osmRes.json();
@@ -97,7 +139,7 @@ export async function GET(req: NextRequest) {
             const osmPlaces: Place[] = osmData.map((item: OsmPlaceItem, idx: number) => ({
               id: `osm-${item.place_id || idx}`,
               name: item.name || item.display_name.split(',')[0],
-              category: category !== 'all' ? category : 'attraction',
+              category: category !== 'all' ? category : 'stay',
               categoryName: item.type || '장소',
               address: item.display_name,
               lat: parseFloat(item.lat),
@@ -106,11 +148,17 @@ export async function GET(req: NextRequest) {
               description: item.display_name,
             }));
 
+            // Store in server cache
+            nominatimCache.set(cacheKey, {
+              timestamp: Date.now(),
+              places: osmPlaces,
+            });
+
             return NextResponse.json({
               success: true,
               isDemo: false,
               provider: 'OpenStreetMap Nominatim',
-              attribution: '© OpenStreetMap contributors, ODbL 1.0',
+              attribution: 'Data © OpenStreetMap contributors, ODbL 1.0 (https://osm.org/copyright)',
               places: osmPlaces,
             });
           }
@@ -127,7 +175,7 @@ export async function GET(req: NextRequest) {
     let filtered = selectedCountry.popularPlaces;
 
     if (category !== 'all') {
-      filtered = filtered.filter((p) => p.category === category);
+      filtered = filtered.filter((p) => normalizeCategory(p.category) === category);
     }
 
     if (query) {
@@ -143,7 +191,8 @@ export async function GET(req: NextRequest) {
       success: true,
       isDemo: true,
       provider: '추천 장소 (데모 모드)',
-      demoNotice: 'Google Maps API 키가 설정되지 않아 검증된 추천 예시 장소를 표시하고 있습니다.',
+      demoNotice: 'Google Maps API 키가 설정되지 않아 OpenStreetMap 실지형 타일 및 추천 데이터를 표시하고 있습니다.',
+      attribution: '© OpenStreetMap contributors',
       places: filtered,
     });
   } catch (error) {

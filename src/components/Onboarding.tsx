@@ -16,6 +16,7 @@ export default function Onboarding() {
     localCurrency,
     setLocalCurrency,
     setOnboardingCompleted,
+    setMapViewport,
     showToast,
   } = useTravel();
 
@@ -55,7 +56,11 @@ export default function Onboarding() {
   const handleRequestLocation = () => {
     if ('geolocation' in navigator) {
       navigator.geolocation.getCurrentPosition(
-        () => {
+        (pos) => {
+          setMapViewport({
+            center: { lat: pos.coords.latitude, lng: pos.coords.longitude },
+            zoom: 15,
+          });
           showToast(t('onboarding.finish.toast'), 'success');
           setOnboardingCompleted(true);
         },

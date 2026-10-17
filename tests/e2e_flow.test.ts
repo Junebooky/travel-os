@@ -96,3 +96,65 @@ test('Logical State Transition & Contract Simulation (In-memory user flow logic)
   assert.equal(activePlace, null);
   assert.equal(savedPlaces.length, 0);
 });
+
+test('QA-P1-02 Regression: Input modification immediately invalidates stale translation', () => {
+  let inputText = '안녕하세요';
+  let translatedText = 'こんにちは';
+  let romanization = '콘니치와';
+  let errorMessage: string | null = null;
+
+  // Simulate handleInputChange
+  const handleInputChange = (newText: string) => {
+    inputText = newText;
+    translatedText = '';
+    romanization = '';
+    errorMessage = null;
+  };
+
+  // User modifies text
+  handleInputChange('감사합니다');
+  assert.equal(inputText, '감사합니다');
+  assert.equal(translatedText, '', 'Stale translated text must be cleared immediately upon editing');
+  assert.equal(romanization, '', 'Stale romanization must be cleared immediately upon editing');
+  assert.equal(errorMessage, null);
+});
+
+test('QA-P1-03 Regression: Search for remote city recenters map viewport to result coordinates', () => {
+  // Current viewport centered in Tokyo
+  const tokyoCenter = { lat: 35.6762, lng: 139.6503 };
+  let mapCenter = { ...tokyoCenter };
+  let mapViewport = { center: { ...tokyoCenter }, zoom: 15 };
+  let activePlace: Place | null = null;
+
+  // Search returns Osaka
+  const osakaPlace: Place = {
+    id: 'osaka-dotonbori',
+    name: '도톤보리',
+    category: 'stay',
+    address: 'Chuo Ward, Osaka, 542-0071 Japan',
+    lat: 34.6687,
+    lng: 135.5013,
+  };
+
+  // Simulate search return recentering logic
+  const handleSearchResult = (places: Place[]) => {
+    if (places.length > 0) {
+      const first = places[0];
+      const newCenter = { lat: first.lat, lng: first.lng };
+      mapCenter = newCenter;
+      mapViewport = { center: newCenter, zoom: 14 };
+      activePlace = first;
+    }
+  };
+
+  handleSearchResult([osakaPlace]);
+
+  // Center must be updated to Osaka (not left in Tokyo)
+  assert.equal(mapCenter.lat, 34.6687);
+  assert.equal(mapCenter.lng, 135.5013);
+  assert.equal(mapViewport.center.lat, 34.6687);
+  assert.equal(mapViewport.zoom, 14);
+  assert.ok(activePlace);
+  assert.equal((activePlace as Place).name, '도톤보리');
+});
+

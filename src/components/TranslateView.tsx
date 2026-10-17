@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useMemo, useCallback } from 'react';
+import React, { useState, useMemo, useCallback, useRef } from 'react';
 import { useTravel } from '@/context/TravelContext';
 import { t } from '@/lib/i18n';
 import { QUICK_PHRASES } from '@/data/phrases';
@@ -23,16 +23,24 @@ import {
   Send,
   MapPin,
   Check,
+  Store,
 } from 'lucide-react';
+import { TRANSLATE_CATEGORIES, normalizeCategory } from '@/lib/categories';
 
-const CATEGORIES: Array<{ id: PlaceCategory; labelKey: string; icon: React.ComponentType<{ className?: string }> }> = [
-  { id: 'food', labelKey: 'translate.category.food', icon: Utensils },
-  { id: 'cafe', labelKey: 'translate.category.cafe', icon: Coffee },
-  { id: 'pharmacy', labelKey: 'translate.category.pharmacy', icon: HeartPulse },
-  { id: 'shopping', labelKey: 'translate.category.shopping', icon: ShoppingBag },
-  { id: 'transit', labelKey: 'translate.category.transit', icon: Train },
-  { id: 'emergency', labelKey: 'translate.category.emergency', icon: AlertCircle },
-];
+const CATEGORY_ICONS: Record<string, React.ComponentType<{ className?: string }>> = {
+  food: Utensils,
+  cafe: Coffee,
+  shopping: ShoppingBag,
+  market: Store,
+  pharmacy: HeartPulse,
+  transport: Train,
+};
+
+const CATEGORIES = TRANSLATE_CATEGORIES.map((cat) => ({
+  id: cat.id,
+  labelKey: cat.labelKey,
+  icon: CATEGORY_ICONS[cat.id] || Sparkles,
+}));
 
 export default function TranslateView() {
   const {
@@ -47,10 +55,9 @@ export default function TranslateView() {
   } = useTravel();
 
   // Set default category based on activePlace category if available
-  const initialCategory: PlaceCategory =
-    activePlace?.category && ['food', 'cafe', 'pharmacy', 'shopping', 'transit', 'emergency'].includes(activePlace.category)
-      ? activePlace.category
-      : 'food';
+  const initialCategory: PlaceCategory = activePlace?.category
+    ? normalizeCategory(activePlace.category)
+    : 'food';
 
   const defaultPhrase = QUICK_PHRASES[0];
 
@@ -68,14 +75,40 @@ export default function TranslateView() {
   const [isFullscreenModalOpen, setIsFullscreenModalOpen] = useState<boolean>(false);
   const [isFlipped, setIsFlipped] = useState<boolean>(false);
 
+  const abortControllerRef = useRef<AbortController | null>(null);
+  const activeRequestIdRef = useRef<number>(0);
+
+  // Invalidate stale translation and cancel any in-flight requests when input text changes
+  const handleInputChange = (newText: string) => {
+    setInputText(newText);
+    setTranslatedText('');
+    setRomanization('');
+    setErrorMessage(null);
+    setSuggestedAlternatives([]);
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+      abortControllerRef.current = null;
+    }
+  };
+
   // Filter phrases by category
   const categoryPhrases = useMemo(() => {
-    return QUICK_PHRASES.filter((p) => p.category === selectedCategory);
+    return QUICK_PHRASES.filter(
+      (p) => normalizeCategory(p.category) === normalizeCategory(selectedCategory)
+    );
   }, [selectedCategory]);
 
-  // Translate function
+  // Translate function with AbortController and race condition safety
   const handleTranslate = useCallback(async (textToTranslate: string) => {
     if (!textToTranslate.trim()) return;
+
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+    }
+    const controller = new AbortController();
+    abortControllerRef.current = controller;
+    const requestId = ++activeRequestIdRef.current;
+
     setIsLoading(true);
     setErrorMessage(null);
 
@@ -88,9 +121,11 @@ export default function TranslateView() {
           sourceLang,
           targetLang,
         }),
+        signal: controller.signal,
       });
 
       const data = await res.json();
+      if (requestId !== activeRequestIdRef.current) return;
 
       if (res.ok && data.success) {
         setTranslatedText(data.translation || '');
@@ -109,7 +144,10 @@ export default function TranslateView() {
           setSuggestedAlternatives(data.suggestedPhrases);
         }
       }
-    } catch {
+    } catch (err: unknown) {
+      if ((err as Error)?.name === 'AbortError') return;
+      if (requestId !== activeRequestIdRef.current) return;
+
       // Local check if matches verified phrases
       const match = QUICK_PHRASES.find(
         (p) => p.korean.replace(/[.?!]/g, '').trim() === textToTranslate.replace(/[.?!]/g, '').trim()
@@ -124,12 +162,19 @@ export default function TranslateView() {
         setErrorMessage(t('common.error.service_unavailable'));
       }
     } finally {
-      setIsLoading(false);
+      if (requestId === activeRequestIdRef.current) {
+        setIsLoading(false);
+      }
     }
   }, [sourceLang, targetLang]);
 
   const handleSelectPhrase = (phrase: QuickPhrase | { id: string; korean: string; translation?: string; romanization?: string; sourceText?: string; targetText?: string }) => {
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+      abortControllerRef.current = null;
+    }
     setErrorMessage(null);
+    setSuggestedAlternatives([]);
     if ('targetTranslations' in phrase) {
       if (sourceLang === 'ko') {
         setInputText(phrase.korean);
@@ -161,15 +206,23 @@ export default function TranslateView() {
   };
 
   const handleSwapLanguages = () => {
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+      abortControllerRef.current = null;
+    }
     const temp = sourceLang;
     setSourceLang(targetLang);
     setTargetLang(temp);
     setErrorMessage(null);
+    setSuggestedAlternatives([]);
     // Swap text
     if (translatedText) {
       const oldInput = inputText;
       setInputText(translatedText);
       setTranslatedText(oldInput);
+      setRomanization('');
+    } else {
+      setTranslatedText('');
       setRomanization('');
     }
   };
@@ -323,7 +376,7 @@ export default function TranslateView() {
             </span>
             {inputText && (
               <button
-                onClick={() => setInputText('')}
+                onClick={() => handleInputChange('')}
                 className="text-xs text-slate-400 hover:text-slate-200 p-0.5"
                 aria-label={t('translate.input.clear')}
               >
@@ -334,7 +387,7 @@ export default function TranslateView() {
 
           <textarea
             value={inputText}
-            onChange={(e) => setInputText(e.target.value)}
+            onChange={(e) => handleInputChange(e.target.value)}
             rows={2}
             placeholder={t('translate.input.placeholder')}
             className="w-full bg-transparent text-sm text-slate-100 placeholder-slate-500 resize-none focus:outline-none"

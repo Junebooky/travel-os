@@ -29,17 +29,25 @@ import {
   Star,
   Info,
 } from 'lucide-react';
+import { MAP_CATEGORIES, normalizeCategory } from '@/lib/categories';
 
-const CATEGORIES: Array<{ id: PlaceCategory; labelKey: string; icon: React.ComponentType<{ className?: string }> }> = [
-  { id: 'all', labelKey: 'map.category.all', icon: Compass },
-  { id: 'food', labelKey: 'map.category.food', icon: Utensils },
-  { id: 'cafe', labelKey: 'map.category.cafe', icon: Coffee },
-  { id: 'convenience', labelKey: 'map.category.convenience', icon: Store },
-  { id: 'pharmacy', labelKey: 'map.category.pharmacy', icon: HeartPulse },
-  { id: 'shopping', labelKey: 'map.category.shopping', icon: ShoppingBag },
-  { id: 'attraction', labelKey: 'map.category.attraction', icon: Landmark },
-  { id: 'transit', labelKey: 'map.category.transit', icon: Train },
-];
+const CATEGORY_ICONS: Record<string, React.ComponentType<{ className?: string }>> = {
+  all: Compass,
+  food: Utensils,
+  cafe: Coffee,
+  shopping: ShoppingBag,
+  market: Store,
+  stay: Landmark,
+  pharmacy: HeartPulse,
+  airport: Train,
+  transport: Train,
+};
+
+const CATEGORIES = MAP_CATEGORIES.map((cat) => ({
+  id: cat.id,
+  labelKey: cat.labelKey,
+  icon: CATEGORY_ICONS[cat.id] || Compass,
+}));
 
 // Standard Web Mercator (EPSG:3857) projection functions
 function lngToTileX(lng: number, zoom: number): number {
@@ -77,6 +85,8 @@ export default function MapView() {
     setSelectedCategory,
     searchQuery,
     setSearchQuery,
+    mapViewport,
+    setMapViewport,
   } = useTravel();
 
   const containerRef = useRef<HTMLDivElement>(null);
@@ -85,9 +95,11 @@ export default function MapView() {
     height: 844,
   });
 
-  // Geographic center and zoom (default: country center, street zoom 15)
-  const [mapCenter, setMapCenter] = useState<{ lat: number; lng: number }>(country.defaultCenter);
-  const [zoomLevel, setZoomLevel] = useState<number>(15);
+  // Geographic center and zoom (default: context viewport center or country defaultCenter, street zoom 15)
+  const [mapCenter, setMapCenter] = useState<{ lat: number; lng: number }>(
+    mapViewport?.center || country.defaultCenter
+  );
+  const [zoomLevel, setZoomLevel] = useState<number>(mapViewport?.zoom || 15);
 
   // Drag interaction states
   const [isDragging, setIsDragging] = useState<boolean>(false);
@@ -119,55 +131,94 @@ export default function MapView() {
   if (country.code !== prevCountryCode) {
     setPrevCountryCode(country.code);
     setMapCenter(country.defaultCenter);
+    setMapViewport({ center: country.defaultCenter, zoom: 15 });
   }
 
-  // Connect to /api/places/search with 800ms debounce (complying with OSM Nominatim usage policy)
-  const fetchPlaces = useCallback(async (query: string, category: PlaceCategory, center: { lat: number; lng: number }) => {
-    try {
+  // Connect to /api/places/search (strictly submit/category based, adhering to OSM Nominatim policy)
+  const fetchPlaces = useCallback(
+    async (
+      query: string,
+      category: PlaceCategory,
+      center: { lat: number; lng: number },
+      options: { recenterOnResult?: boolean } = {}
+    ) => {
       setIsSearchingPlaces(true);
-      const params = new URLSearchParams({
-        country: country.code,
-        category,
-        query,
-        lat: String(center.lat),
-        lng: String(center.lng),
-      });
+      try {
+        const params = new URLSearchParams({
+          country: country.code,
+          category: normalizeCategory(category),
+          query: query.trim(),
+          lat: String(center.lat),
+          lng: String(center.lng),
+        });
 
-      const res = await fetch(`/api/places/search?${params.toString()}`);
-      if (res.ok) {
-        const data = await res.json();
-        if (data.places) {
-          setApiPlaces(data.places);
-          setIsDemoMode(Boolean(data.isDemo));
-          setDemoNotice(data.demoNotice || '');
+        const res = await fetch(`/api/places/search?${params.toString()}`);
+        if (res.ok) {
+          const data = await res.json();
+          if (data.places) {
+            setApiPlaces(data.places);
+            setIsDemoMode(Boolean(data.isDemo));
+            setDemoNotice(data.demoNotice || '');
+
+            // Recenter map viewport if search returned remote or queried places (QA-P1-03)
+            if (data.places.length > 0 && (query.trim().length > 0 || options.recenterOnResult)) {
+              const firstPlace = data.places[0];
+              const newCenter = { lat: firstPlace.lat, lng: firstPlace.lng };
+              setMapCenter(newCenter);
+              setMapViewport({ center: newCenter, zoom: 14 });
+              setActivePlace(firstPlace);
+            }
+          }
         }
+      } catch (err) {
+        console.warn('[MapView] Place search fetch error:', err);
+      } finally {
+        setIsSearchingPlaces(false);
       }
-    } catch (err) {
-      console.warn('[MapView] Place search fetch error:', err);
-    } finally {
-      setIsSearchingPlaces(false);
-    }
-  }, [country.code]);
+    },
+    [country.code, setActivePlace, setMapViewport]
+  );
 
+  // Load places when country or category changes (strictly event/change driven, no keystroke debounce)
   useEffect(() => {
     let ignore = false;
-    const timer = setTimeout(() => {
-      if (!ignore) {
-        fetchPlaces(searchQuery, selectedCategory, mapCenter);
-      }
-    }, 800);
+    async function loadCategoryPlaces() {
+      try {
+        const params = new URLSearchParams({
+          country: country.code,
+          category: normalizeCategory(selectedCategory),
+          query: '',
+          lat: String(mapCenter.lat),
+          lng: String(mapCenter.lng),
+        });
 
+        const res = await fetch(`/api/places/search?${params.toString()}`);
+        if (res.ok && !ignore) {
+          const data = await res.json();
+          if (data.places) {
+            setApiPlaces(data.places);
+            setIsDemoMode(Boolean(data.isDemo));
+            setDemoNotice(data.demoNotice || '');
+          }
+        }
+      } catch (err) {
+        console.warn('[MapView] Place search fetch error:', err);
+      }
+    }
+
+    loadCategoryPlaces();
     return () => {
       ignore = true;
-      clearTimeout(timer);
     };
-  }, [searchQuery, selectedCategory, country.code, fetchPlaces, mapCenter]);
+  }, [country.code, selectedCategory, mapCenter.lat, mapCenter.lng]);
 
   // Filtered places
   const filteredPlaces = useMemo(() => {
     if (apiPlaces !== null) return apiPlaces;
     return country.popularPlaces.filter((p) => {
-      const matchCategory = selectedCategory === 'all' || p.category === selectedCategory;
+      const matchCategory =
+        selectedCategory === 'all' ||
+        normalizeCategory(p.category) === normalizeCategory(selectedCategory);
       const matchQuery =
         !searchQuery.trim() ||
         p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -402,32 +453,80 @@ export default function MapView() {
         {/* Search Bar */}
         <div className="relative shadow-xl shadow-black/50">
           <div className="relative flex items-center bg-slate-900/95 backdrop-blur-md border border-slate-700/80 rounded-2xl overflow-hidden focus-within:ring-2 focus-within:ring-blue-500">
-            <div className="pl-3.5 pr-2 text-slate-400">
+            <button
+              type="button"
+              onClick={() => fetchPlaces(searchQuery, selectedCategory, mapCenter, { recenterOnResult: true })}
+              className="pl-3.5 pr-2 text-slate-400 hover:text-blue-400 transition-colors"
+              aria-label="장소 검색"
+            >
               <Search className={`w-4 h-4 ${isSearchingPlaces ? 'animate-pulse text-blue-400' : ''}`} />
-            </div>
+            </button>
             <input
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               onKeyDown={(e) => {
                 if (e.key === 'Enter') {
-                  fetchPlaces(searchQuery, selectedCategory, mapCenter);
+                  e.preventDefault();
+                  fetchPlaces(searchQuery, selectedCategory, mapCenter, { recenterOnResult: true });
                 }
               }}
               placeholder={t('map.search.placeholder')}
-              className="w-full bg-transparent py-3 pr-9 text-sm text-slate-100 placeholder-slate-400 focus:outline-none"
+              className="w-full bg-transparent py-3 pr-20 text-sm text-slate-100 placeholder-slate-400 focus:outline-none"
             />
-            {searchQuery && (
+            <div className="absolute right-2 flex items-center gap-1">
+              {searchQuery && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSearchQuery('');
+                    setApiPlaces(null);
+                    fetchPlaces('', selectedCategory, mapCenter);
+                  }}
+                  className="text-slate-400 hover:text-slate-200 p-1"
+                  aria-label={t('map.search.clear')}
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              )}
               <button
-                onClick={() => setSearchQuery('')}
-                className="absolute right-3 text-slate-400 hover:text-slate-200 p-1"
-                aria-label={t('map.search.clear')}
+                type="button"
+                onClick={() => fetchPlaces(searchQuery, selectedCategory, mapCenter, { recenterOnResult: true })}
+                disabled={isSearchingPlaces || !searchQuery.trim()}
+                className="px-2.5 py-1 bg-blue-600 hover:bg-blue-500 disabled:opacity-40 text-white text-xs font-semibold rounded-lg shadow-sm transition-all active:scale-95"
               >
-                <X className="w-4 h-4" />
+                검색
               </button>
-            )}
+            </div>
           </div>
         </div>
+
+        {/* Quick Result Jump Chips (Remote/Local Places Navigation) */}
+        {searchQuery.trim() && apiPlaces && apiPlaces.length > 0 && (
+          <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar py-0.5 -mx-3 px-3">
+            <span className="text-[11px] font-semibold text-slate-300 bg-slate-900/90 border border-slate-700/80 px-2 py-1 rounded-xl shrink-0 backdrop-blur-md">
+              결과 {apiPlaces.length}건
+            </span>
+            {apiPlaces.slice(0, 5).map((place) => (
+              <button
+                key={place.id}
+                onClick={() => {
+                  const newCenter = { lat: place.lat, lng: place.lng };
+                  setMapCenter(newCenter);
+                  setMapViewport({ center: newCenter, zoom: 15 });
+                  setActivePlace(place);
+                }}
+                className={`px-2.5 py-1 rounded-xl text-[11px] font-medium whitespace-nowrap transition-all border shrink-0 backdrop-blur-md active:scale-95 ${
+                  activePlace?.id === place.id
+                    ? 'bg-blue-600 text-white border-blue-400 shadow-md shadow-blue-600/30'
+                    : 'bg-slate-900/90 text-slate-300 border-slate-700 hover:bg-slate-800'
+                }`}
+              >
+                {place.name}
+              </button>
+            ))}
+          </div>
+        )}
 
         {/* Category Horizontal Filter Chips */}
         <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar py-0.5 -mx-3 px-3">

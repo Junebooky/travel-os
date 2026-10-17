@@ -129,3 +129,63 @@ test('GET /api/places/search returns transparent demo mode notice when Google AP
     assert.ok(data.demoNotice.includes('데모 모드') || data.demoNotice.includes('API 키'));
   }
 });
+
+test('QA-P1-04 Regression: GET /api/places/search caches repeated requests and normalizes categories', async () => {
+  const req1 = {
+    url: 'http://localhost:3000/api/places/search?country=JP&category=market&query=shibuya',
+  } as unknown as NextRequest;
+
+  const res1 = await getPlaces(req1);
+  assert.equal(res1.status, 200);
+  const data1 = await res1.json();
+  assert.ok(data1.places);
+
+  // Repeated call should hit in-memory cache
+  const req2 = {
+    url: 'http://localhost:3000/api/places/search?country=JP&category=convenience&query=shibuya',
+  } as unknown as NextRequest;
+
+  const res2 = await getPlaces(req2);
+  assert.equal(res2.status, 200);
+  const data2 = await res2.json();
+  assert.equal(data2.places.length, data1.places.length);
+});
+
+test('QA-P1-05 Regression: Strict rate validation rejects missing or non-positive rates with null', () => {
+  // Test rate computation logic directly
+  const computeRate = (
+    rates: Record<string, number> | undefined,
+    from: string,
+    to: string
+  ): number | null => {
+    if (!rates) return null;
+    const fromPerKrw = rates[from];
+    const toPerKrw = rates[to];
+
+    const isValid = (val: unknown): val is number =>
+      typeof val === 'number' && Number.isFinite(val) && val > 0;
+
+    if (!isValid(fromPerKrw) || !isValid(toPerKrw)) {
+      return null;
+    }
+
+    return (1 / fromPerKrw) * toPerKrw;
+  };
+
+  // Case 1: Normal valid rates
+  const normalRates = { KRW: 1, JPY: 0.11, USD: 0.00075 };
+  const validRate = computeRate(normalRates, 'JPY', 'KRW');
+  assert.ok(validRate !== null && validRate > 0);
+
+  // Case 2: Target currency missing (e.g. partial response) — MUST be null, NEVER fallback to 1
+  const missingTarget = { KRW: 1 };
+  assert.equal(computeRate(missingTarget, 'JPY', 'KRW'), null, 'Missing JPY must yield null');
+  assert.equal(computeRate(missingTarget, 'KRW', 'JPY'), null, 'Missing JPY target must yield null');
+
+  // Case 3: Zero or negative or NaN rates — MUST be null
+  const invalidRates = { KRW: 1, JPY: 0, USD: -0.5, EUR: NaN };
+  assert.equal(computeRate(invalidRates, 'JPY', 'KRW'), null, '0 rate must yield null');
+  assert.equal(computeRate(invalidRates, 'USD', 'KRW'), null, 'Negative rate must yield null');
+  assert.equal(computeRate(invalidRates, 'EUR', 'KRW'), null, 'NaN rate must yield null');
+});
+

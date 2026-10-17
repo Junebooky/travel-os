@@ -35,7 +35,7 @@ export default function CurrencyView() {
   const toCurrency = isSwapped ? localCurrency : homeCurrency;
 
   // Fetch exchange rates from backend API
-  const fetchRates = useCallback(async () => {
+  const fetchRates = useCallback(async (notifySuccess = false) => {
     setIsLoading(true);
     setRateError(null);
     try {
@@ -44,6 +44,9 @@ export default function CurrencyView() {
       if (res.ok && data.success && data.rates) {
         setRateData(data);
         setRateError(null);
+        if (notifySuccess) {
+          showToast(t('currency.rate.updated'), 'success');
+        }
       } else {
         setRateError(data.message || t('common.error.service_unavailable'));
       }
@@ -52,7 +55,7 @@ export default function CurrencyView() {
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [showToast]);
 
   useEffect(() => {
     let ignore = false;
@@ -85,8 +88,15 @@ export default function CurrencyView() {
     }
 
     const rates = rateData.rates;
-    const fromPerKrw = rates[fromCurrency] || 1;
-    const toPerKrw = rates[toCurrency] || 1;
+    const fromPerKrw = rates[fromCurrency];
+    const toPerKrw = rates[toCurrency];
+
+    const isValid = (val: unknown): val is number =>
+      typeof val === 'number' && Number.isFinite(val) && val > 0;
+
+    if (!isValid(fromPerKrw) || !isValid(toPerKrw)) {
+      return null;
+    }
 
     // 1 FROM = (1 / fromPerKrw) * toPerKrw TO
     return (1 / fromPerKrw) * toPerKrw;
@@ -251,7 +261,7 @@ export default function CurrencyView() {
             </div>
             <div className="flex items-center gap-2 pt-1 border-t border-amber-900/50">
               <button
-                onClick={fetchRates}
+                onClick={() => fetchRates()}
                 disabled={isLoading}
                 className="py-2 px-3 rounded-xl bg-amber-900/60 hover:bg-amber-850 text-amber-200 text-xs font-semibold flex items-center gap-1.5 transition-all active:scale-95 disabled:opacity-50"
               >
@@ -265,10 +275,7 @@ export default function CurrencyView() {
             <div className="flex items-center justify-between text-xs font-semibold text-blue-300">
               <span>{t('currency.title')}</span>
               <button
-                onClick={() => {
-                fetchRates();
-                showToast(t('currency.rate.updated'), 'success');
-              }}
+                onClick={() => fetchRates(true)}
                 disabled={isLoading}
                 className="flex items-center gap-1 px-2 py-1 rounded-lg bg-blue-950/60 hover:bg-blue-900 text-[11px] text-blue-300 border border-blue-800/50 transition-all active:scale-95 disabled:opacity-50"
               >

@@ -39,7 +39,7 @@ test('Supported languages and currencies coverage', () => {
 });
 
 test('Quick situational phrases coverage across categories', () => {
-  const categories = ['food', 'cafe', 'pharmacy', 'shopping', 'transit', 'emergency'];
+  const categories = ['food', 'cafe', 'pharmacy', 'shopping', 'market', 'transport'];
 
   for (const cat of categories) {
     const matching = QUICK_PHRASES.filter((p) => p.category === cat);
