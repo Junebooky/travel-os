@@ -5,6 +5,35 @@
 > **기준 코드:** Track B [PR #11](https://github.com/Junebooky/travel-os/pull/11) HEAD `f08aa268ce50c68b4f48d8b95e71e370cb3a9cb9` (당시 open/unmerged).  
 > **의미:** 아래 이미지는 **디자인 목적의 SVG 목업**이며 실제 실행 화면/QA 스크린샷이 아닙니다. 이미지 속 금액·장소·환율 기준일은 시각 설명을 위한 **가상 예시**입니다.
 
+## 0. [오너 운영 규칙] 디자인 변경 시 GitHub **현재본 교체·구본 제거** — 반드시 준수
+
+**오너 지시(2026-10-18):** 디자인은 지속 변경 가능. **바뀐 페이지는 즉시 GitHub에 업데이트하고 이전 버전의 이미지/파일은 최신 파일 목록에서 삭제**한다. 본 문서는 **A03의 현재 디자인 단일 정본(SINGLE_SOURCE_OF_TRUTH)**이다.
+
+1. **기존 파일 경로 그대로 overwrite:** 페이지 변경 시 아래 고정 경로의 SVG를 `fetch_file` → 해당 blob SHA 사용한 `update_file`로 **내용 전체 교체**한다. `01-map-old.svg`, `01-map-v4.svg`, `final-final.svg`처럼 구형·중복 파일을 쌓지 않는다. 기존 경로를 유지해야 #15/PR #11의 링크가 계속 최신 시안으로 연결된다.
+2. **연결 파일 같은 변경 묶음 처리:** 한 페이지라도 바뀌면 **해당 개별 SVG + `white-ui-v3-overview.svg`(7면 스토리보드) + 본 `README.md`의 시안 상태/카피/Before·After/수용 기준**을 같은 작업 턴에서 동기화한다. 구형 설명이 남지 않도록 README 변경 사항을 먼저 확인한다.
+3. **안 쓰는 디자인은 HEAD에서 실제 삭제:** 사라진 페이지/대체된 이미지가 있다면 GitHub `delete_file`로 그 자산을 **현재 디자인 브랜치의 최신 트리에서 제거**한다. README/스토리보드 링크 및 #15/PR #11 참조도 최신 파일로 수정한다. **교체물이 정상 업로드되기 전에 유일한 현행 파일을 먼저 삭제하지 않는다.**
+4. **A02 즉시 직접 인계:** 이미지 갱신 커밋의 전체 SHA, 바뀐 화면 ID, 달라진 UI/상태/카피 키, A02에서 건드릴 컴포넌트, 완료 판정을 #15와 PR #11에 `[A03 → A02]`로 게시한다. #13의 A03 체크도 갱신한다. **GitHub 댓글이 다른 대화 런타임을 자동 실행하진 않으므로** A02는 매 작업 전에 본 문서/PR #18을 읽어야 한다.
+5. **검증 후 완료 판정:** `fetch_file`로 갱신 경로/올바른 SVG 및 현재 이미지 개수, `get_pr_info`/changed filenames로 PR #18 상태 확인. SVG 변경은 **DESIGN_UPDATED**, A02 개발 변경은 **CODE_APPLIED**, CI/브라우저/실기기 검증은 **별도**로 구별한다.
+6. **삭제의 정확한 의미:** 오래된 **이미지·불필요한 시안 파일은 최신 브랜치에서 제거**한다. Git 커밋 기록/오너 의사결정 및 이전 이슈 코멘트는 과거 증거로 남을 수 있고, 기록 전체를 파괴적으로 지우지는 않는다. 이전 버전 댓글에는 **SUPERSEDED / 현재 정본 링크**를 표시해 혼동을 막는다.
+
+**현재 화면 파일 경로(항상 해당 파일의 최신 내용):**
+
+| ID | 현재 편집 대상 | 변경 시 함께 확인할 코드 |
+|---|---|---|
+| MAP | `images/01-map.svg` | `MapView.tsx`, `Navigation.tsx` |
+| TRANSLATE | `images/02-translate.svg` | `TranslateView.tsx` |
+| RATE | `images/03-rate.svg` | `CurrencyView.tsx` |
+| CAMERA_CAPTURE | `images/04-camera-capture.svg` | `CameraMenuModal.tsx` |
+| CAMERA_RESULT | `images/05-camera-result.svg` | `CameraMenuModal.tsx` |
+| WALLET | `images/06-wallet.svg` | `WalletView.tsx` |
+| EXPENSE | `images/07-expense.svg` | `WalletView.tsx`, `TravelContext.tsx` |
+
+**변경 현황:** 이미지 v3 화면 7개와 overview 1개가 현재 파일 세트. 이번 오너 지시는 **교체/삭제의 운영 규칙**이며 지금 삭제해야 하는 중복·구형 SVG는 없음. 이미지 내용을 고치라는 신규 화면 수정 지시는 없으므로 현행 시안을 그대로 유지. 새로운 변경 발생 시 업데이트 프로토콜 실행.
+
+**개발과 구분:** A02는 이미 PR #11 SHA `277e9b97b0a8848db99318b76c8c4a4e17ec47a3`에서 P0 저장 진실성·OCR 지출 확인·핀 접근성 등 일부를 수정하고 [CI #39046026882](https://github.com/Junebooky/travel-os/actions/runs/39046026882)를 통과했다고 #15에 보고. 이는 **화이트 테마 전체 적용 완료와 다르며**, A03 시안 교체 여부와도 별도이다. A03는 A02 새 SHA에 맞춰 중복 개발 지시를 제거하며, 업데이트된 디자인만 정본으로 유지한다.
+
+---
+
 ## A. 먼저 이미지로 전체 맥락 확인
 
 ![화이트 UI v3 7개 화면 스토리보드](./white-ui-v3-overview.svg)
