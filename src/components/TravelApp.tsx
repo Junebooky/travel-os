@@ -6,6 +6,7 @@ import Onboarding from '@/components/Onboarding';
 import MapView from '@/components/MapView';
 import TranslateView from '@/components/TranslateView';
 import CurrencyView from '@/components/CurrencyView';
+import WalletView from '@/components/WalletView';
 import SettingsView from '@/components/SettingsView';
 import Navigation from '@/components/Navigation';
 import ToastContainer from '@/components/ToastContainer';
@@ -37,6 +38,7 @@ export default function TravelApp() {
             {activeTab === 'map' && <MapView />}
             {activeTab === 'translate' && <TranslateView />}
             {activeTab === 'currency' && <CurrencyView />}
+            {activeTab === 'wallet' && <WalletView />}
             {activeTab === 'settings' && <SettingsView />}
           </main>
 

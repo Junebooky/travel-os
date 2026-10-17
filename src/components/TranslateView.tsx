@@ -24,8 +24,12 @@ import {
   MapPin,
   Check,
   Store,
+  Mic,
+  Camera,
 } from 'lucide-react';
 import { TRANSLATE_CATEGORIES, normalizeCategory } from '@/lib/categories';
+import VoiceChatModal from '@/components/VoiceChatModal';
+import CameraMenuModal from '@/components/CameraMenuModal';
 
 const CATEGORY_ICONS: Record<string, React.ComponentType<{ className?: string }>> = {
   food: Utensils,
@@ -74,6 +78,8 @@ export default function TranslateView() {
   const [suggestedAlternatives, setSuggestedAlternatives] = useState<Array<{ id: string; korean: string; translation: string; romanization: string }>>([]);
   const [isFullscreenModalOpen, setIsFullscreenModalOpen] = useState<boolean>(false);
   const [isFlipped, setIsFlipped] = useState<boolean>(false);
+  const [isVoiceModalOpen, setIsVoiceModalOpen] = useState<boolean>(false);
+  const [isCameraModalOpen, setIsCameraModalOpen] = useState<boolean>(false);
 
   const abortControllerRef = useRef<AbortController | null>(null);
   const activeRequestIdRef = useRef<number>(0);
@@ -313,6 +319,43 @@ export default function TranslateView() {
               {targetLang === 'ko' ? '한국어' : `${country.name}어 (${targetLang.toUpperCase()})`}
             </span>
           </div>
+        </div>
+
+        {/* Track B Features Launcher Row */}
+        <div className="grid grid-cols-2 gap-2">
+          <button
+            type="button"
+            onClick={() => setIsVoiceModalOpen(true)}
+            className="p-3 bg-gradient-to-r from-indigo-950/80 to-slate-900 border border-indigo-800/60 rounded-2xl flex items-center space-x-2.5 text-left hover:border-indigo-600 transition-all active:scale-95 shadow-sm"
+          >
+            <div className="w-8 h-8 rounded-xl bg-indigo-600/30 text-indigo-400 flex items-center justify-center shrink-0">
+              <Mic className="w-4 h-4" />
+            </div>
+            <div>
+              <p className="text-xs font-bold text-white flex items-center gap-1">
+                {t('voice.title')}
+                <span className="text-[9px] px-1 py-0.2 rounded bg-indigo-500/20 text-indigo-300 font-mono">B1</span>
+              </p>
+              <p className="text-[10px] text-slate-400">실시간 2인 음성 대화</p>
+            </div>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setIsCameraModalOpen(true)}
+            className="p-3 bg-gradient-to-r from-emerald-950/80 to-slate-900 border border-emerald-800/60 rounded-2xl flex items-center space-x-2.5 text-left hover:border-emerald-600 transition-all active:scale-95 shadow-sm"
+          >
+            <div className="w-8 h-8 rounded-xl bg-emerald-600/30 text-emerald-400 flex items-center justify-center shrink-0">
+              <Camera className="w-4 h-4" />
+            </div>
+            <div>
+              <p className="text-xs font-bold text-white flex items-center gap-1">
+                {t('camera.title')}
+                <span className="text-[9px] px-1 py-0.2 rounded bg-emerald-500/20 text-emerald-300 font-mono">B2·B3</span>
+              </p>
+              <p className="text-[10px] text-slate-400">메뉴판 번역·가격 환산</p>
+            </div>
+          </button>
         </div>
 
         {/* Situational Category Filter Tabs */}
@@ -557,6 +600,16 @@ export default function TranslateView() {
           </div>
         </div>
       )}
+
+      {/* Track B Modals */}
+      <VoiceChatModal
+        isOpen={isVoiceModalOpen}
+        onClose={() => setIsVoiceModalOpen(false)}
+      />
+      <CameraMenuModal
+        isOpen={isCameraModalOpen}
+        onClose={() => setIsCameraModalOpen(false)}
+      />
     </div>
   );
 }

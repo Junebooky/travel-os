@@ -85,9 +85,16 @@ test('Intl Currency, Number, and Date formatters behave accurately', () => {
   assert.ok(dateStr.includes('2026') && dateStr.includes('10') && dateStr.includes('17'));
 });
 
-test('i18n Contract Integrity — Every t(...) call in components must exist in src/locales/ko-KR.json', () => {
+test('i18n Contract Integrity — Every t(...) call in components must exist in src/locales/ko-KR.json or phase2-ko-KR.json', () => {
   const jsonPath = path.resolve(__dirname, '../src/locales/ko-KR.json');
-  const validKeys = new Set(Object.keys(JSON.parse(fs.readFileSync(jsonPath, 'utf-8'))));
+  const phase2JsonPath = path.resolve(__dirname, '../src/locales/phase2-ko-KR.json');
+
+  const baseKeys = Object.keys(JSON.parse(fs.readFileSync(jsonPath, 'utf-8')));
+  const phase2Keys = fs.existsSync(phase2JsonPath)
+    ? Object.keys(JSON.parse(fs.readFileSync(phase2JsonPath, 'utf-8')))
+    : [];
+
+  const validKeys = new Set([...baseKeys, ...phase2Keys]);
 
   const compDir = path.resolve(__dirname, '../src/components');
   const files = fs.readdirSync(compDir).filter((f) => f.endsWith('.tsx'));

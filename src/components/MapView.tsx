@@ -28,8 +28,10 @@ import {
   MapPin,
   Star,
   Info,
+  Camera,
 } from 'lucide-react';
 import { MAP_CATEGORIES, normalizeCategory } from '@/lib/categories';
+import CameraMenuModal from '@/components/CameraMenuModal';
 
 const CATEGORY_ICONS: Record<string, React.ComponentType<{ className?: string }>> = {
   all: Compass,
@@ -110,6 +112,7 @@ export default function MapView() {
   const [isDemoMode, setIsDemoMode] = useState<boolean>(true);
   const [demoNotice, setDemoNotice] = useState<string>('');
   const [isSearchingPlaces, setIsSearchingPlaces] = useState<boolean>(false);
+  const [isCameraModalOpen, setIsCameraModalOpen] = useState<boolean>(false);
 
   // Measure container dimensions
   useEffect(() => {
@@ -796,9 +799,27 @@ export default function MapView() {
                 <Share2 className="w-3.5 h-3.5" />
               </button>
             </div>
+
+            {/* Track B B2·B3: Camera Menu OCR Action */}
+            <div className="pt-1">
+              <button
+                onClick={() => setIsCameraModalOpen(true)}
+                className="w-full py-2.5 px-3 rounded-xl bg-emerald-950/70 border border-emerald-700/70 hover:bg-emerald-900/80 text-emerald-300 font-semibold text-xs flex items-center justify-center gap-1.5 shadow-sm active:scale-95 transition-all"
+              >
+                <Camera className="w-4 h-4 text-emerald-400" />
+                <span>{t('camera.title')} (메뉴 촬영/번역)</span>
+              </button>
+            </div>
           </div>
         </div>
       )}
+
+      {/* Camera Menu OCR Modal */}
+      <CameraMenuModal
+        isOpen={isCameraModalOpen}
+        onClose={() => setIsCameraModalOpen(false)}
+        initialPlace={activePlace}
+      />
     </div>
   );
 }

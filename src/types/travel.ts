@@ -62,7 +62,7 @@ export interface TravelState {
   homeCurrency: string;
   localCurrency: string;
   activePlace: Place | null;
-  activeTab: 'map' | 'translate' | 'currency' | 'settings' | 'saved';
+  activeTab: 'map' | 'translate' | 'currency' | 'wallet' | 'settings' | 'saved';
   mapViewport: {
     center: { lat: number; lng: number };
     zoom: number;
@@ -78,4 +78,41 @@ export interface ExchangeRateData {
   rates: Record<string, number>;
   base: string;
   isStale?: boolean;
+}
+
+// Track B Phase 2 Extension Types
+export interface ChatMessage {
+  id: string;
+  speaker: 'me' | 'partner';
+  originalText: string;
+  translatedText: string;
+  timestamp: number;
+}
+
+export interface MenuItemOCR {
+  id: string;
+  originalName: string;
+  translatedName: string;
+  originalPrice: number;
+  currency: string;
+  estimatedKrw: number;
+  description?: string;
+  confidence?: number;
+}
+
+export interface ExpenseRecord {
+  id: string;
+  amount: number;
+  currency: string;
+  amountKrw: number;
+  placeName: string;
+  category: PlaceCategory;
+  paymentMethod: 'cash' | 'card';
+  timestamp: number;
+  memo?: string;
+  rateUsed?: {
+    rate: number;
+    provider: string;
+    date: string;
+  };
 }

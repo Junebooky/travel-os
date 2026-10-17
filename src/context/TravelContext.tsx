@@ -1,7 +1,7 @@
 'use client';
 
 import React, { createContext, useContext, useState, useEffect, ReactNode, useCallback } from 'react';
-import { Country, Place, PlaceCategory } from '@/types/travel';
+import { Country, Place, PlaceCategory, ExpenseRecord } from '@/types/travel';
 import { COUNTRIES } from '@/data/countries';
 import { t } from '@/lib/i18n';
 
@@ -24,8 +24,8 @@ interface TravelContextType {
   setLocalCurrency: (curr: string) => void;
   activePlace: Place | null;
   setActivePlace: (place: Place | null) => void;
-  activeTab: 'map' | 'translate' | 'currency' | 'settings' | 'saved';
-  setActiveTab: (tab: 'map' | 'translate' | 'currency' | 'settings' | 'saved') => void;
+  activeTab: 'map' | 'translate' | 'currency' | 'wallet' | 'settings' | 'saved';
+  setActiveTab: (tab: 'map' | 'translate' | 'currency' | 'wallet' | 'settings' | 'saved') => void;
   mapViewport: {
     center: { lat: number; lng: number };
     zoom: number;
@@ -47,6 +47,10 @@ interface TravelContextType {
   setSelectedCategory: (cat: PlaceCategory) => void;
   searchQuery: string;
   setSearchQuery: (q: string) => void;
+  expenses: ExpenseRecord[];
+  addExpense: (expense: Omit<ExpenseRecord, 'id' | 'timestamp'>) => boolean;
+  deleteExpense: (id: string) => void;
+  clearAllExpenses: () => void;
 }
 
 const TravelContext = createContext<TravelContextType | undefined>(undefined);
@@ -57,6 +61,7 @@ export const STORAGE_KEY_LANG = 'travel_os_lang_v1';
 export const STORAGE_KEY_CURRENCY = 'travel_os_currency_v1';
 export const STORAGE_KEY_SAVED = 'travel_os_saved_places_v1';
 export const STORAGE_KEY_VIEWPORT = 'travel_os_viewport_v1';
+export const STORAGE_KEY_WALLET = 'travel_os_wallet_v1';
 
 export function safeGetItem(key: string): string | null {
   if (typeof window === 'undefined' || !window.localStorage) return null;
@@ -123,6 +128,19 @@ function getInitialSavedPlaces(): Place[] {
   return [];
 }
 
+function getInitialExpenses(): ExpenseRecord[] {
+  const stored = safeGetItem(STORAGE_KEY_WALLET);
+  if (stored) {
+    try {
+      const parsed = JSON.parse(stored);
+      if (Array.isArray(parsed)) return parsed;
+    } catch {
+      // Corrupt JSON: return empty without throwing
+    }
+  }
+  return [];
+}
+
 function getInitialViewport(initialCountry: Country): { center: { lat: number; lng: number }; zoom: number } {
   const stored = safeGetItem(STORAGE_KEY_VIEWPORT);
   if (stored) {
@@ -151,7 +169,8 @@ export function TravelProvider({ children }: { children: ReactNode }) {
   const [homeCurrency, setHomeCurrency] = useState<string>('KRW');
   const [localCurrency, setLocalCurrencyState] = useState<string>(getInitialCurrency);
   const [activePlace, setActivePlace] = useState<Place | null>(null);
-  const [activeTab, setActiveTab] = useState<'map' | 'translate' | 'currency' | 'settings' | 'saved'>('map');
+  const [activeTab, setActiveTab] = useState<'map' | 'translate' | 'currency' | 'wallet' | 'settings' | 'saved'>('map');
+  const [expenses, setExpenses] = useState<ExpenseRecord[]>(getInitialExpenses);
   const [mapViewport, setMapViewportState] = useState<{ center: { lat: number; lng: number }; zoom: number }>(() =>
     getInitialViewport(country)
   );
@@ -278,9 +297,60 @@ export function TravelProvider({ children }: { children: ReactNode }) {
     setMapViewportState({ center: COUNTRIES[0].defaultCenter, zoom: COUNTRIES[0].defaultZoom });
     setOnboardingCompletedState(false);
     setSavedPlaces([]);
+    setExpenses([]);
     setSelectedCategory('all');
     setSearchQuery('');
     showToast(t('settings.storage.clear_success'), 'success');
+  }, [showToast]);
+
+  const addExpense = useCallback(
+    (item: Omit<ExpenseRecord, 'id' | 'timestamp'>) => {
+      const isDuplicate = expenses.some(
+        (e) =>
+          e.placeName === item.placeName &&
+          e.amount === item.amount &&
+          e.currency === item.currency &&
+          Date.now() - e.timestamp < 2 * 60 * 1000
+      );
+
+      if (isDuplicate) {
+        showToast(t('wallet.duplicate.warning'), 'info');
+      }
+
+      const newRecord: ExpenseRecord = {
+        ...item,
+        id: 'exp-' + Date.now() + '-' + Math.random().toString(36).substring(2, 7),
+        timestamp: Date.now(),
+      };
+
+      setExpenses((prev) => {
+        const next = [newRecord, ...prev];
+        safeSetItem(STORAGE_KEY_WALLET, JSON.stringify(next));
+        return next;
+      });
+
+      showToast(t('wallet.toast.saved'), 'success');
+      return true;
+    },
+    [expenses, showToast]
+  );
+
+  const deleteExpense = useCallback(
+    (id: string) => {
+      setExpenses((prev) => {
+        const next = prev.filter((e) => e.id !== id);
+        safeSetItem(STORAGE_KEY_WALLET, JSON.stringify(next));
+        return next;
+      });
+      showToast(t('wallet.toast.deleted'), 'info');
+    },
+    [showToast]
+  );
+
+  const clearAllExpenses = useCallback(() => {
+    setExpenses([]);
+    safeRemoveItem(STORAGE_KEY_WALLET);
+    showToast(t('wallet.toast.cleared'), 'info');
   }, [showToast]);
 
   const returnToMapWithPlace = useCallback((place?: Place | null) => {
@@ -331,6 +401,10 @@ export function TravelProvider({ children }: { children: ReactNode }) {
         setSelectedCategory,
         searchQuery,
         setSearchQuery,
+        expenses,
+        addExpense,
+        deleteExpense,
+        clearAllExpenses,
       }}
     >
       {children}

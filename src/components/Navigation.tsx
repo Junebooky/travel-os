@@ -3,19 +3,20 @@
 import React from 'react';
 import { useTravel } from '@/context/TravelContext';
 import { t } from '@/lib/i18n';
-import { Map, Languages, Coins, Settings } from 'lucide-react';
+import { Map, Languages, Coins, Settings, Wallet } from 'lucide-react';
 
 export default function Navigation() {
   const { activeTab, setActiveTab } = useTravel();
 
   const tabs: Array<{
-    id: 'map' | 'translate' | 'currency' | 'settings';
+    id: 'map' | 'translate' | 'currency' | 'wallet' | 'settings';
     labelKey: string;
     icon: React.ComponentType<{ className?: string }>;
   }> = [
     { id: 'map', labelKey: 'map.tab', icon: Map },
     { id: 'translate', labelKey: 'translate.tab', icon: Languages },
     { id: 'currency', labelKey: 'currency.tab', icon: Coins },
+    { id: 'wallet', labelKey: 'wallet.tab', icon: Wallet },
     { id: 'settings', labelKey: 'settings.tab', icon: Settings },
   ];
 
