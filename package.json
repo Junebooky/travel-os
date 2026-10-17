@@ -6,7 +6,9 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "test": "tsx --test && node scripts/mvp-smoke-test.mjs",
+    "smoke:mobile": "node scripts/mvp-smoke-test.mjs"
   },
   "dependencies": {
     "lucide-react": "^1.59.0",
@@ -22,6 +24,7 @@
     "eslint": "^9",
     "eslint-config-next": "16.4.2",
     "tailwindcss": "^4",
+    "tsx": "^4.23.15",
     "typescript": "^5"
   }
 }
