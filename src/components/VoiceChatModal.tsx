@@ -22,6 +22,31 @@ interface VoiceChatModalProps {
   onClose: () => void;
 }
 
+// Comprehensive BCP-47 language tag map for STT and TTS
+export const BCP47_LANGUAGE_MAP: Record<string, string> = {
+  ko: 'ko-KR',
+  en: 'en-US',
+  ja: 'ja-JP',
+  'zh-CN': 'zh-CN',
+  'zh-TW': 'zh-TW',
+  zh: 'zh-CN',
+  vi: 'vi-VN',
+  th: 'th-TH',
+  fr: 'fr-FR',
+  es: 'es-ES',
+  de: 'de-DE',
+  it: 'it-IT',
+  ru: 'ru-RU',
+};
+
+export function getBcp47Locale(langCode: string): string {
+  if (!langCode) return 'en-US';
+  return (
+    BCP47_LANGUAGE_MAP[langCode] ||
+    (langCode.includes('-') ? langCode : `${langCode}-${langCode.toUpperCase()}`)
+  );
+}
+
 // Browser Web Speech Recognition interface declaration
 interface IWindowSpeechRecognition extends EventTarget {
   continuous: boolean;
@@ -60,7 +85,38 @@ export default function VoiceChatModal({ isOpen, onClose }: VoiceChatModalProps)
     }
   }, [messages, interimText, isTranslating]);
 
-  // Translate and append to chat thread
+  // Play TTS on demand with accurate BCP-47 locale and voice detection
+  const handlePlayTTS = useCallback((text: string, lang: string) => {
+    if (typeof window === 'undefined' || !('speechSynthesis' in window)) return;
+    if (!text || !text.trim()) return;
+
+    window.speechSynthesis.cancel();
+    const utterance = new SpeechSynthesisUtterance(text);
+    const targetBcp47 = getBcp47Locale(lang);
+    utterance.lang = targetBcp47;
+
+    const voices = window.speechSynthesis.getVoices();
+    if (voices && voices.length > 0) {
+      const exactMatch = voices.find(
+        (v) => v.lang.replace('_', '-').toLowerCase() === targetBcp47.toLowerCase()
+      );
+      const prefixMatch = voices.find((v) =>
+        v.lang.toLowerCase().startsWith(lang.toLowerCase())
+      );
+      if (exactMatch) {
+        utterance.voice = exactMatch;
+      } else if (prefixMatch) {
+        utterance.voice = prefixMatch;
+      }
+    }
+
+    utterance.onstart = () => setIsSpeaking(true);
+    utterance.onend = () => setIsSpeaking(false);
+    utterance.onerror = () => setIsSpeaking(false);
+    window.speechSynthesis.speak(utterance);
+  }, []);
+
+  // Translate and append to chat thread (TB-P1-01 fix: do not post original as fake translation on failure)
   const processAndSendMessage = useCallback(
     async (text: string, speaker: 'me' | 'partner') => {
       if (!text.trim()) return;
@@ -68,6 +124,9 @@ export default function VoiceChatModal({ isOpen, onClose }: VoiceChatModalProps)
 
       const sourceLang = speaker === 'me' ? 'ko' : targetLang;
       const destLang = speaker === 'me' ? targetLang : 'ko';
+
+      let translatedText = '';
+      let translationStatus: 'success' | 'failed' = 'failed';
 
       try {
         const res = await fetch('/api/translate', {
@@ -81,42 +140,89 @@ export default function VoiceChatModal({ isOpen, onClose }: VoiceChatModalProps)
         });
 
         const data = await res.json();
-        const translatedText = data.success ? data.translation : text.trim();
-
-        const newMsg: ChatMessage = {
-          id: `msg-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`,
-          speaker,
-          originalText: text.trim(),
-          translatedText,
-          timestamp: Date.now(),
-        };
-
-        setMessages((prev) => [...prev, newMsg]);
-        setInterimText('');
-        setManualText('');
-
-        // Automatically play TTS for translated result
-        if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
-          const utterance = new SpeechSynthesisUtterance(translatedText);
-          utterance.lang = destLang === 'ja' ? 'ja-JP' : destLang === 'en' ? 'en-US' : destLang === 'vi' ? 'vi-VN' : 'ko-KR';
-          utterance.onstart = () => setIsSpeaking(true);
-          utterance.onend = () => setIsSpeaking(false);
-          utterance.onerror = () => setIsSpeaking(false);
-          window.speechSynthesis.speak(utterance);
+        if (res.ok && data.success && data.translation) {
+          translatedText = data.translation;
+          translationStatus = 'success';
+        } else {
+          translationStatus = 'failed';
+          showToast(t('voice.translate_failed'), 'error');
         }
-
-        // Switch turn to the other speaker for conversational flow
-        setActiveSpeaker(speaker === 'me' ? 'partner' : 'me');
       } catch {
+        translationStatus = 'failed';
         showToast(t('common.error.service_unavailable'), 'error');
       } finally {
         setIsTranslating(false);
       }
+
+      const newMsg: ChatMessage = {
+        id: `msg-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`,
+        speaker,
+        originalText: text.trim(),
+        translatedText,
+        translationStatus,
+        timestamp: Date.now(),
+      };
+
+      setMessages((prev) => [...prev, newMsg]);
+      setInterimText('');
+      setManualText('');
+
+      // Auto-play TTS ONLY on genuine successful translation
+      if (translationStatus === 'success' && translatedText) {
+        handlePlayTTS(translatedText, destLang);
+        // Switch turn to the other speaker only when successful
+        setActiveSpeaker(speaker === 'me' ? 'partner' : 'me');
+      }
     },
-    [targetLang, showToast]
+    [targetLang, showToast, handlePlayTTS]
   );
 
-  // Initialize Speech Recognition
+  // Retry a failed translation
+  const handleRetryTranslate = async (msgId: string) => {
+    const targetMsg = messages.find((m) => m.id === msgId);
+    if (!targetMsg || !targetMsg.originalText.trim()) return;
+
+    setIsTranslating(true);
+    const isMe = targetMsg.speaker === 'me';
+    const sourceLang = isMe ? 'ko' : targetLang;
+    const destLang = isMe ? targetLang : 'ko';
+
+    try {
+      const res = await fetch('/api/translate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          text: targetMsg.originalText.trim(),
+          sourceLang,
+          targetLang: destLang,
+        }),
+      });
+
+      const data = await res.json();
+      if (res.ok && data.success && data.translation) {
+        setMessages((prev) =>
+          prev.map((m) =>
+            m.id === msgId
+              ? {
+                  ...m,
+                  translatedText: data.translation,
+                  translationStatus: 'success',
+                }
+              : m
+          )
+        );
+        handlePlayTTS(data.translation, destLang);
+      } else {
+        showToast(t('voice.translate_failed'), 'error');
+      }
+    } catch {
+      showToast(t('common.error.service_unavailable'), 'error');
+    } finally {
+      setIsTranslating(false);
+    }
+  };
+
+  // Initialize Speech Recognition with accurate BCP-47 language locale (TB-P1-06)
   const startListening = () => {
     if (typeof window === 'undefined') return;
 
@@ -138,7 +244,8 @@ export default function VoiceChatModal({ isOpen, onClose }: VoiceChatModalProps)
       const recognition = new SpeechRecognitionClass();
       recognition.continuous = false;
       recognition.interimResults = true;
-      recognition.lang = activeSpeaker === 'me' ? 'ko-KR' : targetLang === 'ja' ? 'ja-JP' : targetLang === 'vi' ? 'vi-VN' : 'en-US';
+      const recogLang = activeSpeaker === 'me' ? 'ko' : targetLang;
+      recognition.lang = getBcp47Locale(recogLang);
 
       recognition.onstart = () => {
         setIsListening(true);
@@ -183,19 +290,7 @@ export default function VoiceChatModal({ isOpen, onClose }: VoiceChatModalProps)
     setIsListening(false);
   };
 
-  // Play TTS on demand
-  const handlePlayTTS = (text: string, lang: string) => {
-    if (typeof window === 'undefined' || !('speechSynthesis' in window)) return;
-    window.speechSynthesis.cancel();
-    const utterance = new SpeechSynthesisUtterance(text);
-    utterance.lang = lang === 'ja' ? 'ja-JP' : lang === 'en' ? 'en-US' : lang === 'vi' ? 'vi-VN' : 'ko-KR';
-    utterance.onstart = () => setIsSpeaking(true);
-    utterance.onend = () => setIsSpeaking(false);
-    utterance.onerror = () => setIsSpeaking(false);
-    window.speechSynthesis.speak(utterance);
-  };
-
-  // Save edited message and re-translate
+  // Save edited message and re-translate (TB-P1-01 fix: do not use edited original as fake translation on error)
   const handleSaveEdit = async (msgId: string, speaker: 'me' | 'partner') => {
     if (!editingText.trim()) {
       setEditingMessageId(null);
@@ -217,15 +312,49 @@ export default function VoiceChatModal({ isOpen, onClose }: VoiceChatModalProps)
       });
 
       const data = await res.json();
-      const updatedTranslated = data.success ? data.translation : editingText.trim();
-
+      if (res.ok && data.success && data.translation) {
+        setMessages((prev) =>
+          prev.map((m) =>
+            m.id === msgId
+              ? {
+                  ...m,
+                  originalText: editingText.trim(),
+                  translatedText: data.translation,
+                  translationStatus: 'success',
+                }
+              : m
+          )
+        );
+        handlePlayTTS(data.translation, destLang);
+      } else {
+        setMessages((prev) =>
+          prev.map((m) =>
+            m.id === msgId
+              ? {
+                  ...m,
+                  originalText: editingText.trim(),
+                  translatedText: '',
+                  translationStatus: 'failed',
+                }
+              : m
+          )
+        );
+        showToast(t('voice.translate_failed'), 'error');
+      }
+    } catch {
       setMessages((prev) =>
         prev.map((m) =>
-          m.id === msgId ? { ...m, originalText: editingText.trim(), translatedText: updatedTranslated } : m
+          m.id === msgId
+            ? {
+                ...m,
+                originalText: editingText.trim(),
+                translatedText: '',
+                translationStatus: 'failed',
+              }
+            : m
         )
       );
-    } catch {
-      // Keep existing
+      showToast(t('common.error.service_unavailable'), 'error');
     } finally {
       setEditingMessageId(null);
     }
@@ -369,20 +498,37 @@ export default function VoiceChatModal({ isOpen, onClose }: VoiceChatModalProps)
                     </div>
                   )}
 
-                  {/* Translated text */}
-                  <div className="border-t border-white/10 pt-1 flex items-center justify-between gap-2">
-                    <p className="text-sm font-semibold tracking-wide text-white leading-snug">
-                      {msg.translatedText}
-                    </p>
-                    <button
-                      type="button"
-                      onClick={() => handlePlayTTS(msg.translatedText, isMe ? targetLang : 'ko')}
-                      className="p-1 rounded-full bg-white/10 hover:bg-white/20 text-white shrink-0 transition-all"
-                      title={t('translate.result.listen')}
-                    >
-                      <Volume2 className="w-3.5 h-3.5" />
-                    </button>
-                  </div>
+                  {/* Translated text or Failure status */}
+                  {msg.translationStatus === 'failed' || !msg.translatedText ? (
+                    <div className="border-t border-rose-500/30 pt-1.5 flex items-center justify-between gap-2 text-rose-200 text-xs">
+                      <div className="flex items-center gap-1.5 min-w-0">
+                        <AlertCircle className="w-3.5 h-3.5 text-rose-400 shrink-0" />
+                        <span className="truncate text-[11px]">{t('voice.translate_failed')}</span>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => handleRetryTranslate(msg.id)}
+                        className="px-2 py-0.5 rounded bg-rose-500/20 hover:bg-rose-500/30 text-rose-200 text-[11px] font-medium shrink-0 transition-colors"
+                        title={t('voice.action.retry_desc')}
+                      >
+                        {t('voice.action.retry')}
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="border-t border-white/10 pt-1 flex items-center justify-between gap-2">
+                      <p className="text-sm font-semibold tracking-wide text-white leading-snug">
+                        {msg.translatedText}
+                      </p>
+                      <button
+                        type="button"
+                        onClick={() => handlePlayTTS(msg.translatedText, isMe ? targetLang : 'ko')}
+                        className="p-1 rounded-full bg-white/10 hover:bg-white/20 text-white shrink-0 transition-all"
+                        title={t('translate.result.listen')}
+                      >
+                        <Volume2 className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  )}
                 </div>
               </div>
             );

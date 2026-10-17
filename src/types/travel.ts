@@ -86,7 +86,9 @@ export interface ChatMessage {
   speaker: 'me' | 'partner';
   originalText: string;
   translatedText: string;
+  translationStatus?: 'success' | 'failed' | 'translating';
   timestamp: number;
+  errorMessage?: string;
 }
 
 export interface MenuItemOCR {
@@ -95,16 +97,18 @@ export interface MenuItemOCR {
   translatedName: string;
   originalPrice: number;
   currency: string;
-  estimatedKrw: number;
+  estimatedKrw: number | null;
   description?: string;
   confidence?: number;
+  rateUnverified?: boolean;
+  isDemo?: boolean;
 }
 
 export interface ExpenseRecord {
   id: string;
   amount: number;
   currency: string;
-  amountKrw: number;
+  amountKrw: number | null;
   placeName: string;
   category: PlaceCategory;
   paymentMethod: 'cash' | 'card';

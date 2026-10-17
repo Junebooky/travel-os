@@ -143,19 +143,93 @@ const DEMO_MENUS_BY_COUNTRY: Record<
   },
 };
 
+interface CameraTranslateRequest {
+  imageBase64?: string;
+  mimeType?: string;
+  countryCode?: string;
+  currency?: string;
+  isSample?: boolean;
+  rateToKrw?: number;
+}
+
+const ALLOWED_MIME_TYPES = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/heic', 'image/gif'];
+
 export async function POST(req: NextRequest) {
   try {
     const body: CameraTranslateRequest = await req.json();
-    const { imageBase64, mimeType = 'image/jpeg', countryCode = 'JP', currency = 'JPY' } = body;
+    const {
+      imageBase64,
+      mimeType = 'image/jpeg',
+      countryCode = 'JP',
+      currency = 'JPY',
+      isSample = false,
+      rateToKrw,
+    } = body;
+
+    // 1. Explicit Sample Mode or No Image provided: Return authentic sample menu
+    if (isSample || !imageBase64) {
+      const defaultData = DEMO_MENUS_BY_COUNTRY[countryCode] || DEMO_MENUS_BY_COUNTRY.JP;
+      const items: MenuItemOCR[] = defaultData.items.map((it, idx) => ({
+        ...it,
+        id: `demo-menu-${idx}`,
+        estimatedKrw: Math.round(it.originalPrice * defaultData.rateToKrw),
+        isDemo: true,
+      }));
+
+      return NextResponse.json({
+        success: true,
+        isDemo: true,
+        demoNotice: '데모 모드: 실제 촬영 이미지 분석을 위해 GEMINI_API_KEY 설정이 필요합니다.',
+        currency: defaultData.currency,
+        items,
+        detectedCount: items.length,
+        provider: 'Travel OS Sample OCR Data',
+      });
+    }
+
+    // 2. Validate uploaded image payload
+    if (mimeType && !ALLOWED_MIME_TYPES.includes(mimeType.toLowerCase())) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: 'INVALID_MIME_TYPE',
+          message: '지원하지 않는 이미지 형식입니다. (JPEG, PNG, WebP 지원)',
+        },
+        { status: 400 }
+      );
+    }
+
+    if (imageBase64.length > 15 * 1024 * 1024) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: 'PAYLOAD_TOO_LARGE',
+          message: '이미지 용량은 10MB 이하여야 합니다.',
+        },
+        { status: 413 }
+      );
+    }
 
     const geminiKey = process.env.GEMINI_API_KEY;
 
-    // 1. If Gemini API key is configured and image base64 provided, call Gemini Multimodal Vision
-    if (geminiKey && imageBase64) {
-      try {
-        const cleanBase64 = imageBase64.replace(/^data:image\/[a-z]+;base64,/, '');
+    // 3. If Gemini API key is missing, explicitly inform user instead of silently returning fake menu for their photo
+    if (!geminiKey) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: 'VISION_AI_NOT_CONFIGURED',
+          message: '카메라 실시간 AI 분석 환경이 구성되지 않았습니다. 샘플 메뉴 체험 모드를 이용해 주세요.',
+          isConfigured: false,
+        },
+        { status: 200 }
+      );
+    }
 
-        const prompt = `Analyze this travel food menu or receipt image.
+    // 4. Gemini Multimodal Vision API call
+    try {
+      const cleanBase64 = imageBase64.replace(/^data:image\/[a-z]+;base64,/, '');
+
+      const prompt = `Analyze this travel food menu or receipt image.
 Extract all menu items and dishes with their prices.
 Return strict JSON with this structure:
 {
@@ -171,92 +245,94 @@ Return strict JSON with this structure:
   ]
 }`;
 
-        const geminiRes = await fetch(
-          `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${geminiKey}`,
-          {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              contents: [
-                {
-                  parts: [
-                    { text: prompt },
-                    {
-                      inlineData: {
-                        mimeType,
-                        data: cleanBase64,
-                      },
+      const geminiRes = await fetch(
+        `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${geminiKey}`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            contents: [
+              {
+                parts: [
+                  { text: prompt },
+                  {
+                    inlineData: {
+                      mimeType,
+                      data: cleanBase64,
                     },
-                  ],
-                },
-              ],
-              generationConfig: { responseMimeType: 'application/json' },
-            }),
-          }
-        );
+                  },
+                ],
+              },
+            ],
+            generationConfig: { responseMimeType: 'application/json' },
+          }),
+        }
+      );
 
-        if (geminiRes.ok) {
-          const geminiData = await geminiRes.json();
-          const content = geminiData.candidates?.[0]?.content?.parts?.[0]?.text;
-          if (content) {
-            const parsed = JSON.parse(content);
-            if (Array.isArray(parsed.items) && parsed.items.length > 0) {
-              const detectedCurrency = parsed.currency || currency;
-              interface GeminiRawItem {
-                originalName?: string;
-                translatedName?: string;
-                originalPrice?: number;
-                description?: string;
-                confidence?: number;
-              }
-
-              const formattedItems: MenuItemOCR[] = parsed.items.map((item: GeminiRawItem, idx: number) => {
-                const price = typeof item.originalPrice === 'number' ? item.originalPrice : 0;
-                return {
-                  id: `ocr-${Date.now()}-${idx}`,
-                  originalName: item.originalName || 'Menu Item',
-                  translatedName: item.translatedName || item.originalName || '메뉴',
-                  originalPrice: price,
-                  currency: detectedCurrency,
-                  estimatedKrw: 0, // Computed below or in frontend
-                  description: item.description || '',
-                  confidence: item.confidence || 0.9,
-                };
-              });
-
-              return NextResponse.json({
-                success: true,
-                isDemo: false,
-                currency: detectedCurrency,
-                items: formattedItems,
-                detectedCount: formattedItems.length,
-                provider: 'Gemini Vision AI',
-              });
+      if (geminiRes.ok) {
+        const geminiData = await geminiRes.json();
+        const content = geminiData.candidates?.[0]?.content?.parts?.[0]?.text;
+        if (content) {
+          const parsed = JSON.parse(content);
+          if (Array.isArray(parsed.items) && parsed.items.length > 0) {
+            const detectedCurrency = parsed.currency || currency;
+            interface GeminiRawItem {
+              originalName?: string;
+              translatedName?: string;
+              originalPrice?: number;
+              description?: string;
+              confidence?: number;
             }
+
+            const formattedItems: MenuItemOCR[] = parsed.items.map((item: GeminiRawItem, idx: number) => {
+              const price = typeof item.originalPrice === 'number' && !isNaN(item.originalPrice) ? item.originalPrice : 0;
+              // TB-P1-04: If rateToKrw is provided and positive, calculate KRW; otherwise set null (never 0)
+              const computedKrw = rateToKrw && rateToKrw > 0 ? Math.round(price * rateToKrw) : null;
+
+              return {
+                id: `ocr-${Date.now()}-${idx}`,
+                originalName: item.originalName || 'Menu Item',
+                translatedName: item.translatedName || item.originalName || '메뉴',
+                originalPrice: price,
+                currency: detectedCurrency,
+                estimatedKrw: computedKrw,
+                description: item.description || '',
+                confidence: item.confidence || 0.9,
+                isDemo: false,
+              };
+            });
+
+            return NextResponse.json({
+              success: true,
+              isDemo: false,
+              currency: detectedCurrency,
+              items: formattedItems,
+              detectedCount: formattedItems.length,
+              provider: 'Gemini Vision AI',
+            });
           }
         }
-      } catch (geminiErr) {
-        console.warn('[Camera API] Gemini Vision call failed:', geminiErr);
       }
+
+      return NextResponse.json(
+        {
+          success: false,
+          error: 'OCR_EMPTY_RESULT',
+          message: '메뉴 이미지에서 글자를 식별하지 못했습니다. 더 선명한 사진으로 다시 시도해 주세요.',
+        },
+        { status: 200 }
+      );
+    } catch (geminiErr) {
+      console.warn('[Camera API] Gemini Vision call failed:', geminiErr);
+      return NextResponse.json(
+        {
+          success: false,
+          error: 'OCR_SERVICE_ERROR',
+          message: 'AI 비전 분석 서비스에 일시적인 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.',
+        },
+        { status: 503 }
+      );
     }
-
-    // 2. Demo fallback: Return transparently labeled authentic sample menu items
-    const defaultData = DEMO_MENUS_BY_COUNTRY[countryCode] || DEMO_MENUS_BY_COUNTRY.JP;
-    const items: MenuItemOCR[] = defaultData.items.map((it, idx) => ({
-      ...it,
-      id: `demo-menu-${idx}`,
-      estimatedKrw: Math.round(it.originalPrice * defaultData.rateToKrw),
-    }));
-
-    return NextResponse.json({
-      success: true,
-      isDemo: true,
-      demoNotice: '데모 모드: 실제 촬영 이미지 분석을 위해 GEMINI_API_KEY 설정이 필요합니다.',
-      currency: defaultData.currency,
-      items,
-      detectedCount: items.length,
-      provider: 'Travel OS Sample OCR Data',
-    });
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : '메뉴판을 분석하는 중 오류가 발생했습니다.';
     return NextResponse.json(

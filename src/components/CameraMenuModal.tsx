@@ -31,6 +31,7 @@ export default function CameraMenuModal({ isOpen, onClose, initialPlace }: Camer
     activePlace,
     addExpense,
     returnToMapWithPlace,
+    convertCurrencyToKrw,
     showToast,
   } = useTravel();
 
@@ -47,6 +48,36 @@ export default function CameraMenuModal({ isOpen, onClose, initialPlace }: Camer
   const cameraInputRef = useRef<HTMLInputElement>(null);
 
   const targetPlace = initialPlace || activePlace;
+
+  // Load curated authentic sample menu explicitly
+  const handleLoadSampleMenu = async () => {
+    setIsLoading(true);
+    setImagePreview('sample_demo');
+    try {
+      const res = await fetch('/api/camera/translate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          isSample: true,
+          countryCode: country.code,
+          currency: localCurrency,
+        }),
+      });
+      const data = await res.json();
+      if (data.success && Array.isArray(data.items)) {
+        setMenuItems(data.items);
+        setDetectedCurrency(data.currency || localCurrency);
+        setIsDemo(true);
+        setDemoNotice(data.demoNotice || '');
+      } else {
+        showToast(data.message || t('common.error.service_unavailable'), 'error');
+      }
+    } catch {
+      showToast(t('common.error.service_unavailable'), 'error');
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   // Process image and call OCR translation API
   const handleImageSelected = async (e: ChangeEvent<HTMLInputElement>) => {
@@ -65,6 +96,9 @@ export default function CameraMenuModal({ isOpen, onClose, initialPlace }: Camer
       setImagePreview(base64Data);
       setIsLoading(true);
 
+      const rateConv = convertCurrencyToKrw(100, localCurrency);
+      const currentRateToKrw = rateConv ? rateConv.rate : undefined;
+
       try {
         const res = await fetch('/api/camera/translate', {
           method: 'POST',
@@ -74,17 +108,33 @@ export default function CameraMenuModal({ isOpen, onClose, initialPlace }: Camer
             mimeType: file.type || 'image/jpeg',
             countryCode: country.code,
             currency: localCurrency,
+            rateToKrw: currentRateToKrw,
           }),
         });
 
         const data = await res.json();
         if (data.success && Array.isArray(data.items)) {
-          setMenuItems(data.items);
+          const processedItems: MenuItemOCR[] = data.items.map((item: MenuItemOCR) => {
+            if (item.estimatedKrw === null || item.estimatedKrw === 0) {
+              const conv = convertCurrencyToKrw(item.originalPrice, item.currency || data.currency || localCurrency);
+              return {
+                ...item,
+                estimatedKrw: conv ? conv.krw : null,
+              };
+            }
+            return item;
+          });
+
+          setMenuItems(processedItems);
           setDetectedCurrency(data.currency || localCurrency);
           setIsDemo(Boolean(data.isDemo));
           setDemoNotice(data.demoNotice || '');
         } else {
-          showToast(data.message || t('camera.error.no_text'), 'error');
+          if (data.error === 'VISION_AI_NOT_CONFIGURED') {
+            showToast(t('camera.error.api_not_configured'), 'info');
+          } else {
+            showToast(data.message || t('camera.error.no_text'), 'error');
+          }
         }
       } catch {
         showToast(t('common.error.service_unavailable'), 'error');
@@ -97,6 +147,14 @@ export default function CameraMenuModal({ isOpen, onClose, initialPlace }: Camer
 
   // Add extracted item directly to Travel Wallet (B4 integration)
   const handleSaveToWallet = (item: MenuItemOCR) => {
+    if (isDemo && typeof window !== 'undefined' && !window.confirm(t('camera.demo_save_confirm'))) {
+      return;
+    }
+
+    const conversion = item.estimatedKrw !== null
+      ? convertCurrencyToKrw(item.originalPrice, item.currency || detectedCurrency)
+      : null;
+
     addExpense({
       amount: item.originalPrice,
       currency: item.currency || detectedCurrency,
@@ -104,7 +162,14 @@ export default function CameraMenuModal({ isOpen, onClose, initialPlace }: Camer
       placeName: targetPlace?.name || '현지 음식점',
       category: 'food',
       paymentMethod: 'card',
-      memo: `메뉴 촬영 인식: ${item.originalName} (${item.translatedName})`,
+      memo: `메뉴 촬영 인식: ${item.originalName} (${item.translatedName})${isDemo ? ' [데모 예시]' : ''}`,
+      rateUsed: conversion
+        ? {
+            rate: conversion.rate,
+            provider: conversion.provider,
+            date: conversion.date,
+          }
+        : undefined,
     });
   };
 
@@ -114,18 +179,19 @@ export default function CameraMenuModal({ isOpen, onClose, initialPlace }: Camer
     returnToMapWithPlace(targetPlace);
   };
 
-  // Save edited price
+  // Save edited price (TB-P1-02 fix: only verified rates or null, no arbitrary 9.15)
   const handleSaveEditedPrice = (id: string) => {
     const num = parseFloat(editingPrice);
     if (!isNaN(num) && num >= 0) {
       setMenuItems((prev) =>
         prev.map((item) => {
           if (item.id === id) {
-            const ratio = item.estimatedKrw / (item.originalPrice || 1);
+            const conversion = convertCurrencyToKrw(num, item.currency || detectedCurrency);
             return {
               ...item,
               originalPrice: num,
-              estimatedKrw: Math.round(num * (ratio || 9.15)),
+              estimatedKrw: conversion ? conversion.krw : null,
+              rateUnverified: !conversion,
             };
           }
           return item;
@@ -223,29 +289,11 @@ export default function CameraMenuModal({ isOpen, onClose, initialPlace }: Camer
               {/* Sample demo trigger button */}
               <button
                 type="button"
-                onClick={async () => {
-                  setIsLoading(true);
-                  try {
-                    const res = await fetch('/api/camera/translate', {
-                      method: 'POST',
-                      headers: { 'Content-Type': 'application/json' },
-                      body: JSON.stringify({ countryCode: country.code, currency: localCurrency }),
-                    });
-                    const data = await res.json();
-                    if (data.success) {
-                      setMenuItems(data.items);
-                      setDetectedCurrency(data.currency);
-                      setIsDemo(true);
-                      setDemoNotice(data.demoNotice);
-                      setImagePreview('sample_demo');
-                    }
-                  } finally {
-                    setIsLoading(false);
-                  }
-                }}
-                className="text-[11px] text-emerald-400/90 hover:underline pt-1"
+                onClick={handleLoadSampleMenu}
+                className="text-xs text-emerald-400/90 hover:text-emerald-300 hover:underline pt-1 flex items-center gap-1"
               >
-                ⚡ {country.name} 샘플 메뉴판으로 바로 체험하기
+                <Sparkles className="w-3.5 h-3.5" />
+                {t('camera.action.load_sample')}
               </button>
             </div>
           )}
@@ -330,11 +378,18 @@ export default function CameraMenuModal({ isOpen, onClose, initialPlace }: Camer
                         {item.translatedName}
                       </h4>
                     </div>
-                    {item.confidence && (
-                      <span className="text-[10px] px-1.5 py-0.5 rounded bg-slate-800 text-slate-400 font-mono shrink-0">
-                        신뢰도 {Math.round(item.confidence * 100)}%
-                      </span>
-                    )}
+                    <div className="flex items-center gap-1.5 shrink-0">
+                      {(item.isDemo || isDemo) && (
+                        <span className="text-[10px] px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-300 font-medium">
+                          {t('camera.sample_badge')}
+                        </span>
+                      )}
+                      {item.confidence && (
+                        <span className="text-[10px] px-1.5 py-0.5 rounded bg-slate-800 text-slate-400 font-mono">
+                          신뢰도 {Math.round(item.confidence * 100)}%
+                        </span>
+                      )}
+                    </div>
                   </div>
 
                   {item.description && (
@@ -378,9 +433,15 @@ export default function CameraMenuModal({ isOpen, onClose, initialPlace }: Camer
                           </button>
                         </div>
                       )}
-                      <span className="text-xs text-slate-400">
-                        (약 {formatCurrency(item.estimatedKrw, 'KRW')})
-                      </span>
+                      {item.estimatedKrw !== null ? (
+                        <span className="text-xs text-slate-400">
+                          (약 {formatCurrency(item.estimatedKrw, 'KRW')})
+                        </span>
+                      ) : (
+                        <span className="text-[11px] text-amber-400/90 font-medium">
+                          ({t('price.unconvertible')})
+                        </span>
+                      )}
                     </div>
 
                     {/* 1-click Save to Wallet */}

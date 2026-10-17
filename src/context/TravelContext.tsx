@@ -1,7 +1,5 @@
-'use client';
-
 import React, { createContext, useContext, useState, useEffect, ReactNode, useCallback } from 'react';
-import { Country, Place, PlaceCategory, ExpenseRecord } from '@/types/travel';
+import { Country, Place, PlaceCategory, ExpenseRecord, ExchangeRateData } from '@/types/travel';
 import { COUNTRIES } from '@/data/countries';
 import { t } from '@/lib/i18n';
 
@@ -9,6 +7,18 @@ interface ToastInfo {
   id: string;
   message: string;
   type?: 'success' | 'info' | 'error';
+}
+
+export interface CurrencyConversionResult {
+  krw: number;
+  rate: number;
+  provider: string;
+  date: string;
+  isStale?: boolean;
+}
+
+export interface AddExpenseOptions {
+  force?: boolean;
 }
 
 interface TravelContextType {
@@ -48,9 +58,12 @@ interface TravelContextType {
   searchQuery: string;
   setSearchQuery: (q: string) => void;
   expenses: ExpenseRecord[];
-  addExpense: (expense: Omit<ExpenseRecord, 'id' | 'timestamp'>) => boolean;
+  addExpense: (expense: Omit<ExpenseRecord, 'id' | 'timestamp'>, options?: AddExpenseOptions) => boolean;
   deleteExpense: (id: string) => void;
   clearAllExpenses: () => void;
+  rates: ExchangeRateData | null;
+  refreshRates: () => Promise<ExchangeRateData | null>;
+  convertCurrencyToKrw: (amount: number, currency: string) => CurrencyConversionResult | null;
 }
 
 const TravelContext = createContext<TravelContextType | undefined>(undefined);
@@ -62,6 +75,39 @@ export const STORAGE_KEY_CURRENCY = 'travel_os_currency_v1';
 export const STORAGE_KEY_SAVED = 'travel_os_saved_places_v1';
 export const STORAGE_KEY_VIEWPORT = 'travel_os_viewport_v1';
 export const STORAGE_KEY_WALLET = 'travel_os_wallet_v1';
+export const STORAGE_KEY_LAST_RATES = 'travel_os_last_rates_v1';
+export const MAX_RATE_AGE_MS = 7 * 24 * 60 * 60 * 1000; // 7 days
+
+export function getValidatedCachedRates(): ExchangeRateData | null {
+  if (typeof window === 'undefined' || !window.localStorage) return null;
+  try {
+    const raw = window.localStorage.getItem(STORAGE_KEY_LAST_RATES);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw);
+    if (
+      parsed &&
+      typeof parsed === 'object' &&
+      typeof parsed.provider === 'string' &&
+      typeof parsed.rateDate === 'string' &&
+      parsed.rates &&
+      typeof parsed.rates === 'object'
+    ) {
+      const parsedTime = new Date(parsed.rateDate).getTime();
+      if (!Number.isNaN(parsedTime)) {
+        const age = Date.now() - parsedTime;
+        if (age >= 0 && age <= MAX_RATE_AGE_MS) {
+          return {
+            ...parsed,
+            isStale: true,
+          };
+        }
+      }
+    }
+  } catch {
+    // Corrupt cache
+  }
+  return null;
+}
 
 export function safeGetItem(key: string): string | null {
   if (typeof window === 'undefined' || !window.localStorage) return null;
@@ -303,34 +349,128 @@ export function TravelProvider({ children }: { children: ReactNode }) {
     showToast(t('settings.storage.clear_success'), 'success');
   }, [showToast]);
 
+  const [rates, setRates] = useState<ExchangeRateData | null>(getValidatedCachedRates);
+
+  const refreshRates = useCallback(async (): Promise<ExchangeRateData | null> => {
+    try {
+      const res = await fetch('/api/rates');
+      if (res.ok) {
+        const data = await res.json();
+        if (data && data.success && data.rates) {
+          setRates(data);
+          safeSetItem(STORAGE_KEY_LAST_RATES, JSON.stringify(data));
+          return data;
+        }
+      }
+    } catch {
+      // ignore
+    }
+    const cached = getValidatedCachedRates();
+    if (cached) {
+      setRates(cached);
+      return cached;
+    }
+    return null;
+  }, []);
+
+  useEffect(() => {
+    let ignore = false;
+    async function initRates() {
+      try {
+        const res = await fetch('/api/rates');
+        if (res.ok) {
+          const data = await res.json();
+          if (data && data.success && data.rates && !ignore) {
+            setRates(data);
+            safeSetItem(STORAGE_KEY_LAST_RATES, JSON.stringify(data));
+          }
+        }
+      } catch {
+        // ignore
+      }
+    }
+    initRates();
+    return () => {
+      ignore = true;
+    };
+  }, []);
+
+  const convertCurrencyToKrw = useCallback(
+    (amount: number, currency: string): CurrencyConversionResult | null => {
+      if (typeof amount !== 'number' || isNaN(amount) || amount < 0) return null;
+      if (currency === 'KRW') {
+        return {
+          krw: Math.round(amount),
+          rate: 1,
+          provider: '기준 통화 (KRW)',
+          date: new Date().toISOString().split('T')[0],
+        };
+      }
+      const currentRates = rates || getValidatedCachedRates();
+      if (!currentRates || !currentRates.rates) return null;
+      const rateVal = currentRates.rates[currency];
+      if (typeof rateVal !== 'number' || isNaN(rateVal) || rateVal <= 0) {
+        return null;
+      }
+      const krwPerUnit = 1 / rateVal;
+      return {
+        krw: Math.round(amount * krwPerUnit),
+        rate: Math.round(krwPerUnit * 100) / 100,
+        provider: currentRates.provider,
+        date: currentRates.rateDate,
+        isStale: currentRates.isStale,
+      };
+    },
+    [rates]
+  );
+
   const addExpense = useCallback(
-    (item: Omit<ExpenseRecord, 'id' | 'timestamp'>) => {
+    (item: Omit<ExpenseRecord, 'id' | 'timestamp'>, options?: AddExpenseOptions): boolean => {
+      const now = Date.now();
       const isDuplicate = expenses.some(
         (e) =>
-          e.placeName === item.placeName &&
+          e.placeName.trim() === item.placeName.trim() &&
           e.amount === item.amount &&
           e.currency === item.currency &&
-          Date.now() - e.timestamp < 2 * 60 * 1000
+          now - e.timestamp < 2 * 60 * 1000
       );
 
-      if (isDuplicate) {
-        showToast(t('wallet.duplicate.warning'), 'info');
+      if (isDuplicate && !options?.force) {
+        showToast(t('wallet.duplicate.blocked'), 'info');
+        return false;
       }
 
       const newRecord: ExpenseRecord = {
         ...item,
-        id: 'exp-' + Date.now() + '-' + Math.random().toString(36).substring(2, 7),
-        timestamp: Date.now(),
+        id: 'exp-' + now + '-' + Math.random().toString(36).substring(2, 7),
+        timestamp: now,
       };
 
+      let actuallySaved = false;
       setExpenses((prev) => {
+        const isStillDup = prev.some(
+          (e) =>
+            e.placeName.trim() === item.placeName.trim() &&
+            e.amount === item.amount &&
+            e.currency === item.currency &&
+            now - e.timestamp < 2 * 60 * 1000
+        );
+        if (isStillDup && !options?.force) {
+          return prev;
+        }
+        actuallySaved = true;
         const next = [newRecord, ...prev];
         safeSetItem(STORAGE_KEY_WALLET, JSON.stringify(next));
         return next;
       });
 
-      showToast(t('wallet.toast.saved'), 'success');
-      return true;
+      if (actuallySaved) {
+        showToast(t('wallet.toast.saved'), 'success');
+        return true;
+      } else {
+        showToast(t('wallet.duplicate.blocked'), 'info');
+        return false;
+      }
     },
     [expenses, showToast]
   );
@@ -405,6 +545,9 @@ export function TravelProvider({ children }: { children: ReactNode }) {
         addExpense,
         deleteExpense,
         clearAllExpenses,
+        rates,
+        refreshRates,
+        convertCurrencyToKrw,
       }}
     >
       {children}

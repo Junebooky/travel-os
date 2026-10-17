@@ -32,6 +32,7 @@ export default function WalletView() {
     clearAllExpenses,
     activePlace,
     returnToMapWithPlace,
+    convertCurrencyToKrw,
   } = useTravel();
 
   const [isAddModalOpen, setIsAddModalOpen] = useState<boolean>(false);
@@ -50,6 +51,10 @@ export default function WalletView() {
     return expenses.reduce((sum, item) => sum + (item.amountKrw || 0), 0);
   }, [expenses]);
 
+  const hasUncalculatedExpenses = useMemo(() => {
+    return expenses.some((item) => item.amountKrw === null);
+  }, [expenses]);
+
   const totalLocal = useMemo(() => {
     return expenses
       .filter((item) => item.currency === localCurrency)
@@ -60,22 +65,30 @@ export default function WalletView() {
   const categoryTotals = useMemo(() => {
     const map: Partial<Record<PlaceCategory, number>> = {};
     expenses.forEach((e) => {
-      map[e.category] = (map[e.category] || 0) + (e.amountKrw || 0);
+      if (e.amountKrw !== null) {
+        map[e.category] = (map[e.category] || 0) + e.amountKrw;
+      }
     });
     return map;
   }, [expenses]);
 
+  // TB-P1-05: Genuine rate conversion using convertCurrencyToKrw, no fabricated rates
   const handleCreateExpense = (e: React.FormEvent) => {
     e.preventDefault();
     const parsedAmount = parseFloat(amountInput);
     if (isNaN(parsedAmount) || parsedAmount <= 0) return;
 
-    // Approximate conversion rate based on currency
-    const rateToKrw =
-      currencyInput === 'JPY' ? 9.15 : currencyInput === 'USD' ? 1380 : currencyInput === 'EUR' ? 1480 : currencyInput === 'VND' ? 0.055 : 1;
-    const computedKrw = Math.round(parsedAmount * rateToKrw);
+    const conversion = convertCurrencyToKrw(parsedAmount, currencyInput);
+    const computedKrw = conversion ? conversion.krw : null;
+    const rateUsed = conversion
+      ? {
+          rate: conversion.rate,
+          provider: conversion.provider,
+          date: conversion.date,
+        }
+      : undefined;
 
-    addExpense({
+    const saved = addExpense({
       amount: parsedAmount,
       currency: currencyInput,
       amountKrw: computedKrw,
@@ -83,17 +96,14 @@ export default function WalletView() {
       category: categoryInput,
       paymentMethod: paymentMethodInput,
       memo: memoInput.trim() || undefined,
-      rateUsed: {
-        rate: rateToKrw,
-        provider: 'ECB/Frankfurter',
-        date: formatDate(new Date()),
-      },
+      rateUsed,
     });
 
-    // Reset and close
-    setAmountInput('');
-    setMemoInput('');
-    setIsAddModalOpen(false);
+    if (saved) {
+      setAmountInput('');
+      setMemoInput('');
+      setIsAddModalOpen(false);
+    }
   };
 
   const getCategoryIcon = (cat: PlaceCategory) => {
@@ -200,6 +210,12 @@ export default function WalletView() {
           )}
         </div>
 
+        {hasUncalculatedExpenses && (
+          <p className="text-[10px] text-amber-400/90 font-medium">
+            * {t('wallet.rate.not_available')}
+          </p>
+        )}
+
         {/* Category breakdown bar if expenses exist */}
         {expenses.length > 0 && (
           <div className="pt-2 border-t border-indigo-900/40 flex flex-wrap gap-1.5">
@@ -270,9 +286,15 @@ export default function WalletView() {
             {/* Right: Amounts & Actions */}
             <div className="flex items-center space-x-2 shrink-0">
               <div className="text-right">
-                <p className="text-xs font-bold text-white">
-                  {formatCurrency(item.amountKrw, 'KRW')}
-                </p>
+                {item.amountKrw !== null ? (
+                  <p className="text-xs font-bold text-white">
+                    {formatCurrency(item.amountKrw, 'KRW')}
+                  </p>
+                ) : (
+                  <p className="text-[11px] font-medium text-amber-400">
+                    {t('wallet.rate.unverified')}
+                  </p>
+                )}
                 <p className="text-[10px] text-slate-400 font-mono">
                   {formatAmountNumber(item.amount, item.currency)} {item.currency}
                 </p>
