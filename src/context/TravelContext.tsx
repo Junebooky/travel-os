@@ -44,10 +44,10 @@ interface TravelContextType {
   onboardingCompleted: boolean;
   setOnboardingCompleted: (val: boolean) => void;
   savedPlaces: Place[];
-  savePlace: (place: Place) => void;
-  removePlace: (placeId: string) => void;
+  savePlace: (place: Place) => boolean;
+  removePlace: (placeId: string) => boolean;
   isPlaceSaved: (placeId: string) => boolean;
-  clearAllSavedPlaces: () => void;
+  clearAllSavedPlaces: () => boolean;
   resetAllData: () => void;
   returnToMapWithPlace: (place?: Place | null) => void;
   isOnline: boolean;
@@ -59,8 +59,8 @@ interface TravelContextType {
   setSearchQuery: (q: string) => void;
   expenses: ExpenseRecord[];
   addExpense: (expense: Omit<ExpenseRecord, 'id' | 'timestamp'>, options?: AddExpenseOptions) => boolean;
-  deleteExpense: (id: string) => void;
-  clearAllExpenses: () => void;
+  deleteExpense: (id: string) => boolean;
+  clearAllExpenses: () => boolean;
   rates: ExchangeRateData | null;
   refreshRates: () => Promise<ExchangeRateData | null>;
   convertCurrencyToKrw: (amount: number, currency: string) => CurrencyConversionResult | null;
@@ -118,21 +118,24 @@ export function safeGetItem(key: string): string | null {
   }
 }
 
-export function safeSetItem(key: string, value: string): void {
-  if (typeof window === 'undefined' || !window.localStorage) return;
+export function safeSetItem(key: string, value: string): boolean {
+  if (typeof window === 'undefined' || !window.localStorage) return false;
   try {
     window.localStorage.setItem(key, value);
+    return true;
   } catch {
     // Gracefully handle storage quota or private browsing exceptions
+    return false;
   }
 }
 
-export function safeRemoveItem(key: string): void {
-  if (typeof window === 'undefined' || !window.localStorage) return;
+export function safeRemoveItem(key: string): boolean {
+  if (typeof window === 'undefined' || !window.localStorage) return false;
   try {
     window.localStorage.removeItem(key);
+    return true;
   } catch {
-    // ignore
+    return false;
   }
 }
 
@@ -303,26 +306,43 @@ export function TravelProvider({ children }: { children: ReactNode }) {
     safeSetItem(STORAGE_KEY_VIEWPORT, JSON.stringify(newViewport));
   }, []);
 
-  const savePlace = useCallback((place: Place) => {
+  const savePlace = useCallback((place: Place): boolean => {
+    let success = false;
     setSavedPlaces((prev) => {
       if (prev.some((p) => p.id === place.id)) {
         showToast(t('saved.success'), 'info');
+        success = true;
         return prev;
       }
       const updated = [place, ...prev];
-      safeSetItem(STORAGE_KEY_SAVED, JSON.stringify(updated));
+      const ok = safeSetItem(STORAGE_KEY_SAVED, JSON.stringify(updated));
+      if (!ok) {
+        showToast(t('saved.error'), 'error');
+        success = false;
+        return prev;
+      }
       showToast(t('saved.success'), 'success');
+      success = true;
       return updated;
     });
+    return success;
   }, [showToast]);
 
-  const removePlace = useCallback((placeId: string) => {
+  const removePlace = useCallback((placeId: string): boolean => {
+    let success = false;
     setSavedPlaces((prev) => {
       const updated = prev.filter((p) => p.id !== placeId);
-      safeSetItem(STORAGE_KEY_SAVED, JSON.stringify(updated));
+      const ok = safeSetItem(STORAGE_KEY_SAVED, JSON.stringify(updated));
+      if (!ok) {
+        showToast(t('saved.remove.error'), 'error');
+        success = false;
+        return prev;
+      }
+      showToast(t('saved.remove.success'), 'info');
+      success = true;
       return updated;
     });
-    showToast(t('saved.remove.success'), 'info');
+    return success;
   }, [showToast]);
 
   const isPlaceSaved = useCallback(
@@ -330,10 +350,20 @@ export function TravelProvider({ children }: { children: ReactNode }) {
     [savedPlaces]
   );
 
-  const clearAllSavedPlaces = useCallback(() => {
-    setSavedPlaces([]);
-    safeRemoveItem(STORAGE_KEY_SAVED);
-    showToast(t('saved.delete_all.success'), 'info');
+  const clearAllSavedPlaces = useCallback((): boolean => {
+    let success = false;
+    setSavedPlaces((prev) => {
+      const ok = safeRemoveItem(STORAGE_KEY_SAVED);
+      if (!ok) {
+        showToast(t('saved.delete_all.failed'), 'error');
+        success = false;
+        return prev;
+      }
+      showToast(t('saved.delete_all.success'), 'info');
+      success = true;
+      return [];
+    });
+    return success;
   }, [showToast]);
 
   const resetAllData = useCallback(() => {
@@ -457,14 +487,19 @@ export function TravelProvider({ children }: { children: ReactNode }) {
       };
 
       const next = [newRecord, ...currentExpenses];
+
+      // Persistence side effect: verify storage integrity before committing in-memory
+      const ok = safeSetItem(STORAGE_KEY_WALLET, JSON.stringify(next));
+      if (!ok) {
+        showToast(t('wallet.toast.save_failed'), 'error');
+        return false;
+      }
+
       // Synchronously update the ref so any rapid consecutive clicks immediately see the new item
       expensesRef.current = next;
 
       // Pure React state update
       setExpenses(next);
-
-      // Persistence side effect outside React updater
-      safeSetItem(STORAGE_KEY_WALLET, JSON.stringify(next));
 
       showToast(t('wallet.toast.saved'), 'success');
       return true;
@@ -473,21 +508,32 @@ export function TravelProvider({ children }: { children: ReactNode }) {
   );
 
   const deleteExpense = useCallback(
-    (id: string) => {
-      const next = expensesRef.current.filter((e) => e.id !== id);
+    (id: string): boolean => {
+      const currentExpenses = expensesRef.current;
+      const next = currentExpenses.filter((e) => e.id !== id);
+      const ok = safeSetItem(STORAGE_KEY_WALLET, JSON.stringify(next));
+      if (!ok) {
+        showToast(t('wallet.toast.delete_failed'), 'error');
+        return false;
+      }
       expensesRef.current = next;
       setExpenses(next);
-      safeSetItem(STORAGE_KEY_WALLET, JSON.stringify(next));
       showToast(t('wallet.toast.deleted'), 'info');
+      return true;
     },
     [showToast]
   );
 
-  const clearAllExpenses = useCallback(() => {
+  const clearAllExpenses = useCallback((): boolean => {
+    const ok = safeRemoveItem(STORAGE_KEY_WALLET);
+    if (!ok) {
+      showToast(t('wallet.toast.clear_failed'), 'error');
+      return false;
+    }
     expensesRef.current = [];
     setExpenses([]);
-    safeRemoveItem(STORAGE_KEY_WALLET);
     showToast(t('wallet.toast.cleared'), 'info');
+    return true;
   }, [showToast]);
 
   const returnToMapWithPlace = useCallback((place?: Place | null) => {

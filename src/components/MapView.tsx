@@ -114,6 +114,7 @@ export default function MapView() {
   const [isDemoMode, setIsDemoMode] = useState<boolean>(true);
   const [demoNotice, setDemoNotice] = useState<string>('');
   const [isSearchingPlaces, setIsSearchingPlaces] = useState<boolean>(false);
+  const [searchError, setSearchError] = useState<string | null>(null);
   const [isCameraModalOpen, setIsCameraModalOpen] = useState<boolean>(false);
   const [isSheetExpanded, setIsSheetExpanded] = useState<boolean>(false);
 
@@ -175,6 +176,7 @@ export default function MapView() {
       options: { recenterOnResult?: boolean } = {}
     ) => {
       setIsSearchingPlaces(true);
+      setSearchError(null);
       try {
         const params = new URLSearchParams({
           country: country.code,
@@ -191,6 +193,7 @@ export default function MapView() {
             setApiPlaces(data.places);
             setIsDemoMode(Boolean(data.isDemo));
             setDemoNotice(data.demoNotice || '');
+            setSearchError(null);
 
             // Recenter map viewport if search returned remote or queried places (QA-P1-03)
             if (data.places.length > 0 && (query.trim().length > 0 || options.recenterOnResult)) {
@@ -201,9 +204,12 @@ export default function MapView() {
               setActivePlace(firstPlace);
             }
           }
+        } else {
+          setSearchError('search_failed');
         }
       } catch (err) {
         console.warn('[MapView] Place search fetch error:', err);
+        setSearchError('network_error');
       } finally {
         setIsSearchingPlaces(false);
       }
@@ -459,13 +465,25 @@ export default function MapView() {
             const isSelected = activePlace?.id === place.id;
 
             return (
-              <div
+              <button
+                type="button"
                 key={place.id}
+                role="button"
+                tabIndex={0}
+                aria-label={t('common.accessibility.map_pin', { placeName: place.name })}
+                aria-pressed={isSelected}
                 onClick={(e) => {
                   e.stopPropagation();
                   setActivePlace(place);
                 }}
-                className="absolute pointer-events-auto cursor-pointer group"
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    setActivePlace(place);
+                  }
+                }}
+                className="absolute pointer-events-auto cursor-pointer group text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 rounded-full"
                 style={{
                   left: `${screenX}px`,
                   top: `${screenY}px`,
@@ -496,7 +514,7 @@ export default function MapView() {
                     <MapPin className="w-4 h-4 fill-current" />
                   </div>
                 </div>
-              </div>
+              </button>
             );
           })}
         </div>
@@ -697,8 +715,27 @@ export default function MapView() {
         </a>
       </div>
 
-      {/* Empty Search Results Floating Banner */}
-      {filteredPlaces.length === 0 && (
+      {/* Search Error or Empty Search Results Floating Banner */}
+      {searchError ? (
+        <div className="absolute inset-x-4 top-36 z-20 p-4 rounded-2xl bg-rose-950/90 border border-rose-800/80 text-center shadow-2xl backdrop-blur-md max-w-sm mx-auto">
+          <div className="text-sm font-semibold text-rose-200 mb-1">
+            {t('map.search.error_title')}
+          </div>
+          <div className="text-xs text-rose-300/80 mb-3 leading-relaxed">
+            {t('map.search.error_body')}
+          </div>
+          <button
+            type="button"
+            onClick={() => {
+              setSearchError(null);
+              fetchPlaces(searchQuery, selectedCategory, mapCenter);
+            }}
+            className="text-xs font-semibold px-3 py-1.5 rounded-lg bg-rose-900/80 hover:bg-rose-800 text-rose-100 border border-rose-700 transition-colors"
+          >
+            {t('map.search.retry')}
+          </button>
+        </div>
+      ) : filteredPlaces.length === 0 ? (
         <div className="absolute inset-x-4 top-36 z-20 p-4 rounded-2xl bg-slate-900/95 border border-slate-800 text-center shadow-2xl backdrop-blur-md max-w-sm mx-auto">
           <div className="text-sm font-semibold text-slate-200 mb-1">
             {t('map.search.empty_title')}
@@ -707,6 +744,7 @@ export default function MapView() {
             {t('map.search.empty_body')}
           </div>
           <button
+            type="button"
             onClick={() => {
               setSearchQuery('');
               setSelectedCategory('all');
@@ -716,7 +754,7 @@ export default function MapView() {
             {t('map.search.empty_action')}
           </button>
         </div>
-      )}
+      ) : null}
 
       {/* Place Preview Card & Bottom Sheet (Peek & Expanded Modes) */}
       {activePlace && (

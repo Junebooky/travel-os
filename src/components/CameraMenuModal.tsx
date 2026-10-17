@@ -43,6 +43,9 @@ export default function CameraMenuModal({ isOpen, onClose, initialPlace }: Camer
   const [demoNotice, setDemoNotice] = useState<string>('');
   const [editingItemId, setEditingItemId] = useState<string | null>(null);
   const [editingPrice, setEditingPrice] = useState<string>('');
+  const [lastImageData, setLastImageData] = useState<{ base64: string; mimeType: string } | null>(null);
+  const [ocrError, setOcrError] = useState<string | null>(null);
+  const [reviewingItem, setReviewingItem] = useState<MenuItemOCR | null>(null);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const cameraInputRef = useRef<HTMLInputElement>(null);
@@ -53,6 +56,8 @@ export default function CameraMenuModal({ isOpen, onClose, initialPlace }: Camer
   const handleLoadSampleMenu = async () => {
     setIsLoading(true);
     setImagePreview('sample_demo');
+    setLastImageData(null);
+    setOcrError(null);
     try {
       const res = await fetch('/api/camera/translate', {
         method: 'POST',
@@ -69,17 +74,92 @@ export default function CameraMenuModal({ isOpen, onClose, initialPlace }: Camer
         setDetectedCurrency(data.currency || localCurrency);
         setIsDemo(true);
         setDemoNotice(data.demoNotice || '');
+        setOcrError(null);
       } else {
-        showToast(data.message || t('common.error.service_unavailable'), 'error');
+        const errMsg = data.message || t('common.error.service_unavailable');
+        setOcrError(errMsg);
+        showToast(errMsg, 'error');
       }
     } catch {
-      showToast(t('common.error.service_unavailable'), 'error');
+      const errMsg = t('common.error.service_unavailable');
+      setOcrError(errMsg);
+      showToast(errMsg, 'error');
     } finally {
       setIsLoading(false);
     }
   };
 
-  // Process image and call OCR translation API
+  // Reusable core OCR translation call (supports initial upload and retry without losing image)
+  const processImage = async (base64Data: string, mimeType: string) => {
+    setImagePreview(base64Data);
+    setLastImageData({ base64: base64Data, mimeType });
+    setIsLoading(true);
+    setOcrError(null);
+
+    // Build verified rates map from TravelContext
+    const verifiedRatesMap: Record<string, number> = {};
+    ['JPY', 'USD', 'EUR', 'VND', 'GBP', 'CNY', 'TWD', 'THB', 'SGD', 'AUD', 'CAD', 'CHF', 'HKD', 'PHP'].forEach((c) => {
+      const conv = convertCurrencyToKrw(1, c);
+      if (conv?.rate && conv.rate > 0 && !conv.isStale) {
+        verifiedRatesMap[c] = conv.rate;
+      }
+    });
+
+    const rateConv = convertCurrencyToKrw(100, localCurrency);
+    const currentRateToKrw = rateConv && !rateConv.isStale ? rateConv.rate : undefined;
+
+    try {
+      const res = await fetch('/api/camera/translate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          imageBase64: base64Data,
+          mimeType,
+          countryCode: country.code,
+          currency: localCurrency,
+          rateCurrency: localCurrency,
+          rateToKrw: currentRateToKrw,
+          ratesMap: verifiedRatesMap,
+        }),
+      });
+
+      const data = await res.json();
+      if (data.success && Array.isArray(data.items)) {
+        const processedItems: MenuItemOCR[] = data.items.map((item: MenuItemOCR) => {
+          const itemCurrency = (item.currency || data.currency || localCurrency).toUpperCase();
+          // Verify conversion using the actual item currency
+          const conv = convertCurrencyToKrw(item.originalPrice, itemCurrency);
+          const isValid = Boolean(conv && conv.krw !== null && !conv.isStale);
+          return {
+            ...item,
+            currency: itemCurrency,
+            estimatedKrw: isValid ? conv!.krw : null,
+            rateUnverified: !isValid,
+          };
+        });
+
+        setMenuItems(processedItems);
+        setDetectedCurrency((data.currency || localCurrency).toUpperCase());
+        setIsDemo(Boolean(data.isDemo));
+        setDemoNotice(data.demoNotice || '');
+        setOcrError(null);
+      } else {
+        const errMsg = data.error === 'VISION_AI_NOT_CONFIGURED'
+          ? t('camera.error.api_not_configured')
+          : (data.message || t('camera.error.no_text'));
+        setOcrError(errMsg);
+        showToast(errMsg, data.error === 'VISION_AI_NOT_CONFIGURED' ? 'info' : 'error');
+      }
+    } catch {
+      const errMsg = t('common.error.service_unavailable');
+      setOcrError(errMsg);
+      showToast(errMsg, 'error');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Process image from file input
   const handleImageSelected = async (e: ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -93,82 +173,25 @@ export default function CameraMenuModal({ isOpen, onClose, initialPlace }: Camer
     const reader = new FileReader();
     reader.onload = async () => {
       const base64Data = reader.result as string;
-      setImagePreview(base64Data);
-      setIsLoading(true);
-
-      // Build verified rates map from TravelContext
-      const verifiedRatesMap: Record<string, number> = {};
-      ['JPY', 'USD', 'EUR', 'VND', 'GBP', 'CNY', 'TWD', 'THB', 'SGD', 'AUD', 'CAD', 'CHF', 'HKD', 'PHP'].forEach((c) => {
-        const conv = convertCurrencyToKrw(1, c);
-        if (conv?.rate && conv.rate > 0 && !conv.isStale) {
-          verifiedRatesMap[c] = conv.rate;
-        }
-      });
-
-      const rateConv = convertCurrencyToKrw(100, localCurrency);
-      const currentRateToKrw = rateConv && !rateConv.isStale ? rateConv.rate : undefined;
-
-      try {
-        const res = await fetch('/api/camera/translate', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            imageBase64: base64Data,
-            mimeType: file.type || 'image/jpeg',
-            countryCode: country.code,
-            currency: localCurrency,
-            rateCurrency: localCurrency,
-            rateToKrw: currentRateToKrw,
-            ratesMap: verifiedRatesMap,
-          }),
-        });
-
-        const data = await res.json();
-        if (data.success && Array.isArray(data.items)) {
-          const processedItems: MenuItemOCR[] = data.items.map((item: MenuItemOCR) => {
-            const itemCurrency = (item.currency || data.currency || localCurrency).toUpperCase();
-            // Verify conversion using the actual item currency
-            const conv = convertCurrencyToKrw(item.originalPrice, itemCurrency);
-            const isValid = Boolean(conv && conv.krw !== null && !conv.isStale);
-            return {
-              ...item,
-              currency: itemCurrency,
-              estimatedKrw: isValid ? conv!.krw : null,
-              rateUnverified: !isValid,
-            };
-          });
-
-          setMenuItems(processedItems);
-          setDetectedCurrency((data.currency || localCurrency).toUpperCase());
-          setIsDemo(Boolean(data.isDemo));
-          setDemoNotice(data.demoNotice || '');
-        } else {
-          if (data.error === 'VISION_AI_NOT_CONFIGURED') {
-            showToast(t('camera.error.api_not_configured'), 'info');
-          } else {
-            showToast(data.message || t('camera.error.no_text'), 'error');
-          }
-        }
-      } catch {
-        showToast(t('common.error.service_unavailable'), 'error');
-      } finally {
-        setIsLoading(false);
-      }
+      await processImage(base64Data, file.type || 'image/jpeg');
     };
     reader.readAsDataURL(file);
   };
 
-  // Add extracted item directly to Travel Wallet (B4 integration)
-  const handleSaveToWallet = (item: MenuItemOCR) => {
-    if (isDemo && typeof window !== 'undefined' && !window.confirm(t('camera.demo_save_confirm'))) {
-      return;
+  // Retry analyzing currently retained photo (D-P1-04)
+  const handleRetryAnalysis = () => {
+    if (lastImageData) {
+      processImage(lastImageData.base64, lastImageData.mimeType);
     }
+  };
 
+  // Confirm and add extracted item to Travel Wallet with user review (D-P1-05 & Issue #17)
+  const handleConfirmSaveToWallet = (item: MenuItemOCR) => {
     const itemCurrency = (item.currency || detectedCurrency).toUpperCase();
     const conversion = convertCurrencyToKrw(item.originalPrice, itemCurrency);
     const hasValidRate = Boolean(conversion && conversion.krw !== null && !conversion.isStale);
 
-    addExpense({
+    const saved = addExpense({
       amount: item.originalPrice,
       currency: itemCurrency,
       amountKrw: hasValidRate ? conversion!.krw : null,
@@ -184,6 +207,10 @@ export default function CameraMenuModal({ isOpen, onClose, initialPlace }: Camer
           }
         : undefined,
     });
+
+    if (saved) {
+      setReviewingItem(null);
+    }
   };
 
   // Return to Map with context preserved
@@ -315,7 +342,10 @@ export default function CameraMenuModal({ isOpen, onClose, initialPlace }: Camer
               {/* Privacy Notice */}
               <div className="flex items-start gap-1.5 text-[11px] text-slate-400/90 bg-slate-900/60 p-2.5 rounded-xl border border-slate-800/80 text-left w-full max-w-xs mt-1">
                 <AlertCircle className="w-3.5 h-3.5 text-slate-400 shrink-0 mt-0.5" />
-                <span>{t('camera.privacy.notice')}</span>
+                <div className="space-y-0.5">
+                  <span className="block text-slate-300 font-semibold">{t('camera.privacy.benefit')}</span>
+                  <span>{t('camera.privacy.notice')}</span>
+                </div>
               </div>
             </div>
           )}
@@ -349,7 +379,10 @@ export default function CameraMenuModal({ isOpen, onClose, initialPlace }: Camer
                   type="button"
                   onClick={() => {
                     setImagePreview(null);
+                    setLastImageData(null);
+                    setOcrError(null);
                     setMenuItems([]);
+                    setReviewingItem(null);
                   }}
                   className="px-2.5 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg text-xs flex items-center gap-1 transition-colors"
                 >
@@ -377,6 +410,29 @@ export default function CameraMenuModal({ isOpen, onClose, initialPlace }: Camer
               <RefreshCw className="w-7 h-7 text-emerald-400 animate-spin" />
               <p className="text-xs font-medium text-slate-300">{t('camera.status.processing')}</p>
               <p className="text-[11px] text-slate-500">{t('camera.status.ocr_analyzing')}</p>
+            </div>
+          )}
+
+          {/* OCR Error with Retain Photo & Retry Button (D-P1-04) */}
+          {ocrError && !isLoading && menuItems.length === 0 && (
+            <div className="p-4 bg-rose-950/70 border border-rose-800/80 rounded-2xl text-center space-y-3">
+              <div className="w-10 h-10 rounded-full bg-rose-500/20 text-rose-400 flex items-center justify-center mx-auto">
+                <AlertCircle className="w-5 h-5" />
+              </div>
+              <div>
+                <p className="text-xs font-semibold text-rose-200">{ocrError}</p>
+                <p className="text-[11px] text-rose-300/80 mt-0.5">{t('camera.error.no_text')}</p>
+              </div>
+              {lastImageData && (
+                <button
+                  type="button"
+                  onClick={handleRetryAnalysis}
+                  className="py-2 px-4 bg-rose-800 hover:bg-rose-700 text-white rounded-xl text-xs font-semibold inline-flex items-center gap-1.5 shadow-md active:scale-95 transition-all"
+                >
+                  <RefreshCw className="w-3.5 h-3.5" />
+                  {t('camera.action.retry_analysis')}
+                </button>
+              )}
             </div>
           )}
 
@@ -467,10 +523,11 @@ export default function CameraMenuModal({ isOpen, onClose, initialPlace }: Camer
                       )}
                     </div>
 
-                    {/* 1-click Save to Wallet */}
+                    {/* Review Spend and Save to Wallet */}
                     <button
                       type="button"
-                      onClick={() => handleSaveToWallet(item)}
+                      onClick={() => setReviewingItem(item)}
+                      aria-label={t('wallet.review.open')}
                       className="py-1 px-2.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-xs font-medium flex items-center gap-1 shadow-sm active:scale-95 transition-all"
                     >
                       <Wallet className="w-3.5 h-3.5" />
@@ -488,6 +545,81 @@ export default function CameraMenuModal({ isOpen, onClose, initialPlace }: Camer
             <span>{t('camera.privacy.notice')}</span>
           </div>
         </div>
+
+        {/* Review Spend Dialog before Saving to Wallet (D-P1-05 & Issue #17) */}
+        {reviewingItem && (
+          <div className="absolute inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-200">
+            <div className="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-sm p-4 space-y-3.5 shadow-2xl">
+              <div className="flex items-center justify-between pb-2 border-b border-slate-800">
+                <div className="flex items-center gap-1.5 text-xs font-bold text-white">
+                  <Wallet className="w-4 h-4 text-indigo-400" />
+                  <span>{t('wallet.review.open')}</span>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setReviewingItem(null)}
+                  className="p-1 text-slate-400 hover:text-white"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+
+              <div className="p-3 bg-slate-950/80 border border-slate-800 rounded-xl space-y-2">
+                <p className="text-xs font-semibold text-slate-300">
+                  {t('wallet.form.confirm_source')}
+                </p>
+                <div className="flex items-start justify-between gap-2">
+                  <div>
+                    <p className="text-xs text-slate-400 font-mono">{reviewingItem.originalName}</p>
+                    <p className="text-sm font-bold text-white">{reviewingItem.translatedName}</p>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-sm font-bold text-emerald-400">
+                      {formatAmountNumber(reviewingItem.originalPrice, reviewingItem.currency)} {reviewingItem.currency}
+                    </p>
+                    {reviewingItem.estimatedKrw !== null ? (
+                      <p className="text-xs text-slate-400">
+                        약 {formatCurrency(reviewingItem.estimatedKrw, 'KRW')}
+                      </p>
+                    ) : (
+                      <p className="text-[11px] text-amber-400 font-medium">
+                        {t('price.unconvertible')}
+                      </p>
+                    )}
+                  </div>
+                </div>
+                {targetPlace && (
+                  <p className="text-[11px] text-slate-400 flex items-center gap-1 pt-1 border-t border-slate-800/80">
+                    <MapPin className="w-3 h-3 text-emerald-400" />
+                    <span>{targetPlace.name}</span>
+                  </p>
+                )}
+                {(isDemo || reviewingItem.isDemo) && (
+                  <p className="text-[10px] text-amber-400 bg-amber-500/10 p-1.5 rounded border border-amber-500/20">
+                    * {t('wallet.form.sample_not_actual')}
+                  </p>
+                )}
+              </div>
+
+              <div className="flex items-center gap-2 pt-1">
+                <button
+                  type="button"
+                  onClick={() => setReviewingItem(null)}
+                  className="flex-1 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl text-xs font-medium"
+                >
+                  {t('wallet.form.cancel')}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleConfirmSaveToWallet(reviewingItem)}
+                  className="flex-1 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-xs font-semibold shadow-md active:scale-95 transition-all"
+                >
+                  {t('wallet.form.confirm_actual')}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Footer: Return to Map CTA */}
         {targetPlace && (

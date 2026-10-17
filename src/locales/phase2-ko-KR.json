@@ -221,5 +221,8 @@
   "flow.return_place": "선택한 장소로 돌아가기",
   "flow.return_map": "지도로 돌아가기",
   "flow.context_missing": "이전 장소 정보를 불러오지 못했어요. 지도에서 다시 선택하세요.",
-  "flow.context_restored": "선택한 장소로 돌아왔어요."
+  "flow.context_restored": "선택한 장소로 돌아왔어요.",
+  "camera.privacy.benefit": "메뉴판 글자와 가격을 읽어드려요.",
+  "wallet.review.open": "지출 내용 확인하기",
+  "wallet.form.submit_amount": "{{amount}}{{currencyName}} 지출 기록하기"
 }

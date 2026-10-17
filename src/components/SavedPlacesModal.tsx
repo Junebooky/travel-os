@@ -85,7 +85,11 @@ export default function SavedPlacesModal({ isOpen, onClose }: { isOpen: boolean;
                 </p>
               </div>
               <button
-                onClick={onClose}
+                type="button"
+                onClick={() => {
+                  returnToMapWithPlace(null);
+                  onClose();
+                }}
                 className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-semibold text-xs shadow-md shadow-blue-600/30 transition-all active:scale-95"
               >
                 <Compass className="w-3.5 h-3.5" />

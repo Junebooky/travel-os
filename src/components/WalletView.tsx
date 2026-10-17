@@ -33,10 +33,12 @@ export default function WalletView() {
     activePlace,
     returnToMapWithPlace,
     convertCurrencyToKrw,
+    refreshRates,
   } = useTravel();
 
   const [isAddModalOpen, setIsAddModalOpen] = useState<boolean>(false);
   const [isClearAllOpen, setIsClearAllOpen] = useState<boolean>(false);
+  const [deleteTargetId, setDeleteTargetId] = useState<string | null>(null);
 
   // Form states
   const [amountInput, setAmountInput] = useState<string>('');
@@ -212,9 +214,16 @@ export default function WalletView() {
         </div>
 
         {hasUncalculatedExpenses && (
-          <p className="text-[10px] text-amber-400/90 font-medium">
-            * {t('wallet.summary.partial')} {t('wallet.rate.not_available')}
-          </p>
+          <div className="flex items-center justify-between text-[10px] text-amber-400/90 font-medium">
+            <span>* {t('wallet.summary.partial')} {t('wallet.rate.not_available')}</span>
+            <button
+              type="button"
+              onClick={() => refreshRates()}
+              className="text-indigo-400 hover:text-indigo-300 underline font-semibold ml-2 shrink-0"
+            >
+              {t('common.action.refresh')}
+            </button>
+          </div>
         )}
 
         {/* Category breakdown bar if expenses exist */}
@@ -303,7 +312,7 @@ export default function WalletView() {
 
               <button
                 type="button"
-                onClick={() => deleteExpense(item.id)}
+                onClick={() => setDeleteTargetId(item.id)}
                 aria-label={t('wallet.action.delete')}
                 className="p-1.5 text-slate-500 hover:text-rose-400 hover:bg-slate-800 rounded-lg transition-colors"
               >
@@ -493,6 +502,42 @@ export default function WalletView() {
                 className="flex-1 py-2 bg-rose-600 hover:bg-rose-500 text-white rounded-xl text-xs font-semibold"
               >
                 {t('wallet.delete_all.action')}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Single Expense Delete Confirmation Modal (D-P1-05 & Issue #17) */}
+      {deleteTargetId && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 bg-black/80 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-sm p-4 space-y-3 shadow-2xl">
+            <div className="w-10 h-10 rounded-full bg-rose-500/20 text-rose-400 flex items-center justify-center mx-auto mb-1">
+              <AlertTriangle className="w-5 h-5" />
+            </div>
+            <h3 className="text-sm font-bold text-center text-white">
+              {t('wallet.delete_one.title')}
+            </h3>
+            <p className="text-xs text-center text-slate-400">
+              {t('wallet.delete_one.body')}
+            </p>
+            <div className="flex items-center gap-2 pt-2">
+              <button
+                type="button"
+                onClick={() => setDeleteTargetId(null)}
+                className="flex-1 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl text-xs font-medium"
+              >
+                {t('wallet.delete_all.cancel')}
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  deleteExpense(deleteTargetId);
+                  setDeleteTargetId(null);
+                }}
+                className="flex-1 py-2 bg-rose-600 hover:bg-rose-500 text-white rounded-xl text-xs font-semibold"
+              >
+                {t('wallet.delete_one.action')}
               </button>
             </div>
           </div>

@@ -399,7 +399,7 @@ test('Track B Copy Contract: Phase 2 Namespaces and 1st Phase 326-Key Isolation'
   assert.equal(Object.keys(baseJson).length, 326, 'Phase 1 keys must stay strictly 326');
 
   const phase2Keys = Object.keys(phase2Json);
-  assert.equal(phase2Keys.length, 223, 'Phase 2 keys must match A03 v2.0 exact count of 223');
+  assert.equal(phase2Keys.length, 226, 'Phase 2 keys must match updated count of 226');
 
   // Verify critical TB-P1 keys exist in phase2
   assert.ok(phase2Json['voice.translate_failed'], 'voice.translate_failed must exist');
@@ -409,4 +409,71 @@ test('Track B Copy Contract: Phase 2 Namespaces and 1st Phase 326-Key Isolation'
   assert.ok(phase2Json['price.unconvertible'], 'price.unconvertible must exist');
   assert.ok(phase2Json['wallet.duplicate.blocked'], 'wallet.duplicate.blocked must exist');
   assert.ok(phase2Json['wallet.rate.unverified'], 'wallet.rate.unverified must exist');
+  assert.ok(phase2Json['camera.privacy.benefit'], 'camera.privacy.benefit must exist');
+  assert.ok(phase2Json['wallet.review.open'], 'wallet.review.open must exist');
+  assert.ok(phase2Json['wallet.form.submit_amount'], 'wallet.form.submit_amount must exist');
+  assert.ok(phase2Json['wallet.delete_one.title'], 'wallet.delete_one.title must exist');
+  assert.ok(phase2Json['wallet.delete_one.action'], 'wallet.delete_one.action must exist');
+});
+
+test('D-P0-03 Storage Integrity: safeSetItem returns boolean and allows rollback on storage quota failure', () => {
+  const { safeSetItem, safeRemoveItem } = require('../src/context/TravelContext');
+
+  // In Node environment without window
+  assert.equal(safeSetItem('test_key', 'test_val'), false);
+  assert.equal(safeRemoveItem('test_key'), false);
+
+  // Mock window with quota exception
+  const mockStorage: Record<string, string> = {};
+  const mockWindow = {
+    localStorage: {
+      getItem: (k: string) => mockStorage[k] || null,
+      setItem: (k: string, v: string) => {
+        if (k === 'quota_exceeded_key') {
+          throw new Error('QuotaExceededError');
+        }
+        mockStorage[k] = v;
+      },
+      removeItem: (k: string) => {
+        delete mockStorage[k];
+      },
+    },
+  };
+
+  (globalThis as unknown as { window: typeof mockWindow }).window = mockWindow;
+
+  try {
+    const successWrite = safeSetItem('normal_key', 'value_ok');
+    assert.equal(successWrite, true);
+    assert.equal(mockStorage['normal_key'], 'value_ok');
+
+    const failedWrite = safeSetItem('quota_exceeded_key', 'value_fail');
+    assert.equal(failedWrite, false, 'safeSetItem must return false on quota error');
+    assert.equal(mockStorage['quota_exceeded_key'], undefined, 'No partial corrupt state in storage');
+
+    const successRemove = safeRemoveItem('normal_key');
+    assert.equal(successRemove, true);
+    assert.equal(mockStorage['normal_key'], undefined);
+  } finally {
+    delete (globalThis as unknown as { window?: typeof mockWindow }).window;
+  }
+});
+
+test('D-P1-05 & OCR Review Contract: Spend Confirmation and Single Deletion Verification', () => {
+  const rootDir = path.resolve(__dirname, '..');
+  const phase2Json = JSON.parse(fs.readFileSync(path.join(rootDir, 'src', 'locales', 'phase2-ko-KR.json'), 'utf-8'));
+
+  // Ensure review confirmation strings exist
+  assert.ok(phase2Json['wallet.form.confirm_source']);
+  assert.ok(phase2Json['wallet.form.confirm_actual']);
+  assert.ok(phase2Json['wallet.review.open']);
+  assert.ok(phase2Json['wallet.form.cancel']);
+
+  // Ensure single delete dialog strings exist
+  assert.ok(phase2Json['wallet.delete_one.title']);
+  assert.ok(phase2Json['wallet.delete_one.body']);
+  assert.ok(phase2Json['wallet.delete_one.action']);
+
+  // Ensure retry analysis string exists
+  assert.ok(phase2Json['camera.action.retry_analysis']);
 });
