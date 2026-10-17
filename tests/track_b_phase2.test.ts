@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
-import { STORAGE_KEY_WALLET, STORAGE_KEY_LAST_RATES } from '../src/context/TravelContext';
+import { STORAGE_KEY_WALLET, STORAGE_KEY_LAST_RATES, safeSetItem, safeRemoveItem } from '../src/context/TravelContext';
 import { ExpenseRecord, MenuItemOCR, Place, ChatMessage } from '../src/types/travel';
 import { POST as cameraTranslatePost } from '../src/app/api/camera/translate/route';
 import { getBcp47Locale, BCP47_LANGUAGE_MAP } from '../src/components/VoiceChatModal';
@@ -417,7 +417,6 @@ test('Track B Copy Contract: Phase 2 Namespaces and 1st Phase 326-Key Isolation'
 });
 
 test('D-P0-03 Storage Integrity: safeSetItem returns boolean and allows rollback on storage quota failure', () => {
-  const { safeSetItem, safeRemoveItem } = require('../src/context/TravelContext');
 
   // In Node environment without window
   assert.equal(safeSetItem('test_key', 'test_val'), false);
