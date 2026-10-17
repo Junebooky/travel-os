@@ -86,40 +86,40 @@ export default function SettingsView() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 pb-24 flex flex-col max-w-md mx-auto p-4 space-y-4">
+    <div className="min-h-screen bg-[#F2F4F6] text-[#191F28] pb-24 flex flex-col max-w-md mx-auto p-4 space-y-4">
       {/* Settings Title */}
       <div className="pt-2">
-        <h1 className="text-xl font-bold tracking-tight text-white mb-1">
+        <h1 className="text-2xl font-extrabold tracking-tight text-[#191F28] mb-1">
           {t('settings.title')}
         </h1>
-        <p className="text-xs text-slate-400">
-          여행 국가, 언어, 통화 및 기기 저장 데이터를 관리할 수 있어요.
+        <p className="text-xs text-[#8B95A1] font-medium">
+          내 여행과 저장 데이터를 관리하세요
         </p>
       </div>
 
       {/* Travel Settings Section */}
-      <div className="bg-slate-900/90 border border-slate-800 rounded-2xl p-4 shadow-xl space-y-3">
-        <div className="text-xs font-semibold text-slate-400 flex items-center gap-1.5">
-          <Globe className="w-3.5 h-3.5 text-blue-400" />
+      <div className="bg-[#FFFFFF] border border-[#E5E8EB] rounded-2xl p-4 shadow-sm space-y-3">
+        <div className="text-xs font-bold text-[#8B95A1] flex items-center gap-1.5">
+          <Globe className="w-3.5 h-3.5 text-[#1B64DA]" />
           <span>{t('settings.travel.section')}</span>
         </div>
 
         {/* Current Destination Country */}
-        <div className="flex items-center justify-between p-3 rounded-xl bg-slate-800/60 border border-slate-700/60">
+        <div className="flex items-center justify-between p-3.5 rounded-xl bg-[#F2F4F6] border border-[#E5E8EB]">
           <div className="flex items-center gap-3">
             <span className="text-2xl">{country.flag}</span>
             <div>
-              <div className="font-semibold text-sm text-slate-100">
+              <div className="font-bold text-sm text-[#191F28]">
                 {country.name} ({country.code})
               </div>
-              <div className="text-xs text-slate-400">
+              <div className="text-xs text-[#8B95A1]">
                 {t('settings.travel.country')}
               </div>
             </div>
           </div>
           <button
             onClick={() => setIsCountryPickerOpen(true)}
-            className="text-xs font-semibold text-blue-400 hover:text-blue-300 bg-blue-950/60 hover:bg-blue-900/80 px-2.5 py-1.5 rounded-lg border border-blue-800/60 transition-all active:scale-95"
+            className="text-xs font-bold text-[#1B64DA] hover:text-[#1652B5] bg-[#FFFFFF] hover:bg-[#F2F4F6] px-3 py-1.5 rounded-lg border border-[#E5E8EB] transition-all active:scale-95 shadow-sm"
           >
             {t('settings.travel.change')}
           </button>
@@ -127,15 +127,15 @@ export default function SettingsView() {
 
         {/* Current Language & Currency Quick Badges */}
         <div className="grid grid-cols-2 gap-2 text-xs">
-          <div className="p-3 rounded-xl bg-slate-800/40 border border-slate-800 space-y-1">
-            <span className="text-slate-400 block">{t('settings.travel.language')}</span>
-            <span className="font-bold text-slate-200">
+          <div className="p-3 rounded-xl bg-[#F2F4F6] border border-[#E5E8EB] space-y-1">
+            <span className="text-[#8B95A1] block font-medium">{t('settings.travel.language')}</span>
+            <span className="font-bold text-[#191F28]">
               {SUPPORTED_LANGUAGES.find((l) => l.code === targetLang)?.name || targetLang}
             </span>
           </div>
-          <div className="p-3 rounded-xl bg-slate-800/40 border border-slate-800 space-y-1">
-            <span className="text-slate-400 block">{t('settings.travel.currency')}</span>
-            <span className="font-bold text-amber-400">
+          <div className="p-3 rounded-xl bg-[#F2F4F6] border border-[#E5E8EB] space-y-1">
+            <span className="text-[#8B95A1] block font-medium">{t('settings.travel.currency')}</span>
+            <span className="font-bold text-[#191F28]">
               {localCurrency} ({country.currencySymbol})
             </span>
           </div>
@@ -143,47 +143,47 @@ export default function SettingsView() {
       </div>
 
       {/* Saved Places (P1) Entry */}
-      <div className="bg-slate-900/90 border border-slate-800 rounded-2xl p-4 shadow-xl">
+      <div className="bg-[#FFFFFF] border border-[#E5E8EB] rounded-2xl p-4 shadow-sm">
         <button
           onClick={() => setIsSavedModalOpen(true)}
           className="w-full flex items-center justify-between group text-left"
         >
           <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-400">
+            <div className="w-9 h-9 rounded-xl bg-[#F2F4F6] border border-[#E5E8EB] flex items-center justify-center text-[#1B64DA]">
               <Bookmark className="w-5 h-5" />
             </div>
             <div>
-              <div className="font-semibold text-sm text-slate-100 flex items-center gap-2">
+              <div className="font-bold text-sm text-[#191F28] flex items-center gap-2">
                 {t('saved.title')}
-                <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-950/80 text-amber-300 border border-amber-800/60">
+                <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-[#F2F4F6] text-[#4E5968] border border-[#E5E8EB]">
                   {savedPlaces.length}개
                 </span>
               </div>
-              <div className="text-xs text-slate-400 mt-0.5">
+              <div className="text-xs text-[#8B95A1] mt-0.5">
                 지도에서 저장한 장소 모아보기
               </div>
             </div>
           </div>
-          <ChevronRight className="w-4 h-4 text-slate-500 group-hover:text-slate-300 transition-colors" />
+          <ChevronRight className="w-4 h-4 text-[#8B95A1] group-hover:text-[#191F28] transition-colors" />
         </button>
       </div>
 
       {/* PWA Home Screen Installation Card */}
-      <div className="bg-slate-900/90 border border-slate-800 rounded-2xl p-4 shadow-xl space-y-3">
+      <div className="bg-[#FFFFFF] border border-[#E5E8EB] rounded-2xl p-4 shadow-sm space-y-3">
         <div className="flex items-center justify-between">
-          <div className="text-xs font-semibold text-slate-400 flex items-center gap-1.5">
-            <Smartphone className="w-3.5 h-3.5 text-blue-400" />
+          <div className="text-xs font-bold text-[#8B95A1] flex items-center gap-1.5">
+            <Smartphone className="w-3.5 h-3.5 text-[#1B64DA]" />
             <span>{t('pwa.install.title')}</span>
           </div>
           {isStandalone && (
-            <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-950/80 text-emerald-300 border border-emerald-800/60 flex items-center gap-1">
-              <Check className="w-3 h-3" />
+            <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-[#F2F4F6] text-[#191F28] border border-[#E5E8EB] flex items-center gap-1">
+              <Check className="w-3 h-3 text-[#1B64DA]" />
               <span>설치됨</span>
             </span>
           )}
         </div>
 
-        <p className="text-xs text-slate-300 leading-relaxed">
+        <p className="text-xs text-[#4E5968] leading-relaxed">
           {isStandalone
             ? '현재 홈 화면 설치 모드로 실행 중입니다.'
             : isIOS
@@ -194,7 +194,7 @@ export default function SettingsView() {
         {!isStandalone && canInstall && (
           <button
             onClick={handleInstallClick}
-            className="w-full py-2.5 px-3 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-semibold text-xs flex items-center justify-center gap-1.5 shadow-md shadow-blue-600/30 transition-all active:scale-95"
+            className="w-full py-2.5 px-3 rounded-xl bg-[#1B64DA] hover:bg-[#1652B5] text-white font-bold text-xs flex items-center justify-center gap-1.5 shadow-sm transition-all active:scale-95"
           >
             <Download className="w-3.5 h-3.5" />
             <span>{t('pwa.install.action')}</span>
@@ -202,26 +202,26 @@ export default function SettingsView() {
         )}
 
         {!isStandalone && !canInstall && !isIOS && (
-          <div className="text-[11px] text-slate-500">
+          <div className="text-[11px] text-[#8B95A1]">
             {t('pwa.install.unavailable')}
           </div>
         )}
       </div>
 
       {/* Device Storage Management Section */}
-      <div className="bg-slate-900/90 border border-slate-800 rounded-2xl p-4 shadow-xl space-y-3">
-        <div className="text-xs font-semibold text-slate-400 flex items-center gap-1.5">
-          <Trash2 className="w-3.5 h-3.5 text-rose-400" />
+      <div className="bg-[#FFFFFF] border border-[#E5E8EB] rounded-2xl p-4 shadow-sm space-y-3">
+        <div className="text-xs font-bold text-[#8B95A1] flex items-center gap-1.5">
+          <Trash2 className="w-3.5 h-3.5 text-[#4E5968]" />
           <span>{t('settings.storage.title')}</span>
         </div>
 
-        <p className="text-xs text-slate-400 leading-relaxed">
+        <p className="text-xs text-[#4E5968] leading-relaxed">
           이 기기에 저장된 여행지 설정, 검색 기록, 저장한 장소 데이터를 초기화합니다.
         </p>
 
         <button
           onClick={() => setIsConfirmResetOpen(true)}
-          className="w-full py-2.5 px-3 rounded-xl bg-rose-950/40 hover:bg-rose-950/70 border border-rose-800/60 text-rose-300 text-xs font-semibold flex items-center justify-center gap-1.5 transition-all active:scale-95"
+          className="w-full py-2.5 px-3 rounded-xl bg-[#F2F4F6] hover:bg-[#E5E8EB] border border-[#E5E8EB] text-rose-600 text-xs font-bold flex items-center justify-center gap-1.5 transition-all active:scale-95"
         >
           <RotateCcw className="w-3.5 h-3.5" />
           <span>{t('settings.storage.clear_action')}</span>
@@ -229,17 +229,17 @@ export default function SettingsView() {
       </div>
 
       {/* About & Policies */}
-      <div className="bg-slate-900/60 border border-slate-800/80 rounded-2xl p-4 space-y-2.5 text-xs text-slate-400">
-        <div className="flex items-center justify-between text-slate-300 font-semibold">
+      <div className="bg-[#FFFFFF] border border-[#E5E8EB] rounded-2xl p-4 space-y-2.5 text-xs text-[#4E5968] shadow-sm">
+        <div className="flex items-center justify-between text-[#191F28] font-bold">
           <span className="flex items-center gap-1.5">
-            <Info className="w-3.5 h-3.5 text-blue-400" />
+            <Info className="w-3.5 h-3.5 text-[#1B64DA]" />
             <span>Travel OS</span>
           </span>
-          <span className="text-[11px] text-slate-400">
+          <span className="text-[11px] text-[#8B95A1]">
             {t('settings.about.version', { version: '1.0.0' })}
           </span>
         </div>
-        <p className="text-[11px] leading-relaxed text-slate-400">
+        <p className="text-[11px] leading-relaxed text-[#8B95A1]">
           비회원 모바일 우선 PWA. 개인 식별 정보를 수집하지 않으며 여행지 설정은 기기 로컬에 보관됩니다. 단, 실시간 번역 요청 시 입력 텍스트가 번역 AI(Google Gemini API)로, 지도 검색 시 검색어와 좌표가 지도 서비스(Google Places / OpenStreetMap)로 전송되어 처리됩니다.
         </p>
       </div>
@@ -252,9 +252,9 @@ export default function SettingsView() {
 
       {/* Country Picker Modal */}
       {isCountryPickerOpen && (
-        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-slate-900 border border-slate-700 rounded-2xl p-5 max-w-sm w-full space-y-3 shadow-2xl animate-in zoom-in-95 max-h-[80vh] flex flex-col">
-            <h3 className="text-base font-bold text-white">
+        <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-[#FFFFFF] border border-[#E5E8EB] rounded-2xl p-5 max-w-sm w-full space-y-3 shadow-2xl animate-in zoom-in-95 max-h-[80vh] flex flex-col">
+            <h3 className="text-base font-extrabold text-[#191F28]">
               {t('onboarding.country.title')}
             </h3>
             <div className="flex-1 overflow-y-auto space-y-2 pr-1">
@@ -268,21 +268,21 @@ export default function SettingsView() {
                   }}
                   className={`w-full flex items-center justify-between p-3 rounded-xl border text-left text-xs transition-all ${
                     country.code === c.code
-                      ? 'bg-blue-950/60 border-blue-500 text-blue-200'
-                      : 'bg-slate-800/50 border-slate-700/60 text-slate-300 hover:bg-slate-800'
+                      ? 'bg-[#F2F4F6] border-[#1B64DA] text-[#1B64DA] font-bold'
+                      : 'bg-[#FFFFFF] border-[#E5E8EB] text-[#4E5968] hover:bg-[#F2F4F6]'
                   }`}
                 >
                   <div className="flex items-center gap-2.5">
                     <span className="text-xl">{c.flag}</span>
-                    <span className="font-semibold text-slate-100">{c.name}</span>
+                    <span className="font-bold text-[#191F28]">{c.name}</span>
                   </div>
-                  {country.code === c.code && <Check className="w-4 h-4 text-blue-400" />}
+                  {country.code === c.code && <Check className="w-4 h-4 text-[#1B64DA]" />}
                 </button>
               ))}
             </div>
             <button
               onClick={() => setIsCountryPickerOpen(false)}
-              className="w-full py-2.5 rounded-xl bg-slate-800 text-slate-300 text-xs font-semibold hover:bg-slate-700"
+              className="w-full py-2.5 rounded-xl bg-[#F2F4F6] text-[#4E5968] hover:text-[#191F28] text-xs font-bold hover:bg-[#E5E8EB]"
             >
               {t('common.action.close')}
             </button>
@@ -292,21 +292,21 @@ export default function SettingsView() {
 
       {/* Storage Reset Confirmation Modal */}
       {isConfirmResetOpen && (
-        <div className="fixed inset-0 z-60 bg-black/80 flex items-center justify-center p-4">
-          <div className="bg-slate-900 border border-slate-700 rounded-2xl p-5 max-w-xs w-full space-y-3 text-center shadow-2xl animate-in zoom-in-95">
-            <div className="w-12 h-12 rounded-full bg-rose-500/10 text-rose-400 flex items-center justify-center mx-auto">
+        <div className="fixed inset-0 z-60 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-[#FFFFFF] border border-[#E5E8EB] rounded-2xl p-5 max-w-xs w-full space-y-3 text-center shadow-2xl animate-in zoom-in-95">
+            <div className="w-12 h-12 rounded-full bg-[#F2F4F6] text-rose-600 flex items-center justify-center mx-auto">
               <AlertTriangle className="w-6 h-6" />
             </div>
-            <h3 className="text-base font-bold text-white">
+            <h3 className="text-base font-extrabold text-[#191F28]">
               {t('settings.storage.clear_title')}
             </h3>
-            <p className="text-xs text-slate-400 leading-relaxed">
+            <p className="text-xs text-[#4E5968] leading-relaxed">
               {t('settings.storage.clear_body')}
             </p>
             <div className="flex items-center gap-2 pt-2">
               <button
                 onClick={() => setIsConfirmResetOpen(false)}
-                className="flex-1 py-2 rounded-xl bg-slate-800 text-slate-300 font-medium text-xs hover:bg-slate-700 transition-colors"
+                className="flex-1 py-2.5 rounded-xl bg-[#F2F4F6] text-[#4E5968] font-bold text-xs hover:bg-[#E5E8EB] transition-colors"
               >
                 {t('common.action.cancel')}
               </button>
@@ -315,7 +315,7 @@ export default function SettingsView() {
                   resetAllData();
                   setIsConfirmResetOpen(false);
                 }}
-                className="flex-1 py-2 rounded-xl bg-rose-600 text-white font-semibold text-xs hover:bg-rose-500 transition-colors"
+                className="flex-1 py-2.5 rounded-xl bg-rose-600 text-white font-bold text-xs hover:bg-rose-500 transition-colors"
               >
                 {t('settings.storage.clear_confirm')}
               </button>

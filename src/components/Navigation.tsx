@@ -24,7 +24,7 @@ export default function Navigation() {
     <nav
       role="navigation"
       aria-label="하단 주 네비게이션"
-      className="fixed bottom-0 left-0 right-0 max-w-md mx-auto z-40 bg-slate-950/95 backdrop-blur-md border-t border-slate-800/80 px-1 sm:px-2 pt-1.5 pb-[calc(0.375rem+env(safe-area-inset-bottom,0px))]"
+      className="fixed bottom-0 left-0 right-0 max-w-md mx-auto z-40 bg-[#FFFFFF] border-t border-[#E5E8EB] px-1 sm:px-2 pt-1.5 pb-[calc(0.375rem+env(safe-area-inset-bottom,0px))] shadow-[0_-2px_10px_rgba(0,0,0,0.04)]"
     >
       <div className="flex items-center justify-around">
         {tabs.map((tab) => {
@@ -38,12 +38,12 @@ export default function Navigation() {
               aria-selected={isActive}
               aria-label={t(tab.labelKey)}
               className={`flex-1 min-h-[48px] py-1 px-0.5 flex flex-col items-center justify-center relative transition-all rounded-xl active:scale-95 ${
-                isActive ? 'text-blue-400 font-semibold' : 'text-slate-400 hover:text-slate-200'
+                isActive ? 'text-[#1B64DA] font-extrabold' : 'text-[#8B95A1] hover:text-[#4E5968]'
               }`}
             >
               <div
                 className={`p-1.5 rounded-xl transition-all ${
-                  isActive ? 'bg-blue-950/70 text-blue-400 shadow-inner' : 'text-slate-400'
+                  isActive ? 'text-[#1B64DA]' : 'text-[#8B95A1]'
                 }`}
               >
                 <Icon className="w-5 h-5" />
@@ -51,11 +51,6 @@ export default function Navigation() {
               <span className="text-[10px] sm:text-[11px] tracking-tight mt-0.5 whitespace-nowrap overflow-hidden text-ellipsis max-w-full">
                 {t(tab.labelKey)}
               </span>
-
-              {/* Active indicator dot */}
-              {isActive && (
-                <span className="w-1 h-1 rounded-full bg-blue-400 absolute bottom-0.5" />
-              )}
             </button>
           );
         })}

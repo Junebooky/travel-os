@@ -17,10 +17,10 @@ export default function TravelApp() {
   const { onboardingCompleted, activeTab, isOnline } = useTravel();
 
   return (
-    <div className="relative min-h-[100dvh] w-full max-w-md mx-auto bg-slate-950 shadow-2xl flex flex-col overflow-hidden">
+    <div className="relative min-h-[100dvh] w-full max-w-md mx-auto bg-[#F2F4F6] text-[#191F28] shadow-2xl flex flex-col overflow-hidden">
       {/* Offline Status Top Alert */}
       {!isOnline && (
-        <div className="bg-amber-600/95 text-white text-xs font-semibold py-1.5 px-4 text-center flex items-center justify-center gap-1.5 z-50">
+        <div className="bg-[#4E5968] text-white text-xs font-semibold py-1.5 px-4 text-center flex items-center justify-center gap-1.5 z-50">
           <WifiOff className="w-3.5 h-3.5" />
           <span>{t('common.network.offline_title')}</span>
         </div>

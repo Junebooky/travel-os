@@ -111,7 +111,7 @@ export interface ExpenseRecord {
   amountKrw: number | null;
   placeName: string;
   category: PlaceCategory;
-  paymentMethod: 'cash' | 'card';
+  paymentMethod?: 'cash' | 'card' | 'unknown';
   timestamp: number;
   memo?: string;
   rateUsed?: {

@@ -404,7 +404,7 @@ export default function MapView() {
   return (
     <div
       ref={containerRef}
-      className="relative w-full h-[100dvh] bg-slate-950 overflow-hidden flex flex-col select-none"
+      className="relative w-full h-[100dvh] bg-[#F2F4F6] overflow-hidden flex flex-col select-none"
     >
       {/* Real Slippy Map Canvas (OpenStreetMap Tiles + Exact Coordinates) */}
       <div
@@ -439,7 +439,7 @@ export default function MapView() {
               src={`https://tile.openstreetmap.org/${zoomLevel}/${tile.urlX}/${tile.y}.png`}
               alt=""
               loading="lazy"
-              className="absolute w-[256px] h-[256px] filter brightness-[0.82] contrast-[1.12] invert-[0.92] hue-rotate-[190deg]"
+              className="absolute w-[256px] h-[256px]"
               style={{
                 left: `${tile.left}px`,
                 top: `${tile.top}px`,
@@ -496,19 +496,19 @@ export default function MapView() {
                   }`}
                 >
                   <div
-                    className={`px-2 py-0.5 rounded-full text-[10px] font-bold shadow-lg whitespace-nowrap mb-1 transition-all ${
+                    className={`px-2 py-0.5 rounded-full text-[10px] font-bold shadow-md whitespace-nowrap mb-1 transition-all ${
                       isSelected
-                        ? 'bg-blue-600 text-white ring-2 ring-blue-300 ring-offset-1 ring-offset-slate-900'
-                        : 'bg-slate-900/90 text-slate-200 border border-slate-700 backdrop-blur-sm'
+                        ? 'bg-[#1B64DA] text-white shadow-[#1B64DA]/30'
+                        : 'bg-[#FFFFFF] text-[#191F28] border border-[#E5E8EB]'
                     }`}
                   >
                     {place.name}
                   </div>
                   <div
-                    className={`w-7 h-7 rounded-full flex items-center justify-center shadow-xl transition-all ${
+                    className={`w-7 h-7 rounded-full flex items-center justify-center shadow-lg transition-all ${
                       isSelected
-                        ? 'bg-gradient-to-tr from-blue-600 to-indigo-500 text-white ring-4 ring-blue-500/40'
-                        : 'bg-slate-900 text-blue-400 border border-blue-500/60'
+                        ? 'bg-[#1B64DA] text-white ring-4 ring-[#1B64DA]/25'
+                        : 'bg-[#FFFFFF] text-[#4E5968] border border-[#E5E8EB]'
                     }`}
                   >
                     <MapPin className="w-4 h-4 fill-current" />
@@ -523,15 +523,15 @@ export default function MapView() {
       {/* Top Search & Filter Overlay */}
       <div className="absolute top-0 left-0 right-0 z-30 p-3 pt-4 space-y-2 max-w-md mx-auto pointer-events-auto">
         {/* Search Bar */}
-        <div className="relative shadow-xl shadow-black/50">
-          <div className="relative flex items-center bg-slate-900/95 backdrop-blur-md border border-slate-700/80 rounded-2xl overflow-hidden focus-within:ring-2 focus-within:ring-blue-500">
+        <div className="relative shadow-md">
+          <div className="relative flex items-center bg-[#FFFFFF] border border-[#E5E8EB] rounded-2xl overflow-hidden focus-within:ring-2 focus-within:ring-[#1B64DA]">
             <button
               type="button"
               onClick={() => fetchPlaces(searchQuery, selectedCategory, mapCenter, { recenterOnResult: true })}
-              className="pl-3.5 pr-2 text-slate-400 hover:text-blue-400 transition-colors"
+              className="pl-3.5 pr-2 text-[#8B95A1] hover:text-[#1B64DA] transition-colors"
               aria-label="장소 검색"
             >
-              <Search className={`w-4 h-4 ${isSearchingPlaces ? 'animate-pulse text-blue-400' : ''}`} />
+              <Search className={`w-4 h-4 ${isSearchingPlaces ? 'animate-pulse text-[#1B64DA]' : ''}`} />
             </button>
             <input
               type="text"
@@ -545,7 +545,7 @@ export default function MapView() {
               }}
               placeholder={t('map.search.placeholder')}
               aria-label={t('map.search.placeholder')}
-              className="w-full bg-transparent py-3 pr-20 text-sm text-slate-100 placeholder-slate-400 focus:outline-none"
+              className="w-full bg-transparent py-3 pr-20 text-sm text-[#191F28] placeholder-[#8B95A1] focus:outline-none"
             />
             <div className="absolute right-2 flex items-center gap-1">
               {searchQuery && (
@@ -556,7 +556,7 @@ export default function MapView() {
                     setApiPlaces(null);
                     fetchPlaces('', selectedCategory, mapCenter);
                   }}
-                  className="min-w-[44px] min-h-[44px] flex items-center justify-center text-slate-400 hover:text-slate-200 transition-colors"
+                  className="min-w-[44px] min-h-[44px] flex items-center justify-center text-[#8B95A1] hover:text-[#191F28] transition-colors"
                   aria-label={t('map.search.clear')}
                 >
                   <X className="w-4 h-4" />
@@ -566,7 +566,7 @@ export default function MapView() {
                 type="button"
                 onClick={() => fetchPlaces(searchQuery, selectedCategory, mapCenter, { recenterOnResult: true })}
                 disabled={isSearchingPlaces || !searchQuery.trim()}
-                className="min-h-[36px] px-3 py-1 bg-blue-600 hover:bg-blue-500 disabled:opacity-40 text-white text-xs font-semibold rounded-lg shadow-sm transition-all active:scale-95"
+                className="min-h-[36px] px-3 py-1 bg-[#1B64DA] hover:bg-[#1652B5] disabled:opacity-40 text-white text-xs font-semibold rounded-lg shadow-sm transition-all active:scale-95"
               >
                 검색
               </button>
@@ -577,7 +577,7 @@ export default function MapView() {
         {/* Quick Result Jump Chips (Remote/Local Places Navigation) */}
         {searchQuery.trim() && apiPlaces && apiPlaces.length > 0 && (
           <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar py-0.5 -mx-3 px-3">
-            <span className="text-[11px] font-semibold text-slate-300 bg-slate-900/90 border border-slate-700/80 px-2 py-1 rounded-xl shrink-0 backdrop-blur-md">
+            <span className="text-[11px] font-semibold text-[#4E5968] bg-[#FFFFFF] border border-[#E5E8EB] px-2 py-1 rounded-xl shrink-0 shadow-sm">
               결과 {apiPlaces.length}건
             </span>
             {apiPlaces.slice(0, 5).map((place) => (
@@ -589,10 +589,10 @@ export default function MapView() {
                   setMapViewport({ center: newCenter, zoom: 15 });
                   setActivePlace(place);
                 }}
-                className={`min-h-[36px] px-3 py-1.5 rounded-xl text-xs font-medium whitespace-nowrap transition-all border shrink-0 backdrop-blur-md active:scale-95 ${
+                className={`min-h-[36px] px-3 py-1.5 rounded-xl text-xs font-medium whitespace-nowrap transition-all border shrink-0 active:scale-95 shadow-sm ${
                   activePlace?.id === place.id
-                    ? 'bg-blue-600 text-white border-blue-400 shadow-md shadow-blue-600/30'
-                    : 'bg-slate-900/90 text-slate-300 border-slate-700 hover:bg-slate-800'
+                    ? 'bg-[#1B64DA] text-white border-[#1B64DA]'
+                    : 'bg-[#FFFFFF] text-[#4E5968] border-[#E5E8EB] hover:bg-[#F2F4F6]'
                 }`}
               >
                 {place.name}
@@ -617,10 +617,10 @@ export default function MapView() {
                 aria-selected={isSelected}
                 aria-label={t(cat.labelKey)}
                 onClick={() => setSelectedCategory(cat.id)}
-                className={`min-h-[44px] flex items-center gap-1.5 px-3.5 py-2 rounded-full text-xs font-medium whitespace-nowrap transition-all shadow-md active:scale-95 shrink-0 ${
+                className={`min-h-[44px] flex items-center gap-1.5 px-3.5 py-2 rounded-full text-xs font-semibold whitespace-nowrap transition-all shadow-sm active:scale-95 shrink-0 ${
                   isSelected
-                    ? 'bg-blue-600 text-white shadow-blue-600/30 ring-1 ring-blue-400'
-                    : 'bg-slate-900/85 text-slate-300 hover:bg-slate-800 border border-slate-800/90 backdrop-blur-md'
+                    ? 'bg-[#191F28] text-white shadow-md'
+                    : 'bg-[#FFFFFF] text-[#4E5968] hover:text-[#191F28] border border-[#E5E8EB]'
                 }`}
               >
                 <Icon className="w-3.5 h-3.5" />
@@ -634,24 +634,24 @@ export default function MapView() {
         {isDemoMode ? (
           <div
             role="status"
-            className="flex items-start sm:items-center gap-2 px-3 py-2 rounded-xl bg-slate-900/95 border border-amber-600/70 shadow-lg text-xs text-amber-300 backdrop-blur-md"
+            className="flex items-start sm:items-center gap-2 px-3 py-2 rounded-xl bg-[#FFFFFF] border border-[#E5E8EB] shadow-sm text-xs text-[#4E5968]"
           >
-            <span className="px-1.5 py-0.5 rounded font-bold bg-amber-500/20 text-amber-300 border border-amber-500/40 shrink-0 text-[11px]">
+            <span className="px-1.5 py-0.5 rounded font-bold bg-[#F2F4F6] text-[#191F28] border border-[#E5E8EB] shrink-0 text-[11px]">
               데모 모드
             </span>
-            <span className="text-slate-300 text-xs leading-relaxed break-keep">
+            <span className="text-[#4E5968] text-xs leading-relaxed break-keep">
               {demoNotice || 'Google Maps API 키 미설정 · OpenStreetMap 실지형 타일 및 추천 데이터 표시 중'}
             </span>
           </div>
         ) : (
           <div
             role="status"
-            className="flex items-start sm:items-center gap-2 px-3 py-2 rounded-xl bg-slate-900/95 border border-blue-500/60 shadow-lg text-xs text-blue-300 backdrop-blur-md"
+            className="flex items-start sm:items-center gap-2 px-3 py-2 rounded-xl bg-[#FFFFFF] border border-[#E5E8EB] shadow-sm text-xs text-[#1B64DA]"
           >
-            <span className="px-1.5 py-0.5 rounded font-bold bg-blue-500/20 text-blue-300 border border-blue-500/40 shrink-0 text-[11px]">
+            <span className="px-1.5 py-0.5 rounded font-bold bg-[#F2F4F6] text-[#1B64DA] border border-[#E5E8EB] shrink-0 text-[11px]">
               실시간 장소
             </span>
-            <span className="text-slate-300 text-xs leading-relaxed">
+            <span className="text-[#4E5968] text-xs leading-relaxed">
               실시간 지도 검색 데이터 적용 완료
             </span>
           </div>
@@ -668,17 +668,17 @@ export default function MapView() {
             : 'bottom-24 sm:bottom-28'
         }`}
       >
-        <div className="flex flex-col bg-slate-900/95 backdrop-blur-md border border-slate-700/80 rounded-2xl shadow-xl overflow-hidden divide-y divide-slate-800">
+        <div className="flex flex-col bg-[#FFFFFF] border border-[#E5E8EB] rounded-2xl shadow-md overflow-hidden divide-y divide-[#E5E8EB]">
           <button
             onClick={handleZoomIn}
-            className="min-w-[44px] min-h-[44px] flex items-center justify-center text-slate-300 hover:text-white hover:bg-slate-800 transition-colors active:scale-95"
+            className="min-w-[44px] min-h-[44px] flex items-center justify-center text-[#4E5968] hover:text-[#191F28] hover:bg-[#F2F4F6] transition-colors active:scale-95"
             aria-label="지도 확대"
           >
             <Plus className="w-5 h-5" />
           </button>
           <button
             onClick={handleZoomOut}
-            className="min-w-[44px] min-h-[44px] flex items-center justify-center text-slate-300 hover:text-white hover:bg-slate-800 transition-colors active:scale-95"
+            className="min-w-[44px] min-h-[44px] flex items-center justify-center text-[#4E5968] hover:text-[#191F28] hover:bg-[#F2F4F6] transition-colors active:scale-95"
             aria-label="지도 축소"
           >
             <Minus className="w-5 h-5" />
@@ -687,7 +687,7 @@ export default function MapView() {
 
         <button
           onClick={handleResetLocation}
-          className="min-w-[44px] min-h-[44px] flex items-center justify-center rounded-xl bg-slate-900/95 backdrop-blur-md border border-slate-700/80 text-blue-400 hover:text-blue-300 hover:bg-slate-800 transition-all shadow-lg active:scale-95"
+          className="min-w-[44px] min-h-[44px] flex items-center justify-center rounded-xl bg-[#FFFFFF] border border-[#E5E8EB] text-[#1B64DA] hover:text-[#1652B5] hover:bg-[#F2F4F6] transition-all shadow-md active:scale-95"
           aria-label={t('map.location.action')}
         >
           <NavigationIcon className="w-4 h-4" />
@@ -708,7 +708,7 @@ export default function MapView() {
           href="https://www.openstreetmap.org/copyright"
           target="_blank"
           rel="noopener noreferrer"
-          className="px-2.5 py-1 rounded bg-slate-900/80 text-[10px] text-slate-400 hover:text-slate-200 border border-slate-800 flex items-center gap-1 backdrop-blur-sm"
+          className="px-2.5 py-1 rounded bg-[#FFFFFF]/90 text-[10px] text-[#4E5968] hover:text-[#191F28] border border-[#E5E8EB] flex items-center gap-1 shadow-sm"
         >
           <Info className="w-3 h-3" />
           <span>© OpenStreetMap</span>
@@ -717,11 +717,11 @@ export default function MapView() {
 
       {/* Search Error or Empty Search Results Floating Banner */}
       {searchError ? (
-        <div className="absolute inset-x-4 top-36 z-20 p-4 rounded-2xl bg-rose-950/90 border border-rose-800/80 text-center shadow-2xl backdrop-blur-md max-w-sm mx-auto">
-          <div className="text-sm font-semibold text-rose-200 mb-1">
+        <div className="absolute inset-x-4 top-36 z-20 p-4 rounded-2xl bg-[#FFFFFF] border border-[#E5E8EB] text-center shadow-md max-w-sm mx-auto">
+          <div className="text-sm font-semibold text-[#191F28] mb-1">
             {t('map.search.error_title')}
           </div>
-          <div className="text-xs text-rose-300/80 mb-3 leading-relaxed">
+          <div className="text-xs text-[#4E5968] mb-3 leading-relaxed">
             {t('map.search.error_body')}
           </div>
           <button
@@ -730,17 +730,17 @@ export default function MapView() {
               setSearchError(null);
               fetchPlaces(searchQuery, selectedCategory, mapCenter);
             }}
-            className="text-xs font-semibold px-3 py-1.5 rounded-lg bg-rose-900/80 hover:bg-rose-800 text-rose-100 border border-rose-700 transition-colors"
+            className="text-xs font-semibold px-3 py-1.5 rounded-lg bg-[#F2F4F6] hover:bg-[#E5E8EB] text-[#191F28] border border-[#E5E8EB] transition-colors"
           >
             {t('map.search.retry')}
           </button>
         </div>
       ) : filteredPlaces.length === 0 ? (
-        <div className="absolute inset-x-4 top-36 z-20 p-4 rounded-2xl bg-slate-900/95 border border-slate-800 text-center shadow-2xl backdrop-blur-md max-w-sm mx-auto">
-          <div className="text-sm font-semibold text-slate-200 mb-1">
+        <div className="absolute inset-x-4 top-36 z-20 p-4 rounded-2xl bg-[#FFFFFF] border border-[#E5E8EB] text-center shadow-md max-w-sm mx-auto">
+          <div className="text-sm font-semibold text-[#191F28] mb-1">
             {t('map.search.empty_title')}
           </div>
-          <div className="text-xs text-slate-400 mb-3 leading-relaxed">
+          <div className="text-xs text-[#4E5968] mb-3 leading-relaxed">
             {t('map.search.empty_body')}
           </div>
           <button
@@ -749,7 +749,7 @@ export default function MapView() {
               setSearchQuery('');
               setSelectedCategory('all');
             }}
-            className="text-xs font-medium text-blue-400 hover:text-blue-300 underline py-1"
+            className="text-xs font-medium text-[#1B64DA] hover:underline py-1"
           >
             {t('map.search.empty_action')}
           </button>
@@ -763,30 +763,30 @@ export default function MapView() {
           aria-label="선택 장소 상세 정보"
           className="absolute inset-x-0 bottom-16 z-30 p-2.5 sm:p-3 max-w-md mx-auto animate-in slide-in-from-bottom-4 duration-200 pointer-events-auto"
         >
-          <div className="bg-slate-900/95 backdrop-blur-xl border border-slate-700/90 rounded-2xl p-3.5 sm:p-4 shadow-2xl space-y-3 max-h-[70vh] flex flex-col">
+          <div className="bg-[#FFFFFF] border border-[#E5E8EB] rounded-2xl p-3.5 sm:p-4 shadow-xl space-y-3 max-h-[70vh] flex flex-col text-[#191F28]">
             {/* Header info (Always visible in peek & expanded) */}
             <div className="flex items-start justify-between gap-2.5">
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-1.5 flex-wrap mb-1">
-                  <span className="px-2 py-0.5 rounded text-[11px] font-semibold bg-blue-950/80 text-blue-300 border border-blue-800/60">
+                  <span className="px-2 py-0.5 rounded text-[11px] font-semibold bg-[#F2F4F6] text-[#4E5968] border border-[#E5E8EB]">
                     {activePlace.categoryName || activePlace.category}
                   </span>
                   {activePlace.distance && (
-                    <span className="text-xs text-slate-400 font-medium">
+                    <span className="text-xs text-[#8B95A1] font-medium">
                       {t('map.place.card_distance', { distance: activePlace.distance })}
                     </span>
                   )}
                   {activePlace.rating && (
-                    <span className="text-xs text-amber-400 font-bold flex items-center gap-0.5">
-                      <Star className="w-3 h-3 fill-amber-400" />
+                    <span className="text-xs text-[#191F28] font-bold flex items-center gap-0.5">
+                      <Star className="w-3 h-3 fill-[#191F28]" />
                       {activePlace.rating}
                     </span>
                   )}
                 </div>
-                <h3 className="text-base font-bold text-white tracking-tight leading-snug truncate">
+                <h3 className="text-base font-bold text-[#191F28] tracking-tight leading-snug truncate">
                   {activePlace.name}
                 </h3>
-                <p className="text-xs text-slate-400 truncate mt-0.5">
+                <p className="text-xs text-[#8B95A1] truncate mt-0.5">
                   {activePlace.address}
                 </p>
               </div>
@@ -796,7 +796,7 @@ export default function MapView() {
                 <button
                   type="button"
                   onClick={() => setIsSheetExpanded((prev) => !prev)}
-                  className="min-w-[44px] min-h-[44px] flex items-center justify-center rounded-full text-slate-400 hover:text-slate-200 hover:bg-slate-800 transition-colors"
+                  className="min-w-[44px] min-h-[44px] flex items-center justify-center rounded-full text-[#8B95A1] hover:text-[#191F28] hover:bg-[#F2F4F6] transition-colors"
                   aria-expanded={isSheetExpanded}
                   aria-label={isSheetExpanded ? '상세 정보 접기' : '상세 정보 펼치기'}
                 >
@@ -811,7 +811,7 @@ export default function MapView() {
                 <button
                   type="button"
                   onClick={() => setActivePlace(null)}
-                  className="min-w-[44px] min-h-[44px] flex items-center justify-center rounded-full text-slate-400 hover:text-slate-200 hover:bg-slate-800 transition-colors"
+                  className="min-w-[44px] min-h-[44px] flex items-center justify-center rounded-full text-[#8B95A1] hover:text-[#191F28] hover:bg-[#F2F4F6] transition-colors"
                   aria-label={t('common.action.close')}
                 >
                   <X className="w-5 h-5" />
@@ -824,7 +824,7 @@ export default function MapView() {
               <button
                 type="button"
                 onClick={() => openDirections(activePlace)}
-                className="min-h-[44px] py-2.5 px-3 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-semibold text-xs flex items-center justify-center gap-1.5 shadow-md shadow-blue-600/30 active:scale-95 transition-all"
+                className="min-h-[44px] py-2.5 px-3 rounded-xl bg-[#1B64DA] hover:bg-[#1652B5] text-white font-semibold text-xs flex items-center justify-center gap-1.5 shadow-sm active:scale-95 transition-all"
               >
                 <ExternalLink className="w-4 h-4" />
                 <span>{t('place.detail.directions')}</span>
@@ -835,9 +835,9 @@ export default function MapView() {
                 onClick={() => {
                   setActiveTab('translate');
                 }}
-                className="min-h-[44px] py-2.5 px-3 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-xs flex items-center justify-center gap-1.5 shadow-md shadow-indigo-600/30 active:scale-95 transition-all"
+                className="min-h-[44px] py-2.5 px-3 rounded-xl bg-[#F2F4F6] hover:bg-[#E5E8EB] text-[#191F28] font-semibold text-xs flex items-center justify-center gap-1.5 border border-[#E5E8EB] active:scale-95 transition-all"
               >
-                <Languages className="w-4 h-4" />
+                <Languages className="w-4 h-4 text-[#1B64DA]" />
                 <span>{t('place.detail.quick_translate')}</span>
               </button>
             </div>
@@ -847,7 +847,7 @@ export default function MapView() {
               <button
                 type="button"
                 onClick={() => setIsSheetExpanded(true)}
-                className="w-full py-1.5 flex items-center justify-center gap-1 text-[11px] font-medium text-slate-400 hover:text-slate-200 transition-colors border-t border-slate-800/80 mt-1"
+                className="w-full py-1.5 flex items-center justify-center gap-1 text-[11px] font-medium text-[#1B64DA] hover:underline transition-colors border-t border-[#E5E8EB] mt-1"
                 aria-expanded="false"
               >
                 <span>상세 정보 및 추가 도구 (시간·환율·저장·메뉴)</span>
@@ -857,19 +857,19 @@ export default function MapView() {
 
             {/* Expanded Content Section (Scrollable without touching map) */}
             {isSheetExpanded && (
-              <div className="space-y-3 overflow-y-auto no-scrollbar border-t border-slate-800/80 pt-2.5">
+              <div className="space-y-3 overflow-y-auto no-scrollbar border-t border-[#E5E8EB] pt-2.5">
                 {/* Hours & Description */}
                 {(activePlace.hoursText || activePlace.description) && (
-                  <div className="space-y-1.5 text-xs text-slate-300">
+                  <div className="space-y-1.5 text-xs text-[#4E5968]">
                     {activePlace.hoursText && (
-                      <div className="flex items-center gap-1.5 text-slate-300">
-                        <Clock className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
-                        <span className="font-semibold text-emerald-400">{t('place.detail.hours')}</span>
-                        <span className="text-slate-400">· {activePlace.hoursText}</span>
+                      <div className="flex items-center gap-1.5 text-[#191F28]">
+                        <Clock className="w-3.5 h-3.5 text-[#4E5968] shrink-0" />
+                        <span className="font-semibold text-[#191F28]">{t('place.detail.hours')}</span>
+                        <span className="text-[#4E5968]">· {activePlace.hoursText}</span>
                       </div>
                     )}
                     {activePlace.description && (
-                      <p className="text-slate-300 text-xs leading-relaxed">
+                      <p className="text-[#4E5968] text-xs leading-relaxed">
                         {activePlace.description}
                       </p>
                     )}
@@ -882,9 +882,9 @@ export default function MapView() {
                     <button
                       type="button"
                       onClick={() => setIsCameraModalOpen(true)}
-                      className="w-full min-h-[44px] py-2.5 px-3 rounded-xl bg-emerald-950/70 border border-emerald-700/70 hover:bg-emerald-900/80 text-emerald-300 font-semibold text-xs flex items-center justify-center gap-1.5 shadow-sm active:scale-95 transition-all"
+                      className="w-full min-h-[44px] py-2.5 px-3 rounded-xl bg-[#F2F4F6] border border-[#E5E8EB] hover:bg-[#E5E8EB] text-[#191F28] font-semibold text-xs flex items-center justify-center gap-1.5 shadow-sm active:scale-95 transition-all"
                     >
-                      <Camera className="w-4 h-4 text-emerald-400" />
+                      <Camera className="w-4 h-4 text-[#1B64DA]" />
                       <span>{t('camera.title')} (메뉴 촬영/번역)</span>
                     </button>
 
@@ -894,9 +894,9 @@ export default function MapView() {
                         onClick={() => {
                           setActiveTab('currency');
                         }}
-                        className="flex-1 min-h-[44px] py-2 px-2.5 rounded-lg bg-slate-800 hover:bg-slate-700/80 text-slate-200 text-xs font-medium flex items-center justify-center gap-1.5 border border-slate-700/60 transition-all active:scale-95"
+                        className="flex-1 min-h-[44px] py-2 px-2.5 rounded-lg bg-[#FFFFFF] hover:bg-[#F2F4F6] text-[#191F28] text-xs font-medium flex items-center justify-center gap-1.5 border border-[#E5E8EB] transition-all active:scale-95"
                       >
-                        <Coins className="w-3.5 h-3.5 text-amber-400" />
+                        <Coins className="w-3.5 h-3.5 text-[#1B64DA]" />
                         <span>{t('place.detail.quick_currency')}</span>
                       </button>
 
@@ -911,18 +911,18 @@ export default function MapView() {
                         }}
                         className={`min-h-[44px] py-2 px-3 rounded-lg text-xs font-medium flex items-center gap-1.5 border transition-all active:scale-95 ${
                           isPlaceSaved(activePlace.id)
-                            ? 'bg-amber-950/60 border-amber-600/70 text-amber-300'
-                            : 'bg-slate-800 hover:bg-slate-700 text-slate-300 border-slate-700/60'
+                            ? 'bg-[#191F28] border-[#191F28] text-white'
+                            : 'bg-[#FFFFFF] hover:bg-[#F2F4F6] text-[#4E5968] border-[#E5E8EB]'
                         }`}
                       >
                         {isPlaceSaved(activePlace.id) ? (
                           <>
-                            <BookmarkCheck className="w-3.5 h-3.5 text-amber-400" />
+                            <BookmarkCheck className="w-3.5 h-3.5 text-white" />
                             <span>{t('saved.action.remove')}</span>
                           </>
                         ) : (
                           <>
-                            <Bookmark className="w-3.5 h-3.5" />
+                            <Bookmark className="w-3.5 h-3.5 text-[#4E5968]" />
                             <span>{t('saved.action.save')}</span>
                           </>
                         )}
@@ -931,7 +931,7 @@ export default function MapView() {
                       <button
                         type="button"
                         onClick={() => handleSharePlace(activePlace)}
-                        className="min-h-[44px] min-w-[44px] flex items-center justify-center rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700/60 active:scale-95 transition-all"
+                        className="min-h-[44px] min-w-[44px] flex items-center justify-center rounded-lg bg-[#FFFFFF] hover:bg-[#F2F4F6] text-[#4E5968] border border-[#E5E8EB] active:scale-95 transition-all"
                         aria-label={t('place.detail.copy_address')}
                       >
                         <Share2 className="w-4 h-4" />
@@ -946,9 +946,9 @@ export default function MapView() {
                         onClick={() => {
                           setActiveTab('currency');
                         }}
-                        className="flex-1 min-h-[44px] py-2 px-2.5 rounded-lg bg-slate-800 hover:bg-slate-700/80 text-slate-200 text-xs font-medium flex items-center justify-center gap-1.5 border border-slate-700/60 transition-all active:scale-95"
+                        className="flex-1 min-h-[44px] py-2 px-2.5 rounded-lg bg-[#FFFFFF] hover:bg-[#F2F4F6] text-[#191F28] text-xs font-medium flex items-center justify-center gap-1.5 border border-[#E5E8EB] transition-all active:scale-95"
                       >
-                        <Coins className="w-3.5 h-3.5 text-amber-400" />
+                        <Coins className="w-3.5 h-3.5 text-[#1B64DA]" />
                         <span>{t('place.detail.quick_currency')}</span>
                       </button>
 
@@ -963,18 +963,18 @@ export default function MapView() {
                         }}
                         className={`min-h-[44px] py-2 px-3 rounded-lg text-xs font-medium flex items-center gap-1.5 border transition-all active:scale-95 ${
                           isPlaceSaved(activePlace.id)
-                            ? 'bg-amber-950/60 border-amber-600/70 text-amber-300'
-                            : 'bg-slate-800 hover:bg-slate-700 text-slate-300 border-slate-700/60'
+                            ? 'bg-[#191F28] border-[#191F28] text-white'
+                            : 'bg-[#FFFFFF] hover:bg-[#F2F4F6] text-[#4E5968] border-[#E5E8EB]'
                         }`}
                       >
                         {isPlaceSaved(activePlace.id) ? (
                           <>
-                            <BookmarkCheck className="w-3.5 h-3.5 text-amber-400" />
+                            <BookmarkCheck className="w-3.5 h-3.5 text-white" />
                             <span>{t('saved.action.remove')}</span>
                           </>
                         ) : (
                           <>
-                            <Bookmark className="w-3.5 h-3.5" />
+                            <Bookmark className="w-3.5 h-3.5 text-[#4E5968]" />
                             <span>{t('saved.action.save')}</span>
                           </>
                         )}
@@ -983,7 +983,7 @@ export default function MapView() {
                       <button
                         type="button"
                         onClick={() => handleSharePlace(activePlace)}
-                        className="min-h-[44px] min-w-[44px] flex items-center justify-center rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700/60 active:scale-95 transition-all"
+                        className="min-h-[44px] min-w-[44px] flex items-center justify-center rounded-lg bg-[#FFFFFF] hover:bg-[#F2F4F6] text-[#4E5968] border border-[#E5E8EB] active:scale-95 transition-all"
                         aria-label={t('place.detail.copy_address')}
                       >
                         <Share2 className="w-4 h-4" />
@@ -993,9 +993,9 @@ export default function MapView() {
                     <button
                       type="button"
                       onClick={() => setIsCameraModalOpen(true)}
-                      className="w-full min-h-[44px] py-2.5 px-3 rounded-xl bg-emerald-950/70 border border-emerald-700/70 hover:bg-emerald-900/80 text-emerald-300 font-semibold text-xs flex items-center justify-center gap-1.5 shadow-sm active:scale-95 transition-all"
+                      className="w-full min-h-[44px] py-2.5 px-3 rounded-xl bg-[#F2F4F6] border border-[#E5E8EB] hover:bg-[#E5E8EB] text-[#191F28] font-semibold text-xs flex items-center justify-center gap-1.5 shadow-sm active:scale-95 transition-all"
                     >
-                      <Camera className="w-4 h-4 text-emerald-400" />
+                      <Camera className="w-4 h-4 text-[#1B64DA]" />
                       <span>{t('camera.title')} (메뉴/안내판 번역)</span>
                     </button>
                   </>

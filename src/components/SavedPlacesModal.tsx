@@ -37,13 +37,13 @@ export default function SavedPlacesModal({ isOpen, onClose }: { isOpen: boolean;
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex flex-col justify-end max-w-md mx-auto animate-in fade-in duration-200">
-      <div className="bg-slate-900 border-t border-slate-700/80 rounded-t-3xl p-5 max-h-[85vh] flex flex-col space-y-4 shadow-2xl overflow-hidden">
+    <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm flex flex-col justify-end max-w-md mx-auto animate-in fade-in duration-200">
+      <div className="bg-[#FFFFFF] border-t border-[#E5E8EB] rounded-t-3xl p-5 max-h-[85vh] flex flex-col space-y-4 shadow-2xl overflow-hidden">
         {/* Header */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <Bookmark className="w-5 h-5 text-amber-400" />
-            <h2 className="text-lg font-bold text-white tracking-tight">
+            <Bookmark className="w-5 h-5 text-[#1B64DA]" />
+            <h2 className="text-lg font-bold text-[#191F28] tracking-tight">
               {t('saved.title')} ({savedPlaces.length})
             </h2>
           </div>
@@ -53,7 +53,7 @@ export default function SavedPlacesModal({ isOpen, onClose }: { isOpen: boolean;
               <button
                 type="button"
                 onClick={() => setIsConfirmDeleteAllOpen(true)}
-                className="min-h-[44px] text-xs text-rose-400 hover:text-rose-300 px-2.5 py-1.5 rounded-lg border border-rose-900/60 hover:bg-rose-950/40 transition-colors flex items-center justify-center"
+                className="min-h-[44px] text-xs text-rose-600 hover:text-rose-700 px-2.5 py-1.5 rounded-lg border border-rose-200 hover:bg-rose-50 transition-colors flex items-center justify-center font-medium"
               >
                 {t('saved.delete_all.action')}
               </button>
@@ -61,7 +61,7 @@ export default function SavedPlacesModal({ isOpen, onClose }: { isOpen: boolean;
             <button
               type="button"
               onClick={onClose}
-              className="min-w-[44px] min-h-[44px] flex items-center justify-center rounded-full text-slate-400 hover:text-slate-200 hover:bg-slate-800 transition-colors"
+              className="min-w-[44px] min-h-[44px] flex items-center justify-center rounded-full text-[#8B95A1] hover:text-[#191F28] hover:bg-[#F2F4F6] transition-colors"
               aria-label={t('common.action.close')}
             >
               <X className="w-5 h-5" />
@@ -73,14 +73,14 @@ export default function SavedPlacesModal({ isOpen, onClose }: { isOpen: boolean;
         <div className="flex-1 overflow-y-auto space-y-2.5 pr-1 -mr-1">
           {savedPlaces.length === 0 ? (
             <div className="text-center py-16 space-y-3">
-              <div className="w-16 h-16 rounded-full bg-slate-800 flex items-center justify-center mx-auto text-slate-500">
+              <div className="w-16 h-16 rounded-full bg-[#F2F4F6] flex items-center justify-center mx-auto text-[#8B95A1]">
                 <Bookmark className="w-8 h-8" />
               </div>
               <div>
-                <h3 className="text-base font-bold text-slate-200">
+                <h3 className="text-base font-bold text-[#191F28]">
                   {t('saved.empty.title')}
                 </h3>
-                <p className="text-xs text-slate-400 mt-1 max-w-xs mx-auto">
+                <p className="text-xs text-[#4E5968] mt-1 max-w-xs mx-auto">
                   {t('saved.empty.body')}
                 </p>
               </div>
@@ -90,7 +90,7 @@ export default function SavedPlacesModal({ isOpen, onClose }: { isOpen: boolean;
                   returnToMapWithPlace(null);
                   onClose();
                 }}
-                className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-semibold text-xs shadow-md shadow-blue-600/30 transition-all active:scale-95"
+                className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-[#1B64DA] hover:bg-[#1554B8] text-white font-semibold text-xs shadow-sm transition-all active:scale-95"
               >
                 <Compass className="w-3.5 h-3.5" />
                 <span>{t('saved.empty.cta')}</span>
@@ -100,36 +100,36 @@ export default function SavedPlacesModal({ isOpen, onClose }: { isOpen: boolean;
             savedPlaces.map((place) => (
               <div
                 key={place.id}
-                className="p-3.5 rounded-xl bg-slate-800/80 border border-slate-700/70 space-y-2.5 hover:border-slate-600 transition-all"
+                className="p-3.5 rounded-xl bg-[#FFFFFF] border border-[#E5E8EB] space-y-2.5 hover:border-[#8B95A1]/40 transition-all shadow-sm"
               >
                 <div className="flex items-start justify-between gap-2">
                   <div className="min-w-0">
-                    <span className="text-[10px] font-semibold text-blue-400 uppercase tracking-wider block mb-0.5">
+                    <span className="text-[10px] font-semibold text-[#1B64DA] uppercase tracking-wider block mb-0.5">
                       {place.categoryName || place.category}
                     </span>
-                    <h4 className="text-sm font-bold text-white truncate">{place.name}</h4>
-                    <p className="text-xs text-slate-400 truncate mt-0.5">{place.address}</p>
+                    <h4 className="text-sm font-bold text-[#191F28] truncate">{place.name}</h4>
+                    <p className="text-xs text-[#4E5968] truncate mt-0.5">{place.address}</p>
                   </div>
                   <button
                     onClick={() => removePlace(place.id)}
-                    className="text-slate-400 hover:text-rose-400 p-1 transition-colors"
+                    className="text-[#8B95A1] hover:text-rose-600 p-1 transition-colors"
                     title={t('saved.action.remove')}
                   >
                     <Trash2 className="w-4 h-4" />
                   </button>
                 </div>
 
-                <div className="flex items-center gap-2 pt-1 border-t border-slate-700/60">
+                <div className="flex items-center gap-2 pt-1 border-t border-[#E5E8EB]">
                   <button
                     onClick={() => handleOpenOnMap(place)}
-                    className="flex-1 py-1.5 px-2.5 rounded-lg bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold flex items-center justify-center gap-1 active:scale-95 transition-all"
+                    className="flex-1 py-1.5 px-2.5 rounded-lg bg-[#1B64DA] hover:bg-[#1554B8] text-white text-xs font-semibold flex items-center justify-center gap-1 active:scale-95 transition-all shadow-sm"
                   >
                     <MapPin className="w-3.5 h-3.5" />
                     <span>{t('saved.action.open')}</span>
                   </button>
                   <button
                     onClick={() => handleDirections(place)}
-                    className="flex-1 py-1.5 px-2.5 rounded-lg bg-slate-700 hover:bg-slate-600 text-slate-200 text-xs font-semibold flex items-center justify-center gap-1 active:scale-95 transition-all"
+                    className="flex-1 py-1.5 px-2.5 rounded-lg bg-[#F2F4F6] hover:bg-[#E5E8EB] text-[#191F28] text-xs font-semibold flex items-center justify-center gap-1 active:scale-95 transition-all border border-[#E5E8EB]"
                   >
                     <ExternalLink className="w-3.5 h-3.5" />
                     <span>{t('saved.action.directions')}</span>
@@ -143,21 +143,21 @@ export default function SavedPlacesModal({ isOpen, onClose }: { isOpen: boolean;
 
       {/* Confirm Delete All Dialog */}
       {isConfirmDeleteAllOpen && (
-        <div className="fixed inset-0 z-60 bg-black/80 flex items-center justify-center p-4">
-          <div className="bg-slate-900 border border-slate-700 rounded-2xl p-5 max-w-xs w-full space-y-3 text-center shadow-2xl animate-in zoom-in-95">
-            <div className="w-12 h-12 rounded-full bg-rose-500/10 text-rose-400 flex items-center justify-center mx-auto">
+        <div className="fixed inset-0 z-60 bg-black/40 flex items-center justify-center p-4">
+          <div className="bg-[#FFFFFF] border border-[#E5E8EB] rounded-2xl p-5 max-w-xs w-full space-y-3 text-center shadow-2xl animate-in zoom-in-95">
+            <div className="w-12 h-12 rounded-full bg-rose-50 text-rose-600 flex items-center justify-center mx-auto">
               <AlertTriangle className="w-6 h-6" />
             </div>
-            <h3 className="text-base font-bold text-white">
+            <h3 className="text-base font-bold text-[#191F28]">
               {t('saved.delete_all.title')}
             </h3>
-            <p className="text-xs text-slate-400 leading-relaxed">
+            <p className="text-xs text-[#4E5968] leading-relaxed">
               {t('saved.delete_all.body')}
             </p>
             <div className="flex items-center gap-2 pt-2">
               <button
                 onClick={() => setIsConfirmDeleteAllOpen(false)}
-                className="flex-1 py-2 rounded-xl bg-slate-800 text-slate-300 font-medium text-xs hover:bg-slate-700 transition-colors"
+                className="flex-1 py-2 rounded-xl bg-[#F2F4F6] text-[#4E5968] font-medium text-xs hover:bg-[#E5E8EB] transition-colors"
               >
                 {t('saved.delete_all.cancel')}
               </button>
@@ -166,7 +166,7 @@ export default function SavedPlacesModal({ isOpen, onClose }: { isOpen: boolean;
                   clearAllSavedPlaces();
                   setIsConfirmDeleteAllOpen(false);
                 }}
-                className="flex-1 py-2 rounded-xl bg-rose-600 text-white font-semibold text-xs hover:bg-rose-500 transition-colors"
+                className="flex-1 py-2 rounded-xl bg-rose-600 text-white font-semibold text-xs hover:bg-rose-500 transition-colors shadow-sm"
               >
                 {t('saved.delete_all.action')}
               </button>

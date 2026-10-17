@@ -67,12 +67,14 @@ export default function TranslateView() {
 
   const [selectedCategory, setSelectedCategory] = useState<PlaceCategory>(initialCategory);
   const [inputText, setInputText] = useState<string>(defaultPhrase.korean);
-  const [translatedText, setTranslatedText] = useState<string>(
-    () => defaultPhrase.targetTranslations[targetLang] || defaultPhrase.targetTranslations['ja'] || ''
-  );
-  const [romanization, setRomanization] = useState<string>(
-    () => defaultPhrase.romanizations?.[targetLang] || defaultPhrase.romanizations?.['ja'] || ''
-  );
+  const [translatedText, setTranslatedText] = useState<string>(() => {
+    if (sourceLang === targetLang) return '';
+    return defaultPhrase.targetTranslations[targetLang] || '';
+  });
+  const [romanization, setRomanization] = useState<string>(() => {
+    if (sourceLang === targetLang) return '';
+    return defaultPhrase.romanizations?.[targetLang] || '';
+  });
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [suggestedAlternatives, setSuggestedAlternatives] = useState<Array<{ id: string; korean: string; translation: string; romanization: string }>>([]);
@@ -83,6 +85,27 @@ export default function TranslateView() {
 
   const abortControllerRef = useRef<AbortController | null>(null);
   const activeRequestIdRef = useRef<number>(0);
+
+  // Sync translation when targetLang or sourceLang changes from context (e.g. country change)
+  const [prevLangs, setPrevLangs] = useState<{ source: string; target: string }>({ source: sourceLang, target: targetLang });
+  if (prevLangs.source !== sourceLang || prevLangs.target !== targetLang) {
+    setPrevLangs({ source: sourceLang, target: targetLang });
+    setErrorMessage(null);
+    setSuggestedAlternatives([]);
+    if (sourceLang === targetLang) {
+      setTranslatedText('');
+      setRomanization('');
+    } else {
+      const match = QUICK_PHRASES.find((p) => p.korean === inputText);
+      if (match && match.targetTranslations[targetLang]) {
+        setTranslatedText(match.targetTranslations[targetLang]);
+        setRomanization(match.romanizations?.[targetLang] || '');
+      } else {
+        setTranslatedText('');
+        setRomanization('');
+      }
+    }
+  }
 
   // Invalidate stale translation and cancel any in-flight requests when input text changes
   const handleInputChange = (newText: string) => {
@@ -182,9 +205,13 @@ export default function TranslateView() {
     setErrorMessage(null);
     setSuggestedAlternatives([]);
     if ('targetTranslations' in phrase) {
-      if (sourceLang === 'ko') {
+      if (sourceLang === targetLang) {
         setInputText(phrase.korean);
-        const trans = phrase.targetTranslations[targetLang] || phrase.targetTranslations['en'] || phrase.korean;
+        setTranslatedText(phrase.korean);
+        setRomanization('');
+      } else if (sourceLang === 'ko') {
+        setInputText(phrase.korean);
+        const trans = phrase.targetTranslations[targetLang] || phrase.korean;
         setTranslatedText(trans);
         setRomanization(phrase.romanizations?.[targetLang] || '');
       } else if (targetLang === 'ko') {
@@ -270,19 +297,19 @@ export default function TranslateView() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 pb-24 flex flex-col max-w-md mx-auto">
+    <div className="min-h-screen bg-[#F2F4F6] text-[#191F28] pb-24 flex flex-col max-w-md mx-auto">
       {/* Active Place Context Sticky Banner */}
       {activePlace && (
-        <div className="sticky top-0 z-30 bg-blue-950/90 backdrop-blur-md border-b border-blue-800/60 px-4 py-2.5 flex items-center justify-between shadow-lg">
+        <div className="sticky top-0 z-30 bg-[#FFFFFF] border-b border-[#E5E8EB] px-4 py-2.5 flex items-center justify-between shadow-sm">
           <div className="flex items-center gap-2 min-w-0 pr-2">
-            <MapPin className="w-4 h-4 text-blue-400 shrink-0" />
-            <span className="text-xs font-semibold text-blue-200 truncate">
+            <MapPin className="w-4 h-4 text-[#1B64DA] shrink-0" />
+            <span className="text-xs font-semibold text-[#191F28] truncate">
               {activePlace.name} · {t('place.detail.quick_phrases')}
             </span>
           </div>
           <button
             onClick={() => returnToMapWithPlace(activePlace)}
-            className="flex items-center gap-1 text-xs font-semibold text-blue-300 hover:text-white bg-blue-900/60 hover:bg-blue-800/80 px-2.5 py-1.5 rounded-lg border border-blue-700/60 transition-all active:scale-95 shrink-0"
+            className="flex items-center gap-1 text-xs font-semibold text-[#4E5968] hover:text-[#191F28] bg-[#F2F4F6] hover:bg-[#E5E8EB] px-2.5 py-1.5 rounded-lg border border-[#E5E8EB] transition-all active:scale-95 shrink-0"
           >
             <ArrowLeft className="w-3.5 h-3.5" />
             <span>{t('translate.return_map')}</span>
@@ -293,75 +320,213 @@ export default function TranslateView() {
       {/* Main Container */}
       <div className="p-4 space-y-4">
         {/* Language Selection Header */}
-        <div className="bg-slate-900/90 backdrop-blur-md border border-slate-800 rounded-2xl p-3 flex items-center justify-between shadow-lg">
+        <div className="bg-[#FFFFFF] border border-[#E5E8EB] rounded-2xl p-3.5 flex items-center justify-between shadow-sm">
           <div className="flex-1 text-center">
-            <span className="text-[11px] font-medium text-slate-400 block mb-0.5">
+            <span className="text-[11px] font-medium text-[#8B95A1] block mb-0.5">
               {t('translate.source.label')}
             </span>
-            <span className="text-sm font-bold text-slate-100">
+            <span className="text-sm font-bold text-[#191F28]">
               {sourceLang === 'ko' ? '한국어' : sourceLang.toUpperCase()}
             </span>
           </div>
 
           <button
             onClick={handleSwapLanguages}
-            className="p-2.5 rounded-full bg-slate-800 hover:bg-slate-700 text-blue-400 border border-slate-700/80 active:scale-90 transition-all shadow-md mx-2"
+            className="p-2.5 rounded-full bg-[#F2F4F6] hover:bg-[#E5E8EB] text-[#1B64DA] border border-[#E5E8EB] active:scale-90 transition-all shadow-sm mx-2"
             aria-label={t('translate.language.swap')}
           >
             <ArrowRightLeft className="w-4 h-4" />
           </button>
 
           <div className="flex-1 text-center">
-            <span className="text-[11px] font-medium text-slate-400 block mb-0.5">
+            <span className="text-[11px] font-medium text-[#8B95A1] block mb-0.5">
               {t('translate.target.label')}
             </span>
-            <span className="text-sm font-bold text-blue-400">
+            <span className="text-sm font-bold text-[#191F28]">
               {targetLang === 'ko' ? '한국어' : `${country.name}어 (${targetLang.toUpperCase()})`}
             </span>
           </div>
         </div>
 
-        {/* Track B Features Launcher Row */}
-        <div className="grid grid-cols-2 gap-2">
-          <button
-            type="button"
-            onClick={() => setIsVoiceModalOpen(true)}
-            className="p-3 bg-gradient-to-r from-indigo-950/80 to-slate-900 border border-indigo-800/60 rounded-2xl flex items-center space-x-2.5 text-left hover:border-indigo-600 transition-all active:scale-95 shadow-sm"
-          >
-            <div className="w-8 h-8 rounded-xl bg-indigo-600/30 text-indigo-400 flex items-center justify-center shrink-0">
-              <Mic className="w-4 h-4" />
-            </div>
-            <div>
-              <p className="text-xs font-bold text-white flex items-center gap-1">
-                {t('voice.title')}
-                <span className="text-[9px] px-1 py-0.2 rounded bg-indigo-500/20 text-indigo-300 font-mono">B1</span>
-              </p>
-              <p className="text-[10px] text-slate-400">실시간 2인 음성 대화</p>
-            </div>
-          </button>
+        {/* Input Text Box */}
+        <div className="relative bg-[#FFFFFF] border border-[#E5E8EB] rounded-2xl p-4 shadow-sm focus-within:ring-2 focus-within:ring-[#1B64DA]">
+          <div className="flex items-center justify-between mb-1.5">
+            <span className="text-[11px] font-medium text-[#8B95A1]">
+              {t('translate.input.label')}
+            </span>
+            {inputText && (
+              <button
+                onClick={() => handleInputChange('')}
+                className="text-xs text-[#8B95A1] hover:text-[#191F28] p-0.5"
+                aria-label={t('translate.input.clear')}
+              >
+                <X className="w-3.5 h-3.5" />
+              </button>
+            )}
+          </div>
 
-          <button
-            type="button"
-            onClick={() => setIsCameraModalOpen(true)}
-            className="p-3 bg-gradient-to-r from-emerald-950/80 to-slate-900 border border-emerald-800/60 rounded-2xl flex items-center space-x-2.5 text-left hover:border-emerald-600 transition-all active:scale-95 shadow-sm"
-          >
-            <div className="w-8 h-8 rounded-xl bg-emerald-600/30 text-emerald-400 flex items-center justify-center shrink-0">
-              <Camera className="w-4 h-4" />
+          <textarea
+            value={inputText}
+            onChange={(e) => handleInputChange(e.target.value)}
+            rows={2}
+            placeholder={t('translate.input.placeholder')}
+            className="w-full bg-transparent text-lg font-bold text-[#191F28] placeholder-[#8B95A1] resize-none focus:outline-none"
+          />
+
+          <div className="flex justify-end pt-2 border-t border-[#F2F4F6]">
+            <button
+              onClick={() => handleTranslate(inputText)}
+              disabled={isLoading || !inputText.trim()}
+              className="w-full py-3 rounded-xl bg-[#1B64DA] hover:bg-[#1652B5] text-white font-bold text-sm shadow-sm flex items-center justify-center gap-1.5 active:scale-95 disabled:opacity-50 transition-all"
+            >
+              <Send className="w-4 h-4" />
+              <span>{isLoading ? t('translate.processing') : t('translate.action')}</span>
+            </button>
+          </div>
+        </div>
+
+        {/* Translation Error & Safety Card */}
+        {errorMessage && (
+          <div className="bg-[#FFFFFF] border border-[#E5E8EB] rounded-2xl p-4 shadow-sm space-y-3">
+            <div className="flex items-start gap-2.5">
+              <AlertCircle className="w-4 h-4 text-[#4E5968] shrink-0 mt-0.5" />
+              <div className="flex-1 min-w-0">
+                <div className="text-xs font-semibold text-[#191F28] mb-1">
+                  {t('common.error.generic_title')}
+                </div>
+                <div className="text-xs text-[#4E5968] leading-relaxed">
+                  {errorMessage}
+                </div>
+              </div>
             </div>
-            <div>
-              <p className="text-xs font-bold text-white flex items-center gap-1">
-                {t('camera.title')}
-                <span className="text-[9px] px-1 py-0.2 rounded bg-emerald-500/20 text-emerald-300 font-mono">B2·B3</span>
-              </p>
-              <p className="text-[10px] text-slate-400">메뉴판 번역·가격 환산</p>
+
+            <div className="flex items-center gap-2 pt-1 border-t border-[#E5E8EB]">
+              <button
+                onClick={() => handleTranslate(inputText)}
+                className="py-2 px-3 rounded-xl bg-[#F2F4F6] hover:bg-[#E5E8EB] text-[#191F28] text-xs font-semibold transition-all active:scale-95 border border-[#E5E8EB]"
+              >
+                {t('common.action.retry')}
+              </button>
             </div>
-          </button>
+
+            {/* Suggested verified travel phrases if available */}
+            {suggestedAlternatives.length > 0 && (
+              <div className="pt-2 border-t border-[#E5E8EB] space-y-2">
+                <span className="text-[11px] font-semibold text-[#4E5968] block">
+                  안전한 추천 상황별 문장 사용하기
+                </span>
+                <div className="space-y-1.5">
+                  {suggestedAlternatives.map((alt) => (
+                    <button
+                      key={alt.id}
+                      onClick={() => handleSelectPhrase(alt)}
+                      className="w-full text-left p-2.5 rounded-xl bg-[#F2F4F6] hover:bg-[#E5E8EB] border border-[#E5E8EB] text-xs transition-all text-[#191F28]"
+                    >
+                      <div className="font-semibold text-[#191F28]">{alt.korean}</div>
+                      <div className="text-[11px] text-[#1B64DA]">{alt.translation}</div>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Translation Result Card */}
+        {translatedText && (
+          <div className="bg-[#FFFFFF] border border-[#E5E8EB] rounded-2xl p-4 shadow-sm space-y-3 relative overflow-hidden">
+            <div className="flex items-center justify-between text-xs text-[#4E5968] font-semibold">
+              <span className="flex items-center gap-1.5">
+                <Check className="w-3.5 h-3.5 text-[#1B64DA]" />
+                {targetLang === 'ko' ? '한국어 번역 결과' : `${country.name}어 번역 결과`}
+              </span>
+              <button
+                onClick={() => setIsFullscreenModalOpen(true)}
+                className="flex items-center gap-1 px-2.5 py-1 rounded-lg bg-[#F2F4F6] hover:bg-[#E5E8EB] border border-[#E5E8EB] text-[11px] text-[#4E5968] hover:text-[#191F28] transition-all active:scale-95"
+              >
+                <Maximize2 className="w-3 h-3" />
+                <span>{t('translate.result.large')}</span>
+              </button>
+            </div>
+
+            {/* Translated Output */}
+            <div className="text-2xl font-bold text-[#191F28] tracking-tight leading-relaxed select-all">
+              {translatedText}
+            </div>
+
+            {/* Romanization / Pronunciation Guide */}
+            {romanization && (
+              <div className="p-2.5 rounded-xl bg-[#F2F4F6] border border-[#E5E8EB] text-xs text-[#4E5968] font-medium">
+                <span className="text-[10px] text-[#8B95A1] block mb-0.5">발음 안내</span>
+                {romanization}
+              </div>
+            )}
+
+            {/* Actions: Speak & Copy */}
+            <div className="flex items-center gap-2 pt-2 border-t border-[#E5E8EB]">
+              <button
+                onClick={() => handleSpeakText(translatedText, targetLang)}
+                className="flex-1 py-2.5 px-3 rounded-xl bg-[#F2F4F6] hover:bg-[#E5E8EB] text-[#191F28] font-semibold text-xs flex items-center justify-center gap-1.5 border border-[#E5E8EB] transition-all active:scale-95 shadow-sm"
+              >
+                <Volume2 className="w-3.5 h-3.5 text-[#1B64DA]" />
+                <span>{t('translate.result.listen')}</span>
+              </button>
+
+              <button
+                onClick={() => handleCopyText(translatedText)}
+                className="flex-1 py-2.5 px-3 rounded-xl bg-[#F2F4F6] hover:bg-[#E5E8EB] text-[#191F28] font-semibold text-xs flex items-center justify-center gap-1.5 border border-[#E5E8EB] transition-all active:scale-95 shadow-sm"
+              >
+                <Copy className="w-3.5 h-3.5 text-[#4E5968]" />
+                <span>{t('translate.result.copy')}</span>
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Track B Features Launcher Row (Clean Neutral Card Style) */}
+        <div className="bg-[#FFFFFF] border border-[#E5E8EB] rounded-2xl p-3.5 shadow-sm space-y-2">
+          <div className="text-xs font-semibold text-[#8B95A1] px-1">
+            다른 방식
+          </div>
+          <div className="grid grid-cols-2 gap-2">
+            <button
+              type="button"
+              onClick={() => setIsVoiceModalOpen(true)}
+              className="p-3 bg-[#F2F4F6] hover:bg-[#E5E8EB] border border-[#E5E8EB] rounded-xl flex items-center space-x-2.5 text-left transition-all active:scale-95"
+            >
+              <div className="w-8 h-8 rounded-lg bg-[#FFFFFF] text-[#1B64DA] flex items-center justify-center shrink-0 border border-[#E5E8EB]">
+                <Mic className="w-4 h-4" />
+              </div>
+              <div className="min-w-0">
+                <p className="text-xs font-bold text-[#191F28] truncate">
+                  {t('voice.title')}
+                </p>
+                <p className="text-[10px] text-[#8B95A1] truncate">실시간 2인 대화</p>
+              </div>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setIsCameraModalOpen(true)}
+              className="p-3 bg-[#F2F4F6] hover:bg-[#E5E8EB] border border-[#E5E8EB] rounded-xl flex items-center space-x-2.5 text-left transition-all active:scale-95"
+            >
+              <div className="w-8 h-8 rounded-lg bg-[#FFFFFF] text-[#1B64DA] flex items-center justify-center shrink-0 border border-[#E5E8EB]">
+                <Camera className="w-4 h-4" />
+              </div>
+              <div className="min-w-0">
+                <p className="text-xs font-bold text-[#191F28] truncate">
+                  {t('camera.title')}
+                </p>
+                <p className="text-[10px] text-[#8B95A1] truncate">메뉴판 번역·환산</p>
+              </div>
+            </button>
+          </div>
         </div>
 
         {/* Situational Category Filter Tabs */}
         <div>
-          <div className="text-xs font-semibold text-slate-400 mb-2 flex items-center gap-1.5">
-            <Sparkles className="w-3.5 h-3.5 text-blue-400" />
+          <div className="text-xs font-semibold text-[#8B95A1] mb-2 flex items-center gap-1.5">
+            <Sparkles className="w-3.5 h-3.5 text-[#1B64DA]" />
             <span>{t('place.phrases.list_title')}</span>
           </div>
           <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar py-0.5 -mx-4 px-4">
@@ -372,10 +537,10 @@ export default function TranslateView() {
                 <button
                   key={cat.id}
                   onClick={() => setSelectedCategory(cat.id)}
-                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-all shadow-md active:scale-95 ${
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition-all shadow-sm active:scale-95 ${
                     isSelected
-                      ? 'bg-blue-600 text-white shadow-blue-600/30 ring-1 ring-blue-400'
-                      : 'bg-slate-900/80 text-slate-300 hover:bg-slate-800 border border-slate-800'
+                      ? 'bg-[#191F28] text-white'
+                      : 'bg-[#FFFFFF] text-[#4E5968] hover:text-[#191F28] border border-[#E5E8EB]'
                   }`}
                 >
                   <Icon className="w-3.5 h-3.5" />
@@ -394,15 +559,15 @@ export default function TranslateView() {
               <button
                 key={phrase.id}
                 onClick={() => handleSelectPhrase(phrase)}
-                className={`w-full text-left p-3 rounded-xl border text-xs transition-all ${
+                className={`w-full text-left p-3.5 rounded-xl border text-xs transition-all ${
                   isSelected
-                    ? 'bg-blue-950/40 border-blue-500 text-blue-200 shadow-md shadow-blue-500/10'
-                    : 'bg-slate-900/70 border-slate-800 text-slate-300 hover:bg-slate-900 hover:border-slate-700'
+                    ? 'bg-[#FFFFFF] border-[#1B64DA] ring-1 ring-[#1B64DA] text-[#191F28] shadow-sm'
+                    : 'bg-[#FFFFFF] border-[#E5E8EB] text-[#4E5968] hover:text-[#191F28] hover:border-[#8B95A1]'
                 }`}
               >
-                <div className="font-semibold text-slate-100 mb-0.5">{phrase.korean}</div>
+                <div className="font-semibold text-[#191F28] mb-0.5">{phrase.korean}</div>
                 {phrase.targetTranslations[targetLang] && (
-                  <div className="text-[11px] text-blue-400/90 font-medium truncate">
+                  <div className="text-[11px] text-[#1B64DA] font-medium truncate">
                     {phrase.targetTranslations[targetLang]}
                   </div>
                 )}
@@ -410,141 +575,6 @@ export default function TranslateView() {
             );
           })}
         </div>
-
-        {/* Input Text Box */}
-        <div className="relative bg-slate-900/90 border border-slate-700/80 rounded-2xl p-3 shadow-lg focus-within:ring-2 focus-within:ring-blue-500/50">
-          <div className="flex items-center justify-between mb-1.5">
-            <span className="text-[11px] font-medium text-slate-400">
-              {t('translate.input.label')}
-            </span>
-            {inputText && (
-              <button
-                onClick={() => handleInputChange('')}
-                className="text-xs text-slate-400 hover:text-slate-200 p-0.5"
-                aria-label={t('translate.input.clear')}
-              >
-                <X className="w-3.5 h-3.5" />
-              </button>
-            )}
-          </div>
-
-          <textarea
-            value={inputText}
-            onChange={(e) => handleInputChange(e.target.value)}
-            rows={2}
-            placeholder={t('translate.input.placeholder')}
-            className="w-full bg-transparent text-sm text-slate-100 placeholder-slate-500 resize-none focus:outline-none"
-          />
-
-          <div className="flex justify-end pt-2 border-t border-slate-800">
-            <button
-              onClick={() => handleTranslate(inputText)}
-              disabled={isLoading || !inputText.trim()}
-              className="px-4 py-2 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-semibold text-xs shadow-md shadow-blue-600/30 flex items-center gap-1.5 active:scale-95 disabled:opacity-50 transition-all"
-            >
-              <Send className="w-3.5 h-3.5" />
-              <span>{isLoading ? t('translate.processing') : t('translate.action')}</span>
-            </button>
-          </div>
-        </div>
-
-        {/* Translation Error & Safety Card */}
-        {errorMessage && (
-          <div className="bg-amber-950/40 border border-amber-800/60 rounded-2xl p-4 shadow-xl space-y-3 animate-in fade-in duration-200">
-            <div className="flex items-start gap-2.5">
-              <AlertCircle className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
-              <div className="flex-1 min-w-0">
-                <div className="text-xs font-semibold text-amber-300 mb-1">
-                  {t('common.error.generic_title')}
-                </div>
-                <div className="text-xs text-amber-200/90 leading-relaxed">
-                  {errorMessage}
-                </div>
-              </div>
-            </div>
-
-            <div className="flex items-center gap-2 pt-1 border-t border-amber-900/50">
-              <button
-                onClick={() => handleTranslate(inputText)}
-                className="py-2 px-3 rounded-xl bg-amber-900/60 hover:bg-amber-850 text-amber-200 text-xs font-semibold transition-all active:scale-95"
-              >
-                {t('common.action.retry')}
-              </button>
-            </div>
-
-            {/* Suggested verified travel phrases if available */}
-            {suggestedAlternatives.length > 0 && (
-              <div className="pt-2 border-t border-amber-900/50 space-y-2">
-                <span className="text-[11px] font-semibold text-amber-300 block">
-                  안전한 추천 상황별 문장 사용하기
-                </span>
-                <div className="space-y-1.5">
-                  {suggestedAlternatives.map((alt) => (
-                    <button
-                      key={alt.id}
-                      onClick={() => handleSelectPhrase(alt)}
-                      className="w-full text-left p-2.5 rounded-xl bg-slate-900/80 hover:bg-slate-900 border border-amber-900/40 hover:border-amber-700/60 text-xs transition-all text-slate-200"
-                    >
-                      <div className="font-semibold text-slate-100">{alt.korean}</div>
-                      <div className="text-[11px] text-blue-400">{alt.translation}</div>
-                    </button>
-                  ))}
-                </div>
-              </div>
-            )}
-          </div>
-        )}
-
-        {/* Translation Result Card */}
-        {translatedText && (
-          <div className="bg-gradient-to-b from-slate-900 to-slate-950 border border-blue-500/30 rounded-2xl p-4 shadow-xl shadow-blue-950/20 space-y-3 relative overflow-hidden animate-in fade-in duration-200">
-            <div className="flex items-center justify-between text-xs text-blue-400 font-semibold">
-              <span className="flex items-center gap-1.5">
-                <Check className="w-3.5 h-3.5 text-emerald-400" />
-                {targetLang === 'ko' ? '한국어 번역 결과' : `${country.name}어 번역 결과`}
-              </span>
-              <button
-                onClick={() => setIsFullscreenModalOpen(true)}
-                className="flex items-center gap-1 px-2.5 py-1 rounded-lg bg-blue-950/70 hover:bg-blue-900 border border-blue-800/60 text-[11px] text-blue-300 transition-all active:scale-95"
-              >
-                <Maximize2 className="w-3 h-3" />
-                <span>{t('translate.result.large')}</span>
-              </button>
-            </div>
-
-            {/* Translated Output */}
-            <div className="text-xl font-extrabold text-white tracking-tight leading-relaxed select-all">
-              {translatedText}
-            </div>
-
-            {/* Romanization / Pronunciation Guide */}
-            {romanization && (
-              <div className="p-2.5 rounded-xl bg-slate-950/80 border border-slate-800 text-xs text-amber-300 font-medium">
-                <span className="text-[10px] text-slate-400 block mb-0.5">발음 안내</span>
-                {romanization}
-              </div>
-            )}
-
-            {/* Actions: Speak & Copy */}
-            <div className="flex items-center gap-2 pt-2 border-t border-slate-800/80">
-              <button
-                onClick={() => handleSpeakText(translatedText, targetLang)}
-                className="flex-1 py-2.5 px-3 rounded-xl bg-slate-800 hover:bg-slate-700/80 text-slate-100 font-semibold text-xs flex items-center justify-center gap-1.5 border border-slate-700/60 transition-all active:scale-95 shadow-sm"
-              >
-                <Volume2 className="w-3.5 h-3.5 text-blue-400" />
-                <span>{t('translate.result.listen')}</span>
-              </button>
-
-              <button
-                onClick={() => handleCopyText(translatedText)}
-                className="flex-1 py-2.5 px-3 rounded-xl bg-slate-800 hover:bg-slate-700/80 text-slate-100 font-semibold text-xs flex items-center justify-center gap-1.5 border border-slate-700/60 transition-all active:scale-95 shadow-sm"
-              >
-                <Copy className="w-3.5 h-3.5 text-slate-300" />
-                <span>{t('translate.result.copy')}</span>
-              </button>
-            </div>
-          </div>
-        )}
       </div>
 
       {/* Fullscreen Big Text Modal ('큰 글씨' 상대방에게 보여주기 모드) */}
