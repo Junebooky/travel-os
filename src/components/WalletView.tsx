@@ -180,9 +180,10 @@ export default function WalletView() {
           <button
             type="button"
             onClick={() => returnToMapWithPlace(activePlace)}
+            aria-label={t('wallet.a11y.return_map')}
             className="text-[11px] text-indigo-400 hover:text-indigo-300 font-medium shrink-0 ml-2"
           >
-            지도로 복귀
+            {t('flow.return_map')}
           </button>
         </div>
       )}
@@ -212,7 +213,7 @@ export default function WalletView() {
 
         {hasUncalculatedExpenses && (
           <p className="text-[10px] text-amber-400/90 font-medium">
-            * {t('wallet.rate.not_available')}
+            * {t('wallet.summary.partial')} {t('wallet.rate.not_available')}
           </p>
         )}
 
@@ -438,17 +439,22 @@ export default function WalletView() {
                 </label>
                 <input
                   type="text"
-                  placeholder="예: 2인 점심 식사"
+                  placeholder={t('wallet.form.memo_placeholder')}
                   value={memoInput}
                   onChange={(e) => setMemoInput(e.target.value)}
                   className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:ring-1 focus:ring-indigo-500"
                 />
               </div>
 
+              {/* Privacy Notice */}
+              <p className="text-[10px] text-slate-500 text-center pt-0.5 leading-tight">
+                {t('wallet.privacy.body')}
+              </p>
+
               {/* Submit */}
               <button
                 type="submit"
-                className="w-full py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-xs font-semibold shadow-md active:scale-95 transition-all mt-2"
+                className="w-full py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-xs font-semibold shadow-md active:scale-95 transition-all mt-1"
               >
                 {t('wallet.form.save')}
               </button>

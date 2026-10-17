@@ -86,7 +86,7 @@ export default function CameraMenuModal({ isOpen, onClose, initialPlace }: Camer
 
     // Check size limit: 10MB
     if (file.size > 10 * 1024 * 1024) {
-      showToast('10MB 이하의 이미지만 업로드 가능합니다', 'error');
+      showToast(t('camera.error.too_large'), 'error');
       return;
     }
 
@@ -311,6 +311,12 @@ export default function CameraMenuModal({ isOpen, onClose, initialPlace }: Camer
                 <Sparkles className="w-3.5 h-3.5" />
                 {t('camera.action.load_sample')}
               </button>
+
+              {/* Privacy Notice */}
+              <div className="flex items-start gap-1.5 text-[11px] text-slate-400/90 bg-slate-900/60 p-2.5 rounded-xl border border-slate-800/80 text-left w-full max-w-xs mt-1">
+                <AlertCircle className="w-3.5 h-3.5 text-slate-400 shrink-0 mt-0.5" />
+                <span>{t('camera.privacy.notice')}</span>
+              </div>
             </div>
           )}
 
@@ -334,7 +340,7 @@ export default function CameraMenuModal({ isOpen, onClose, initialPlace }: Camer
                   <p className="text-xs font-semibold text-white truncate">
                     {t('price.detected_count', { count: menuItems.length })}
                   </p>
-                  <p className="text-[10px] text-slate-400">{detectedCurrency} 통화 감지됨</p>
+                  <p className="text-[10px] text-slate-400">{t('price.currency.detected', { currencyCode: detectedCurrency })}</p>
                 </div>
               </div>
 
@@ -355,11 +361,12 @@ export default function CameraMenuModal({ isOpen, onClose, initialPlace }: Camer
           )}
 
           {/* Demo Notice Banner */}
-          {isDemo && demoNotice && (
+          {isDemo && (
             <div className="p-2.5 bg-amber-500/10 border border-amber-500/30 rounded-xl text-xs text-amber-300 flex items-start gap-2">
               <Sparkles className="w-4 h-4 shrink-0 text-amber-400 mt-0.5" />
-              <div className="leading-tight">
-                <span className="font-semibold">{t('camera.demo.notice')}</span>
+              <div className="leading-tight space-y-0.5">
+                <span className="font-semibold block">{demoNotice || t('camera.demo.notice')}</span>
+                <span className="text-[11px] text-amber-400/80 block">{t('camera.demo.wallet_warning')}</span>
               </div>
             </div>
           )}
@@ -377,7 +384,7 @@ export default function CameraMenuModal({ isOpen, onClose, initialPlace }: Camer
           {!isLoading && menuItems.length > 0 && (
             <div className="space-y-2.5">
               <h3 className="text-xs font-bold text-slate-300 px-1 flex items-center justify-between">
-                <span>추출된 메뉴 및 원화 환산</span>
+                <span>{t('price.items.title')}</span>
                 <span className="text-[10px] font-normal text-slate-400">{t('price.fee_notice')}</span>
               </h3>
 
@@ -402,7 +409,7 @@ export default function CameraMenuModal({ isOpen, onClose, initialPlace }: Camer
                       )}
                       {item.confidence && (
                         <span className="text-[10px] px-1.5 py-0.5 rounded bg-slate-800 text-slate-400 font-mono">
-                          신뢰도 {Math.round(item.confidence * 100)}%
+                          {t('camera.preview.confidence_label', { confidencePercent: Math.round(item.confidence * 100) })}
                         </span>
                       )}
                     </div>

@@ -580,7 +580,7 @@ export default function VoiceChatModal({ isOpen, onClose }: VoiceChatModalProps)
             {isSpeaking && (
               <span className="absolute right-8 text-[11px] text-indigo-400 animate-bounce flex items-center gap-1">
                 <Volume2 className="w-3.5 h-3.5" />
-                음성 재생 중
+                {t('voice.status.speaking')}
               </span>
             )}
           </div>
@@ -602,7 +602,8 @@ export default function VoiceChatModal({ isOpen, onClose }: VoiceChatModalProps)
               type="text"
               value={manualText}
               onChange={(e) => setManualText(e.target.value)}
-              placeholder={`${activeSpeaker === 'me' ? '한국어' : targetLang.toUpperCase()} 직접 텍스트 입력…`}
+              placeholder={`${activeSpeaker === 'me' ? '한국어' : targetLang.toUpperCase()} ${t('voice.action.type_instead')}`}
+              aria-label={t('voice.status.input_required')}
               className="flex-1 bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white placeholder-slate-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
             />
             <button

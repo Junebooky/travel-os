@@ -399,7 +399,7 @@ test('Track B Copy Contract: Phase 2 Namespaces and 1st Phase 326-Key Isolation'
   assert.equal(Object.keys(baseJson).length, 326, 'Phase 1 keys must stay strictly 326');
 
   const phase2Keys = Object.keys(phase2Json);
-  assert.ok(phase2Keys.length >= 60, 'Phase 2 keys must have at least 60 strings');
+  assert.equal(phase2Keys.length, 223, 'Phase 2 keys must match A03 v2.0 exact count of 223');
 
   // Verify critical TB-P1 keys exist in phase2
   assert.ok(phase2Json['voice.translate_failed'], 'voice.translate_failed must exist');
