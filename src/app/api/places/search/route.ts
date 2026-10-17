@@ -76,12 +76,17 @@ export async function GET(req: NextRequest) {
     // 2. OpenStreetMap / Nominatim live geocoded search if query is provided and no Google key
     if (query && query.length >= 2) {
       try {
+        const viewboxParam =
+          lat && lng
+            ? `&viewbox=${(lng - 0.25).toFixed(4)},${(lat + 0.25).toFixed(4)},${(lng + 0.25).toFixed(4)},${(lat - 0.25).toFixed(4)}&bounded=0`
+            : '';
         const nominatimUrl = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(
           query
-        )}&addressdetails=1&limit=8`;
+        )}${viewboxParam}&addressdetails=1&limit=8`;
+
         const osmRes = await fetch(nominatimUrl, {
           headers: {
-            'User-Agent': 'TravelOS-MobileApp/1.0',
+            'User-Agent': 'TravelOS/1.0 (https://github.com/Junebooky/travel-os; travelos@antigravity.dev)',
             'Accept-Language': 'ko,en',
           },
         });
@@ -97,7 +102,7 @@ export async function GET(req: NextRequest) {
               address: item.display_name,
               lat: parseFloat(item.lat),
               lng: parseFloat(item.lon),
-              distance: '검색 결과',
+              distance: '검색 위치 주변',
               description: item.display_name,
             }));
 
@@ -105,6 +110,7 @@ export async function GET(req: NextRequest) {
               success: true,
               isDemo: false,
               provider: 'OpenStreetMap Nominatim',
+              attribution: '© OpenStreetMap contributors, ODbL 1.0',
               places: osmPlaces,
             });
           }

@@ -23,7 +23,7 @@ test('GET /api/rates returns valid rates object with provider and date', async (
   }
 });
 
-test('POST /api/translate translates verified travel phrases correctly', async () => {
+test('POST /api/translate translates verified travel phrases correctly (Korean -> Foreign)', async () => {
   const mockReq = {
     json: async () => ({
       text: '추천 메뉴가 무엇인가요?',
@@ -41,6 +41,41 @@ test('POST /api/translate translates verified travel phrases correctly', async (
   assert.equal(data.targetLang, 'ja');
   assert.ok(data.romanization.includes('오스스메'), 'Romanization guide should be present');
 });
+
+test('POST /api/translate supports bidirectional translation (Foreign -> Korean)', async () => {
+  // 1. Japanese -> Korean
+  const jaReq = {
+    json: async () => ({
+      text: 'おすすめのメニューは何ですか？',
+      sourceLang: 'ja',
+      targetLang: 'ko',
+    }),
+  } as unknown as NextRequest;
+
+  const jaRes = await postTranslate(jaReq);
+  assert.equal(jaRes.status, 200);
+  const jaData = await jaRes.json();
+  assert.equal(jaData.success, true);
+  assert.equal(jaData.translation, '추천 메뉴가 무엇인가요?');
+  assert.equal(jaData.targetLang, 'ko');
+
+  // 2. English -> Korean
+  const enReq = {
+    json: async () => ({
+      text: 'Check, please.',
+      sourceLang: 'en',
+      targetLang: 'ko',
+    }),
+  } as unknown as NextRequest;
+
+  const enRes = await postTranslate(enReq);
+  assert.equal(enRes.status, 200);
+  const enData = await enRes.json();
+  assert.equal(enData.success, true);
+  assert.equal(enData.translation, '계산서 부탁드립니다.');
+  assert.equal(enData.targetLang, 'ko');
+});
+
 
 test('POST /api/translate rejects fake translations on unverified text and returns 503 with safe suggestions', async () => {
   const mockReq = {

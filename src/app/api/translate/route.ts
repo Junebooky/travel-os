@@ -20,30 +20,57 @@ export async function POST(req: NextRequest) {
     }
 
     const trimmed = text.trim();
+    const normalize = (s: string) => s.toLowerCase().replace(/[\s.?!,;:~，。？！…\-_()（）]/g, '');
+    const normalizedInput = normalize(trimmed);
 
-    // 1. Check exact or punctuation-normalized match with verified travel phrases
-    const foundPhrase = QUICK_PHRASES.find(
-      (p) =>
-        p.korean === trimmed ||
-        p.korean.replace(/[.?!]/g, '').trim() === trimmed.replace(/[.?!]/g, '').trim()
-    );
+    // 1. Check exact or punctuation/case-normalized match with verified travel phrases in both directions
+    const foundPhrase = QUICK_PHRASES.find((p) => {
+      // Check Korean match
+      if (sourceLang === 'ko' || targetLang !== 'ko') {
+        if (normalize(p.korean) === normalizedInput) return true;
+      }
+      // Check foreign source language match
+      if (p.targetTranslations[sourceLang] && normalize(p.targetTranslations[sourceLang]) === normalizedInput) {
+        return true;
+      }
+      // Reverse fallback match: user typed foreign phrase or korean
+      for (const trans of Object.values(p.targetTranslations)) {
+        if (normalize(trans) === normalizedInput) return true;
+      }
+      return false;
+    });
 
-    if (foundPhrase && foundPhrase.targetTranslations[targetLang]) {
-      return NextResponse.json({
-        success: true,
-        translation: foundPhrase.targetTranslations[targetLang],
-        romanization: foundPhrase.romanizations?.[targetLang] || '',
-        sourceLang,
-        targetLang,
-        provider: 'verified_phrase',
-      });
+    if (foundPhrase) {
+      let translation = '';
+      let romanization = '';
+
+      if (targetLang === 'ko') {
+        // Foreign -> Korean
+        translation = foundPhrase.korean;
+        romanization = '';
+      } else {
+        // Korean -> Foreign (or Cross-Language)
+        translation = foundPhrase.targetTranslations[targetLang] || foundPhrase.targetTranslations['en'] || foundPhrase.korean;
+        romanization = foundPhrase.romanizations?.[targetLang] || '';
+      }
+
+      if (translation) {
+        return NextResponse.json({
+          success: true,
+          translation,
+          romanization,
+          sourceLang,
+          targetLang,
+          provider: 'verified_phrase',
+        });
+      }
     }
 
     // 2. Real Gemini API translation if server-side GEMINI_API_KEY is configured
     const geminiKey = process.env.GEMINI_API_KEY;
     if (geminiKey) {
       try {
-        const prompt = `You are a professional travel translator. Translate the following travel sentence from ${sourceLang} to ${targetLang}. Provide an accurate translation and a natural Korean pronunciation guide (romanization) for travelers.
+        const prompt = `You are a professional travel translator. Translate the following travel sentence from ${sourceLang} to ${targetLang}. Provide an accurate translation and a natural Korean pronunciation guide (romanization) for travelers (leave romanization empty if translating into Korean).
 Input: "${trimmed}"
 Respond strictly with valid JSON format:
 {"translation": "...", "romanization": "..."}`;
@@ -83,14 +110,17 @@ Respond strictly with valid JSON format:
     }
 
     // 3. Strict honest failure: Never fabricate fake translations like '(日本語訳)' or 'Excuse me:'
-    // Return explicit 503 error with matching situational recommendations
+    // Return explicit 503 error with matching situational recommendations for both directions
+    const isTargetKorean = targetLang === 'ko';
     const suggestedPhrases = QUICK_PHRASES.filter(
-      (p) => p.targetTranslations[targetLang]
+      (p) => isTargetKorean ? Boolean(p.targetTranslations[sourceLang]) : Boolean(p.targetTranslations[targetLang])
     ).slice(0, 3).map((p) => ({
       id: p.id,
       korean: p.korean,
-      translation: p.targetTranslations[targetLang],
-      romanization: p.romanizations?.[targetLang] || '',
+      sourceText: isTargetKorean ? (p.targetTranslations[sourceLang] || p.korean) : p.korean,
+      targetText: isTargetKorean ? p.korean : (p.targetTranslations[targetLang] || ''),
+      translation: isTargetKorean ? p.korean : (p.targetTranslations[targetLang] || ''),
+      romanization: isTargetKorean ? '' : (p.romanizations?.[targetLang] || ''),
     }));
 
     return NextResponse.json(

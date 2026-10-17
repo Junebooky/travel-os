@@ -83,3 +83,32 @@ test('Intl Currency, Number, and Date formatters behave accurately', () => {
   const dateStr = formatDate('2026-10-17T09:00:00Z');
   assert.ok(dateStr.includes('2026') && dateStr.includes('10') && dateStr.includes('17'));
 });
+
+test('i18n Contract Integrity — Every t(...) call in components must exist in src/locales/ko-KR.json', () => {
+  const jsonPath = path.resolve(__dirname, '../src/locales/ko-KR.json');
+  const validKeys = new Set(Object.keys(JSON.parse(fs.readFileSync(jsonPath, 'utf-8'))));
+
+  const compDir = path.resolve(__dirname, '../src/components');
+  const files = fs.readdirSync(compDir).filter((f) => f.endsWith('.tsx'));
+
+  const missingCalls: Array<{ file: string; key: string }> = [];
+  const regex = /\bt\(\s*['"`]([a-zA-Z0-9_.]+)['"`]/g;
+
+  for (const file of files) {
+    const content = fs.readFileSync(path.join(compDir, file), 'utf-8');
+    let match;
+    while ((match = regex.exec(content)) !== null) {
+      const key = match[1];
+      if (!validKeys.has(key)) {
+        missingCalls.push({ file, key });
+      }
+    }
+  }
+
+  assert.equal(
+    missingCalls.length,
+    0,
+    `Found ${missingCalls.length} missing t(...) calls: ${JSON.stringify(missingCalls, null, 2)}`
+  );
+});
+

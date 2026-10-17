@@ -128,16 +128,35 @@ export default function TranslateView() {
     }
   }, [sourceLang, targetLang]);
 
-  const handleSelectPhrase = (phrase: QuickPhrase | { id: string; korean: string; translation: string; romanization: string }) => {
-    setInputText(phrase.korean);
+  const handleSelectPhrase = (phrase: QuickPhrase | { id: string; korean: string; translation?: string; romanization?: string; sourceText?: string; targetText?: string }) => {
     setErrorMessage(null);
     if ('targetTranslations' in phrase) {
-      const trans = phrase.targetTranslations[targetLang] || phrase.targetTranslations['en'] || phrase.korean;
-      setTranslatedText(trans);
-      setRomanization(phrase.romanizations?.[targetLang] || '');
+      if (sourceLang === 'ko') {
+        setInputText(phrase.korean);
+        const trans = phrase.targetTranslations[targetLang] || phrase.targetTranslations['en'] || phrase.korean;
+        setTranslatedText(trans);
+        setRomanization(phrase.romanizations?.[targetLang] || '');
+      } else if (targetLang === 'ko') {
+        const foreign = phrase.targetTranslations[sourceLang] || phrase.korean;
+        setInputText(foreign);
+        setTranslatedText(phrase.korean);
+        setRomanization('');
+      } else {
+        const src = phrase.targetTranslations[sourceLang] || phrase.korean;
+        const tgt = phrase.targetTranslations[targetLang] || phrase.korean;
+        setInputText(src);
+        setTranslatedText(tgt);
+        setRomanization(phrase.romanizations?.[targetLang] || '');
+      }
     } else {
-      setTranslatedText(phrase.translation);
-      setRomanization(phrase.romanization);
+      if (phrase.sourceText && phrase.targetText) {
+        setInputText(phrase.sourceText);
+        setTranslatedText(phrase.targetText);
+      } else {
+        setInputText(phrase.korean);
+        setTranslatedText(phrase.translation || phrase.korean);
+      }
+      setRomanization(phrase.romanization || '');
     }
   };
 
@@ -145,6 +164,7 @@ export default function TranslateView() {
     const temp = sourceLang;
     setSourceLang(targetLang);
     setTargetLang(temp);
+    setErrorMessage(null);
     // Swap text
     if (translatedText) {
       const oldInput = inputText;
@@ -156,7 +176,22 @@ export default function TranslateView() {
 
   const handleCopyText = (text: string) => {
     navigator.clipboard.writeText(text);
-    showToast(t('translate.feedback.copied'), 'success');
+    showToast(t('translate.result.copied'), 'success');
+  };
+
+  const getSpeechLangCode = (lang: string) => {
+    switch (lang) {
+      case 'ja': return 'ja-JP';
+      case 'en': return 'en-US';
+      case 'zh-TW': return 'zh-TW';
+      case 'th': return 'th-TH';
+      case 'vi': return 'vi-VN';
+      case 'fr': return 'fr-FR';
+      case 'it': return 'it-IT';
+      case 'es': return 'es-ES';
+      case 'ko': return 'ko-KR';
+      default: return lang;
+    }
   };
 
   const handleSpeakText = (text: string, langCode: string) => {
@@ -164,14 +199,14 @@ export default function TranslateView() {
       try {
         window.speechSynthesis.cancel();
         const utterance = new SpeechSynthesisUtterance(text);
-        utterance.lang = langCode;
+        utterance.lang = getSpeechLangCode(langCode);
         utterance.rate = 0.9;
         window.speechSynthesis.speak(utterance);
       } catch {
-        showToast(t('translate.audio.unsupported'), 'error');
+        showToast(t('translate.result.tts_unavailable'), 'error');
       }
     } else {
-      showToast(t('translate.audio.unsupported'), 'error');
+      showToast(t('translate.result.tts_unavailable'), 'error');
     }
   };
 
@@ -212,7 +247,7 @@ export default function TranslateView() {
           <button
             onClick={handleSwapLanguages}
             className="p-2.5 rounded-full bg-slate-800 hover:bg-slate-700 text-blue-400 border border-slate-700/80 active:scale-90 transition-all shadow-md mx-2"
-            aria-label={t('translate.swap')}
+            aria-label={t('translate.language.swap')}
           >
             <ArrowRightLeft className="w-4 h-4" />
           </button>
@@ -222,7 +257,7 @@ export default function TranslateView() {
               {t('translate.target.label')}
             </span>
             <span className="text-sm font-bold text-blue-400">
-              {country.name}어 ({targetLang.toUpperCase()})
+              {targetLang === 'ko' ? '한국어' : `${country.name}어 (${targetLang.toUpperCase()})`}
             </span>
           </div>
         </div>
@@ -231,7 +266,7 @@ export default function TranslateView() {
         <div>
           <div className="text-xs font-semibold text-slate-400 mb-2 flex items-center gap-1.5">
             <Sparkles className="w-3.5 h-3.5 text-blue-400" />
-            <span>{t('translate.category.title')}</span>
+            <span>{t('place.phrases.list_title')}</span>
           </div>
           <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar py-0.5 -mx-4 px-4">
             {CATEGORIES.map((cat) => {
@@ -290,7 +325,7 @@ export default function TranslateView() {
               <button
                 onClick={() => setInputText('')}
                 className="text-xs text-slate-400 hover:text-slate-200 p-0.5"
-                aria-label={t('translate.action.clear')}
+                aria-label={t('translate.input.clear')}
               >
                 <X className="w-3.5 h-3.5" />
               </button>
@@ -312,7 +347,7 @@ export default function TranslateView() {
               className="px-4 py-2 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-semibold text-xs shadow-md shadow-blue-600/30 flex items-center gap-1.5 active:scale-95 disabled:opacity-50 transition-all"
             >
               <Send className="w-3.5 h-3.5" />
-              <span>{isLoading ? t('translate.status.translating') : t('translate.action.translate')}</span>
+              <span>{isLoading ? t('translate.processing') : t('translate.action')}</span>
             </button>
           </div>
         </div>
@@ -370,14 +405,14 @@ export default function TranslateView() {
             <div className="flex items-center justify-between text-xs text-blue-400 font-semibold">
               <span className="flex items-center gap-1.5">
                 <Check className="w-3.5 h-3.5 text-emerald-400" />
-                {country.name}어 번역 결과
+                {targetLang === 'ko' ? '한국어 번역 결과' : `${country.name}어 번역 결과`}
               </span>
               <button
                 onClick={() => setIsFullscreenModalOpen(true)}
                 className="flex items-center gap-1 px-2.5 py-1 rounded-lg bg-blue-950/70 hover:bg-blue-900 border border-blue-800/60 text-[11px] text-blue-300 transition-all active:scale-95"
               >
                 <Maximize2 className="w-3 h-3" />
-                <span>{t('translate.action.fullscreen')}</span>
+                <span>{t('translate.result.large')}</span>
               </button>
             </div>
 
@@ -401,7 +436,7 @@ export default function TranslateView() {
                 className="flex-1 py-2.5 px-3 rounded-xl bg-slate-800 hover:bg-slate-700/80 text-slate-100 font-semibold text-xs flex items-center justify-center gap-1.5 border border-slate-700/60 transition-all active:scale-95 shadow-sm"
               >
                 <Volume2 className="w-3.5 h-3.5 text-blue-400" />
-                <span>{t('translate.action.speak')}</span>
+                <span>{t('translate.result.listen')}</span>
               </button>
 
               <button
@@ -409,7 +444,7 @@ export default function TranslateView() {
                 className="flex-1 py-2.5 px-3 rounded-xl bg-slate-800 hover:bg-slate-700/80 text-slate-100 font-semibold text-xs flex items-center justify-center gap-1.5 border border-slate-700/60 transition-all active:scale-95 shadow-sm"
               >
                 <Copy className="w-3.5 h-3.5 text-slate-300" />
-                <span>{t('translate.action.copy')}</span>
+                <span>{t('translate.result.copy')}</span>
               </button>
             </div>
           </div>
@@ -464,7 +499,7 @@ export default function TranslateView() {
               className="px-6 py-3.5 rounded-2xl bg-blue-600 hover:bg-blue-500 text-white font-bold text-sm shadow-xl shadow-blue-600/40 flex items-center gap-2 active:scale-95 transition-all"
             >
               <Volume2 className="w-5 h-5" />
-              <span>{t('translate.action.speak')}</span>
+              <span>{t('translate.result.listen')}</span>
             </button>
           </div>
         </div>

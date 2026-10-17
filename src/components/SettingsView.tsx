@@ -47,7 +47,7 @@ export default function SettingsView() {
       <div className="bg-slate-900/90 border border-slate-800 rounded-2xl p-4 shadow-xl space-y-3">
         <div className="text-xs font-semibold text-slate-400 flex items-center gap-1.5">
           <Globe className="w-3.5 h-3.5 text-blue-400" />
-          <span>{t('settings.travel.title')}</span>
+          <span>{t('settings.travel.section')}</span>
         </div>
 
         {/* Current Destination Country */}
@@ -59,7 +59,7 @@ export default function SettingsView() {
                 {country.name} ({country.code})
               </div>
               <div className="text-xs text-slate-400">
-                {t('settings.travel.destination')}
+                {t('settings.travel.country')}
               </div>
             </div>
           </div>
@@ -67,7 +67,7 @@ export default function SettingsView() {
             onClick={() => setIsCountryPickerOpen(true)}
             className="text-xs font-semibold text-blue-400 hover:text-blue-300 bg-blue-950/60 hover:bg-blue-900/80 px-2.5 py-1.5 rounded-lg border border-blue-800/60 transition-all active:scale-95"
           >
-            {t('settings.travel.change_country')}
+            {t('settings.travel.change')}
           </button>
         </div>
 
@@ -146,7 +146,7 @@ export default function SettingsView() {
           </span>
         </div>
         <p className="text-[11px] leading-relaxed text-slate-400">
-          비회원 모바일 우선 PWA. 위치, 검색, 번역, 환율 데이터를 기기 내부에 안전하게 보관하며 외부로 전송하지 않습니다.
+          비회원 모바일 우선 PWA. 개인 식별 정보를 수집하지 않으며 여행지 설정은 기기 로컬에 보관됩니다. 단, 실시간 번역 요청 시 입력 텍스트가 번역 AI(Google Gemini API)로, 지도 검색 시 검색어와 좌표가 지도 서비스(Google Places / OpenStreetMap)로 전송되어 처리됩니다.
         </p>
       </div>
 

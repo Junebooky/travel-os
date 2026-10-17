@@ -256,7 +256,7 @@ export default function CurrencyView() {
                 className="py-2 px-3 rounded-xl bg-amber-900/60 hover:bg-amber-850 text-amber-200 text-xs font-semibold flex items-center gap-1.5 transition-all active:scale-95 disabled:opacity-50"
               >
                 <RefreshCw className={`w-3.5 h-3.5 ${isLoading ? 'animate-spin' : ''}`} />
-                <span>{t('currency.rate.refresh')}</span>
+                <span>{t('currency.rate.retry')}</span>
               </button>
             </div>
           </div>
@@ -266,14 +266,14 @@ export default function CurrencyView() {
               <span>{t('currency.title')}</span>
               <button
                 onClick={() => {
-                  fetchRates();
-                  showToast(t('currency.rate.refresh_success'), 'success');
-                }}
+                fetchRates();
+                showToast(t('currency.rate.updated'), 'success');
+              }}
                 disabled={isLoading}
                 className="flex items-center gap-1 px-2 py-1 rounded-lg bg-blue-950/60 hover:bg-blue-900 text-[11px] text-blue-300 border border-blue-800/50 transition-all active:scale-95 disabled:opacity-50"
               >
                 <RefreshCw className={`w-3 h-3 ${isLoading ? 'animate-spin' : ''}`} />
-                <span>{t('currency.rate.refresh')}</span>
+                <span>{t('currency.rate.retry')}</span>
               </button>
             </div>
 
@@ -302,7 +302,7 @@ export default function CurrencyView() {
             {/* Rate Breakdown Badges */}
             <div className="p-3 rounded-xl bg-slate-950/80 border border-slate-800/80 space-y-1.5 text-xs">
               <div className="flex items-center justify-between text-slate-300">
-                <span className="text-slate-400">적용 환율</span>
+                <span className="text-slate-400">{t('currency.result.rate_label')}</span>
                 <span className="font-semibold text-slate-100">
                   1 {fromCurrency} = {formatAmountNumber(currentRate, toCurrency)} {toCurrency}
                 </span>
@@ -317,7 +317,7 @@ export default function CurrencyView() {
             {/* Honest Disclaimer */}
             <div className="flex items-start gap-1.5 text-[11px] text-slate-400/90 pt-1">
               <AlertCircle className="w-3.5 h-3.5 text-blue-400 shrink-0 mt-0.5" />
-              <span>{t('currency.rate.disclaimer')}</span>
+              <span>{t('currency.result.warning')}</span>
             </div>
           </div>
         )}
