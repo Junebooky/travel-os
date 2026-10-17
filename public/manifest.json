@@ -1,0 +1,16 @@
+{
+  "name": "Travel OS",
+  "short_name": "Travel OS",
+  "description": "해외 여행 올인원 모바일 웹앱 — 지도·상황별 번역·환율 계산기",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#020617",
+  "theme_color": "#020617",
+  "icons": [
+    {
+      "src": "/favicon.ico",
+      "sizes": "64x64 32x32 24x24 16x16",
+      "type": "image/x-icon"
+    }
+  ]
+}
