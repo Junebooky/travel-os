@@ -14,6 +14,54 @@ interface GooglePlaceItem {
   opening_hours?: { open_now?: boolean };
 }
 
+interface GooglePlaceNewItem {
+  id?: string;
+  displayName?: {
+    text: string;
+    languageCode?: string;
+  };
+  formattedAddress?: string;
+  location?: {
+    latitude: number;
+    longitude: number;
+  };
+  rating?: number;
+  userRatingCount?: number;
+  types?: string[];
+  primaryTypeDisplayName?: {
+    text: string;
+  };
+}
+
+const GOOGLE_PLACES_NEW_TYPES: Partial<Record<PlaceCategory, string[]>> = {
+  food: ['restaurant', 'cafe', 'bar', 'bakery', 'meal_takeaway'],
+  cafe: ['cafe', 'coffee_shop', 'bakery'],
+  attraction: ['tourist_attraction', 'historical_landmark', 'museum', 'park', 'amusement_park'],
+  stay: ['hotel', 'lodging', 'resort_hotel'],
+  shopping: ['shopping_mall', 'department_store', 'clothing_store', 'supermarket', 'convenience_store'],
+  market: ['supermarket', 'convenience_store', 'grocery_store'],
+  convenience: ['convenience_store', 'grocery_store'],
+  transport: ['train_station', 'subway_station', 'bus_station', 'transit_station'],
+  transit: ['train_station', 'subway_station', 'bus_station', 'transit_station'],
+  airport: ['airport'],
+  pharmacy: ['pharmacy', 'drugstore', 'hospital'],
+  emergency: ['hospital', 'pharmacy', 'police'],
+  all: ['restaurant', 'cafe', 'tourist_attraction', 'hotel', 'shopping_mall'],
+};
+
+function mapGoogleTypeToCategory(types?: string[]): PlaceCategory {
+  if (!types || !Array.isArray(types)) return 'attraction';
+  if (types.some((t) => ['restaurant', 'food', 'meal_takeaway', 'bar'].includes(t))) return 'food';
+  if (types.some((t) => ['cafe', 'coffee_shop', 'bakery'].includes(t))) return 'cafe';
+  if (types.some((t) => ['hotel', 'lodging', 'resort_hotel'].includes(t))) return 'stay';
+  if (types.some((t) => ['shopping_mall', 'store', 'supermarket', 'department_store'].includes(t))) return 'shopping';
+  if (types.some((t) => ['convenience_store', 'grocery_store'].includes(t))) return 'convenience';
+  if (types.some((t) => ['airport'].includes(t))) return 'airport';
+  if (types.some((t) => ['subway_station', 'train_station', 'transit_station', 'bus_station'].includes(t))) return 'transport';
+  if (types.some((t) => ['hospital', 'pharmacy', 'doctor', 'drugstore'].includes(t))) return 'pharmacy';
+  return 'attraction';
+}
+
 interface OsmPlaceItem {
   place_id?: number | string;
   name?: string;
@@ -45,41 +93,154 @@ export async function GET(req: NextRequest) {
     const lat = parseFloat(searchParams.get('lat') || '0');
     const lng = parseFloat(searchParams.get('lng') || '0');
 
-    const googleApiKey = process.env.GOOGLE_MAPS_API_KEY || process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
+    const googleApiKey =
+      process.env.GOOGLE_MAPS_API_KEY ||
+      process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY ||
+      process.env.GOOGLE_PLACES_API_KEY;
 
-    // 1. If Google Maps API key is configured, query official Google Places API
-    if (googleApiKey && query) {
+    // 1. If Google Maps API key is configured, query official Google Places API (New & Legacy support)
+    if (googleApiKey) {
       try {
-        const locationParam = lat && lng ? `&location=${lat},${lng}&radius=10000` : '';
-        const googleUrl = `https://maps.googleapis.com/maps/api/place/textsearch/json?query=${encodeURIComponent(
-          query
-        )}${locationParam}&language=ko&key=${googleApiKey}`;
+        // A. Primary: Google Places API (New)
+        if (query) {
+          const body: Record<string, unknown> = {
+            textQuery: query,
+            languageCode: 'ko',
+          };
+          if (lat && lng) {
+            body.locationBias = {
+              circle: {
+                center: { latitude: lat, longitude: lng },
+                radius: 10000.0,
+              },
+            };
+          }
+          if (category !== 'all' && GOOGLE_PLACES_NEW_TYPES[category]) {
+            body.includedType = GOOGLE_PLACES_NEW_TYPES[category][0];
+          }
 
-        const res = await fetch(googleUrl);
-        if (res.ok) {
-          const data = await res.json();
-          if (data && data.results && data.results.length > 0) {
-            const places: Place[] = data.results.slice(0, 10).map((r: GooglePlaceItem, idx: number) => ({
-              id: r.place_id || `google-${idx}`,
-              name: r.name,
-              category: category !== 'all' ? category : 'stay',
-              categoryName: r.types?.[0] || '장소',
-              address: r.formatted_address || '',
-              lat: r.geometry?.location?.lat || lat,
-              lng: r.geometry?.location?.lng || lng,
-              rating: r.rating || undefined,
-              userRatingsTotal: r.user_ratings_total || undefined,
-              openNow: r.opening_hours?.open_now,
-              distance: '검색 위치 주변',
-              description: r.formatted_address,
-            }));
+          const resNew = await fetch('https://places.googleapis.com/v1/places:searchText', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'X-Goog-Api-Key': googleApiKey,
+              'X-Goog-FieldMask':
+                'places.id,places.displayName,places.formattedAddress,places.location,places.rating,places.userRatingCount,places.types,places.primaryTypeDisplayName',
+            },
+            body: JSON.stringify(body),
+          });
 
-            return NextResponse.json({
-              success: true,
-              isDemo: false,
-              provider: 'Google Places API',
-              places,
-            });
+          if (resNew.ok) {
+            const dataNew = await resNew.json();
+            if (dataNew && Array.isArray(dataNew.places) && dataNew.places.length > 0) {
+              const places: Place[] = dataNew.places.map((p: GooglePlaceNewItem, idx: number) => ({
+                id: p.id || `google-${idx}`,
+                name: p.displayName?.text || '장소',
+                category: category !== 'all' ? category : mapGoogleTypeToCategory(p.types),
+                categoryName: p.primaryTypeDisplayName?.text || p.types?.[0] || '장소',
+                address: p.formattedAddress || '',
+                lat: p.location?.latitude || lat,
+                lng: p.location?.longitude || lng,
+                rating: p.rating,
+                userRatingsTotal: p.userRatingCount,
+                distance: '검색 위치 주변',
+                description: p.formattedAddress,
+              }));
+
+              return NextResponse.json({
+                success: true,
+                isDemo: false,
+                provider: 'Google Places API',
+                places,
+              });
+            }
+          }
+        } else if (lat && lng) {
+          const includedTypes =
+            GOOGLE_PLACES_NEW_TYPES[category] ||
+            GOOGLE_PLACES_NEW_TYPES.all ||
+            ['restaurant', 'tourist_attraction', 'cafe', 'hotel'];
+          const resNearby = await fetch('https://places.googleapis.com/v1/places:searchNearby', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'X-Goog-Api-Key': googleApiKey,
+              'X-Goog-FieldMask':
+                'places.id,places.displayName,places.formattedAddress,places.location,places.rating,places.userRatingCount,places.types,places.primaryTypeDisplayName',
+            },
+            body: JSON.stringify({
+              includedTypes: includedTypes.slice(0, 5),
+              maxResultCount: 10,
+              languageCode: 'ko',
+              locationRestriction: {
+                circle: {
+                  center: { latitude: lat, longitude: lng },
+                  radius: 3000.0,
+                },
+              },
+            }),
+          });
+
+          if (resNearby.ok) {
+            const dataNearby = await resNearby.json();
+            if (dataNearby && Array.isArray(dataNearby.places) && dataNearby.places.length > 0) {
+              const places: Place[] = dataNearby.places.map((p: GooglePlaceNewItem, idx: number) => ({
+                id: p.id || `google-${idx}`,
+                name: p.displayName?.text || '장소',
+                category: category !== 'all' ? category : mapGoogleTypeToCategory(p.types),
+                categoryName: p.primaryTypeDisplayName?.text || p.types?.[0] || '장소',
+                address: p.formattedAddress || '',
+                lat: p.location?.latitude || lat,
+                lng: p.location?.longitude || lng,
+                rating: p.rating,
+                userRatingsTotal: p.userRatingCount,
+                distance: '검색 위치 주변',
+                description: p.formattedAddress,
+              }));
+
+              return NextResponse.json({
+                success: true,
+                isDemo: false,
+                provider: 'Google Places API',
+                places,
+              });
+            }
+          }
+        }
+
+        // B. Fallback: Legacy Google Places API (for legacy key configurations)
+        if (query) {
+          const locationParam = lat && lng ? `&location=${lat},${lng}&radius=10000` : '';
+          const googleUrl = `https://maps.googleapis.com/maps/api/place/textsearch/json?query=${encodeURIComponent(
+            query
+          )}${locationParam}&language=ko&key=${googleApiKey}`;
+
+          const res = await fetch(googleUrl);
+          if (res.ok) {
+            const data = await res.json();
+            if (data && Array.isArray(data.results) && data.results.length > 0) {
+              const places: Place[] = data.results.slice(0, 10).map((r: GooglePlaceItem, idx: number) => ({
+                id: r.place_id || `google-legacy-${idx}`,
+                name: r.name,
+                category: category !== 'all' ? category : 'stay',
+                categoryName: r.types?.[0] || '장소',
+                address: r.formatted_address || '',
+                lat: r.geometry?.location?.lat || lat,
+                lng: r.geometry?.location?.lng || lng,
+                rating: r.rating || undefined,
+                userRatingsTotal: r.user_ratings_total || undefined,
+                openNow: r.opening_hours?.open_now,
+                distance: '검색 위치 주변',
+                description: r.formatted_address,
+              }));
+
+              return NextResponse.json({
+                success: true,
+                isDemo: false,
+                provider: 'Google Places API',
+                places,
+              });
+            }
           }
         }
       } catch (err) {
@@ -187,11 +348,14 @@ export async function GET(req: NextRequest) {
       );
     }
 
+    const hasGoogleKey = Boolean(googleApiKey);
     return NextResponse.json({
       success: true,
       isDemo: true,
-      provider: '추천 장소 (데모 모드)',
-      demoNotice: 'Google Maps API 키가 설정되지 않아 OpenStreetMap 실지형 타일 및 추천 데이터를 표시하고 있습니다.',
+      provider: hasGoogleKey ? '추천 장소 (Google Places 연동)' : '추천 장소 (데모 모드)',
+      demoNotice: hasGoogleKey
+        ? (query ? '검색 결과가 없어 추천 장소를 표시하고 있습니다.' : 'Google Places API 연동 완료 · 추천 장소를 표시하고 있습니다.')
+        : 'Google Maps API 키가 설정되지 않아 OpenStreetMap 실지형 타일 및 추천 데이터를 표시하고 있습니다.',
       attribution: '© OpenStreetMap contributors',
       places: filtered,
     });

@@ -147,8 +147,11 @@ export default function MapView() {
   if (country.code !== prevCountryCode) {
     setPrevCountryCode(country.code);
     setMapCenter(country.defaultCenter);
-    setMapViewport({ center: country.defaultCenter, zoom: 15 });
   }
+
+  useEffect(() => {
+    setMapViewport({ center: country.defaultCenter, zoom: 15 });
+  }, [country.code, country.defaultCenter, setMapViewport]);
 
   // Synchronize external viewport changes during render (e.g. from SavedPlacesModal, navigation, or Onboarding)
   const [prevExternalVp, setPrevExternalVp] = useState(mapViewport);
