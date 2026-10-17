@@ -225,6 +225,10 @@ export function TravelProvider({ children }: { children: ReactNode }) {
   const [mapViewport, setMapViewportState] = useState<{ center: { lat: number; lng: number }; zoom: number }>(() =>
     getInitialViewport(country)
   );
+  const mapViewportRef = useRef(mapViewport);
+  useEffect(() => {
+    mapViewportRef.current = mapViewport;
+  }, [mapViewport]);
   const [onboardingCompleted, setOnboardingCompletedState] = useState<boolean>(getInitialOnboarding);
   const [savedPlaces, setSavedPlaces] = useState<Place[]>(getInitialSavedPlaces);
   const [isOnline, setIsOnline] = useState<boolean>(true);
@@ -490,9 +494,10 @@ export function TravelProvider({ children }: { children: ReactNode }) {
     setActiveTab('map');
     if (place) {
       setActivePlace(place);
+      const preservedZoom = mapViewportRef.current?.zoom || 15;
       const newVp = {
         center: { lat: place.lat, lng: place.lng },
-        zoom: 15,
+        zoom: preservedZoom,
       };
       setMapViewportState(newVp);
       safeSetItem(STORAGE_KEY_VIEWPORT, JSON.stringify(newVp));

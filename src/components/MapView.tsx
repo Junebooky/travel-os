@@ -29,6 +29,8 @@ import {
   Star,
   Info,
   Camera,
+  ChevronUp,
+  ChevronDown,
 } from 'lucide-react';
 import { MAP_CATEGORIES, normalizeCategory } from '@/lib/categories';
 import CameraMenuModal from '@/components/CameraMenuModal';
@@ -113,6 +115,16 @@ export default function MapView() {
   const [demoNotice, setDemoNotice] = useState<string>('');
   const [isSearchingPlaces, setIsSearchingPlaces] = useState<boolean>(false);
   const [isCameraModalOpen, setIsCameraModalOpen] = useState<boolean>(false);
+  const [isSheetExpanded, setIsSheetExpanded] = useState<boolean>(false);
+
+  // Reset sheet expanded state whenever activePlace changes
+  const prevActivePlaceIdRef = useRef<string | null>(null);
+  useEffect(() => {
+    if (activePlace?.id !== prevActivePlaceIdRef.current) {
+      prevActivePlaceIdRef.current = activePlace?.id || null;
+      setIsSheetExpanded(false);
+    }
+  }, [activePlace?.id]);
 
   // Measure container dimensions
   useEffect(() => {
@@ -514,6 +526,7 @@ export default function MapView() {
                 }
               }}
               placeholder={t('map.search.placeholder')}
+              aria-label={t('map.search.placeholder')}
               className="w-full bg-transparent py-3 pr-20 text-sm text-slate-100 placeholder-slate-400 focus:outline-none"
             />
             <div className="absolute right-2 flex items-center gap-1">
@@ -525,7 +538,7 @@ export default function MapView() {
                     setApiPlaces(null);
                     fetchPlaces('', selectedCategory, mapCenter);
                   }}
-                  className="text-slate-400 hover:text-slate-200 p-1"
+                  className="min-w-[44px] min-h-[44px] flex items-center justify-center text-slate-400 hover:text-slate-200 transition-colors"
                   aria-label={t('map.search.clear')}
                 >
                   <X className="w-4 h-4" />
@@ -535,7 +548,7 @@ export default function MapView() {
                 type="button"
                 onClick={() => fetchPlaces(searchQuery, selectedCategory, mapCenter, { recenterOnResult: true })}
                 disabled={isSearchingPlaces || !searchQuery.trim()}
-                className="px-2.5 py-1 bg-blue-600 hover:bg-blue-500 disabled:opacity-40 text-white text-xs font-semibold rounded-lg shadow-sm transition-all active:scale-95"
+                className="min-h-[36px] px-3 py-1 bg-blue-600 hover:bg-blue-500 disabled:opacity-40 text-white text-xs font-semibold rounded-lg shadow-sm transition-all active:scale-95"
               >
                 검색
               </button>
@@ -558,7 +571,7 @@ export default function MapView() {
                   setMapViewport({ center: newCenter, zoom: 15 });
                   setActivePlace(place);
                 }}
-                className={`px-2.5 py-1 rounded-xl text-[11px] font-medium whitespace-nowrap transition-all border shrink-0 backdrop-blur-md active:scale-95 ${
+                className={`min-h-[36px] px-3 py-1.5 rounded-xl text-xs font-medium whitespace-nowrap transition-all border shrink-0 backdrop-blur-md active:scale-95 ${
                   activePlace?.id === place.id
                     ? 'bg-blue-600 text-white border-blue-400 shadow-md shadow-blue-600/30'
                     : 'bg-slate-900/90 text-slate-300 border-slate-700 hover:bg-slate-800'
@@ -570,16 +583,23 @@ export default function MapView() {
           </div>
         )}
 
-        {/* Category Horizontal Filter Chips */}
-        <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar py-0.5 -mx-3 px-3">
+        {/* Category Horizontal Filter Chips (44px touch targets) */}
+        <div
+          role="tablist"
+          aria-label="장소 카테고리 필터"
+          className="flex items-center gap-1.5 overflow-x-auto no-scrollbar py-0.5 -mx-3 px-3"
+        >
           {CATEGORIES.map((cat) => {
             const Icon = cat.icon;
             const isSelected = selectedCategory === cat.id;
             return (
               <button
                 key={cat.id}
+                role="tab"
+                aria-selected={isSelected}
+                aria-label={t(cat.labelKey)}
                 onClick={() => setSelectedCategory(cat.id)}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-all shadow-md active:scale-95 ${
+                className={`min-h-[44px] flex items-center gap-1.5 px-3.5 py-2 rounded-full text-xs font-medium whitespace-nowrap transition-all shadow-md active:scale-95 shrink-0 ${
                   isSelected
                     ? 'bg-blue-600 text-white shadow-blue-600/30 ring-1 ring-blue-400'
                     : 'bg-slate-900/85 text-slate-300 hover:bg-slate-800 border border-slate-800/90 backdrop-blur-md'
@@ -592,48 +612,64 @@ export default function MapView() {
           })}
         </div>
 
-        {/* Honest Demo Mode / Live Places Status Notice */}
+        {/* Honest Demo Mode / Live Places Status Notice (Non-truncated for critical disclaimers) */}
         {isDemoMode ? (
-          <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-900/95 border border-amber-600/70 shadow-lg text-[11px] text-amber-300 backdrop-blur-md">
-            <span className="px-1.5 py-0.5 rounded font-bold bg-amber-500/20 text-amber-300 border border-amber-500/40 shrink-0">
+          <div
+            role="status"
+            className="flex items-start sm:items-center gap-2 px-3 py-2 rounded-xl bg-slate-900/95 border border-amber-600/70 shadow-lg text-xs text-amber-300 backdrop-blur-md"
+          >
+            <span className="px-1.5 py-0.5 rounded font-bold bg-amber-500/20 text-amber-300 border border-amber-500/40 shrink-0 text-[11px]">
               데모 모드
             </span>
-            <span className="text-slate-300 truncate">
+            <span className="text-slate-300 text-xs leading-relaxed break-keep">
               {demoNotice || 'Google Maps API 키 미설정 · OpenStreetMap 실지형 타일 및 추천 데이터 표시 중'}
             </span>
           </div>
         ) : (
-          <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-900/95 border border-blue-500/60 shadow-lg text-[11px] text-blue-300 backdrop-blur-md">
-            <span className="px-1.5 py-0.5 rounded font-bold bg-blue-500/20 text-blue-300 border border-blue-500/40 shrink-0">
+          <div
+            role="status"
+            className="flex items-start sm:items-center gap-2 px-3 py-2 rounded-xl bg-slate-900/95 border border-blue-500/60 shadow-lg text-xs text-blue-300 backdrop-blur-md"
+          >
+            <span className="px-1.5 py-0.5 rounded font-bold bg-blue-500/20 text-blue-300 border border-blue-500/40 shrink-0 text-[11px]">
               실시간 장소
             </span>
-            <span className="text-slate-300 truncate">실시간 지도 검색 데이터 적용 완료</span>
+            <span className="text-slate-300 text-xs leading-relaxed">
+              실시간 지도 검색 데이터 적용 완료
+            </span>
           </div>
         )}
       </div>
 
-      {/* Map Control Floating Buttons (Zoom In/Out & My Location) */}
-      <div className="absolute right-4 bottom-28 z-20 flex flex-col items-center gap-2 pointer-events-auto">
+      {/* Map Control Floating Buttons (Zoom In/Out & My Location) - Dynamic Elevation Above Sheet */}
+      <div
+        className={`absolute right-4 z-20 flex flex-col items-center gap-2 pointer-events-auto transition-all duration-200 ${
+          activePlace
+            ? isSheetExpanded
+              ? 'bottom-[370px] sm:bottom-[350px]'
+              : 'bottom-[220px] sm:bottom-[210px]'
+            : 'bottom-24 sm:bottom-28'
+        }`}
+      >
         <div className="flex flex-col bg-slate-900/95 backdrop-blur-md border border-slate-700/80 rounded-2xl shadow-xl overflow-hidden divide-y divide-slate-800">
           <button
             onClick={handleZoomIn}
-            className="p-2.5 text-slate-300 hover:text-white hover:bg-slate-800 transition-colors active:scale-95"
+            className="min-w-[44px] min-h-[44px] flex items-center justify-center text-slate-300 hover:text-white hover:bg-slate-800 transition-colors active:scale-95"
             aria-label="지도 확대"
           >
-            <Plus className="w-4 h-4" />
+            <Plus className="w-5 h-5" />
           </button>
           <button
             onClick={handleZoomOut}
-            className="p-2.5 text-slate-300 hover:text-white hover:bg-slate-800 transition-colors active:scale-95"
+            className="min-w-[44px] min-h-[44px] flex items-center justify-center text-slate-300 hover:text-white hover:bg-slate-800 transition-colors active:scale-95"
             aria-label="지도 축소"
           >
-            <Minus className="w-4 h-4" />
+            <Minus className="w-5 h-5" />
           </button>
         </div>
 
         <button
           onClick={handleResetLocation}
-          className="p-2.5 rounded-xl bg-slate-900/95 backdrop-blur-md border border-slate-700/80 text-blue-400 hover:text-blue-300 hover:bg-slate-800 transition-all shadow-lg active:scale-95"
+          className="min-w-[44px] min-h-[44px] flex items-center justify-center rounded-xl bg-slate-900/95 backdrop-blur-md border border-slate-700/80 text-blue-400 hover:text-blue-300 hover:bg-slate-800 transition-all shadow-lg active:scale-95"
           aria-label={t('map.location.action')}
         >
           <NavigationIcon className="w-4 h-4" />
@@ -641,14 +677,22 @@ export default function MapView() {
       </div>
 
       {/* OpenStreetMap Legal Attribution */}
-      <div className="absolute right-2 bottom-20 z-20 pointer-events-auto">
+      <div
+        className={`absolute right-2 z-20 pointer-events-auto transition-all duration-200 ${
+          activePlace
+            ? isSheetExpanded
+              ? 'bottom-[330px] sm:bottom-[310px]'
+              : 'bottom-[180px] sm:bottom-[170px]'
+            : 'bottom-16 sm:bottom-20'
+        }`}
+      >
         <a
           href="https://www.openstreetmap.org/copyright"
           target="_blank"
           rel="noopener noreferrer"
-          className="px-2 py-0.5 rounded bg-slate-900/80 text-[10px] text-slate-400 hover:text-slate-200 border border-slate-800 flex items-center gap-1 backdrop-blur-sm"
+          className="px-2.5 py-1 rounded bg-slate-900/80 text-[10px] text-slate-400 hover:text-slate-200 border border-slate-800 flex items-center gap-1 backdrop-blur-sm"
         >
-          <Info className="w-2.5 h-2.5" />
+          <Info className="w-3 h-3" />
           <span>© OpenStreetMap</span>
         </a>
       </div>
@@ -659,7 +703,7 @@ export default function MapView() {
           <div className="text-sm font-semibold text-slate-200 mb-1">
             {t('map.search.empty_title')}
           </div>
-          <div className="text-xs text-slate-400 mb-3">
+          <div className="text-xs text-slate-400 mb-3 leading-relaxed">
             {t('map.search.empty_body')}
           </div>
           <button
@@ -667,21 +711,25 @@ export default function MapView() {
               setSearchQuery('');
               setSelectedCategory('all');
             }}
-            className="text-xs font-medium text-blue-400 hover:text-blue-300 underline"
+            className="text-xs font-medium text-blue-400 hover:text-blue-300 underline py-1"
           >
             {t('map.search.empty_action')}
           </button>
         </div>
       )}
 
-      {/* Place Preview Card & Bottom Sheet */}
+      {/* Place Preview Card & Bottom Sheet (Peek & Expanded Modes) */}
       {activePlace && (
-        <div className="absolute inset-x-0 bottom-16 z-30 p-3 max-w-md mx-auto animate-in slide-in-from-bottom-6 duration-200">
-          <div className="bg-slate-900/95 backdrop-blur-xl border border-slate-700/90 rounded-2xl p-4 shadow-2xl space-y-3.5">
-            {/* Header info */}
-            <div className="flex items-start justify-between gap-3">
+        <div
+          role="region"
+          aria-label="선택 장소 상세 정보"
+          className="absolute inset-x-0 bottom-16 z-30 p-2.5 sm:p-3 max-w-md mx-auto animate-in slide-in-from-bottom-4 duration-200 pointer-events-auto"
+        >
+          <div className="bg-slate-900/95 backdrop-blur-xl border border-slate-700/90 rounded-2xl p-3.5 sm:p-4 shadow-2xl space-y-3 max-h-[70vh] flex flex-col">
+            {/* Header info (Always visible in peek & expanded) */}
+            <div className="flex items-start justify-between gap-2.5">
               <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2 mb-1">
+                <div className="flex items-center gap-1.5 flex-wrap mb-1">
                   <span className="px-2 py-0.5 rounded text-[11px] font-semibold bg-blue-950/80 text-blue-300 border border-blue-800/60">
                     {activePlace.categoryName || activePlace.category}
                   </span>
@@ -705,111 +753,217 @@ export default function MapView() {
                 </p>
               </div>
 
-              {/* Close Sheet button */}
-              <button
-                onClick={() => setActivePlace(null)}
-                className="p-1.5 rounded-full text-slate-400 hover:text-slate-200 hover:bg-slate-800 transition-colors"
-                aria-label={t('common.action.close')}
-              >
-                <X className="w-4 h-4" />
-              </button>
+              <div className="flex items-center gap-1 shrink-0">
+                {/* Peek / Expanded Toggle */}
+                <button
+                  type="button"
+                  onClick={() => setIsSheetExpanded((prev) => !prev)}
+                  className="min-w-[44px] min-h-[44px] flex items-center justify-center rounded-full text-slate-400 hover:text-slate-200 hover:bg-slate-800 transition-colors"
+                  aria-expanded={isSheetExpanded}
+                  aria-label={isSheetExpanded ? '상세 정보 접기' : '상세 정보 펼치기'}
+                >
+                  {isSheetExpanded ? (
+                    <ChevronDown className="w-5 h-5" />
+                  ) : (
+                    <ChevronUp className="w-5 h-5" />
+                  )}
+                </button>
+
+                {/* Close Sheet button (44px touch target) */}
+                <button
+                  type="button"
+                  onClick={() => setActivePlace(null)}
+                  className="min-w-[44px] min-h-[44px] flex items-center justify-center rounded-full text-slate-400 hover:text-slate-200 hover:bg-slate-800 transition-colors"
+                  aria-label={t('common.action.close')}
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
             </div>
 
-            {/* Opening hours & description */}
-            <div className="space-y-1.5 text-xs text-slate-300 border-t border-slate-800/80 pt-2.5">
-              {activePlace.hoursText && (
-                <div className="flex items-center gap-1.5 text-slate-300">
-                  <Clock className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
-                  <span className="font-semibold text-emerald-400">{t('place.detail.hours')}</span>
-                  <span className="text-slate-400">· {activePlace.hoursText}</span>
-                </div>
-              )}
-              {activePlace.description && (
-                <p className="text-slate-400 text-xs leading-relaxed line-clamp-2">
-                  {activePlace.description}
-                </p>
-              )}
-            </div>
-
-            {/* Primary Travel Action Toolbar */}
-            <div className="grid grid-cols-2 gap-2 pt-1">
+            {/* P0: Primary 2 Travel Actions (Always prominent in peek mode) */}
+            <div className="grid grid-cols-2 gap-2 pt-0.5">
               <button
+                type="button"
                 onClick={() => openDirections(activePlace)}
-                className="py-2.5 px-3 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-semibold text-xs flex items-center justify-center gap-1.5 shadow-md shadow-blue-600/30 active:scale-95 transition-all"
+                className="min-h-[44px] py-2.5 px-3 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-semibold text-xs flex items-center justify-center gap-1.5 shadow-md shadow-blue-600/30 active:scale-95 transition-all"
               >
-                <ExternalLink className="w-3.5 h-3.5" />
+                <ExternalLink className="w-4 h-4" />
                 <span>{t('place.detail.directions')}</span>
               </button>
 
               <button
+                type="button"
                 onClick={() => {
                   setActiveTab('translate');
                 }}
-                className="py-2.5 px-3 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-xs flex items-center justify-center gap-1.5 shadow-md shadow-indigo-600/30 active:scale-95 transition-all"
+                className="min-h-[44px] py-2.5 px-3 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-xs flex items-center justify-center gap-1.5 shadow-md shadow-indigo-600/30 active:scale-95 transition-all"
               >
-                <Languages className="w-3.5 h-3.5" />
+                <Languages className="w-4 h-4" />
                 <span>{t('place.detail.quick_translate')}</span>
               </button>
             </div>
 
-            {/* Secondary Actions: Currency & Save & Share */}
-            <div className="flex items-center gap-2 pt-0.5">
+            {/* Peek Quick Expand Hint Bar (when in peek mode) */}
+            {!isSheetExpanded && (
               <button
-                onClick={() => {
-                  setActiveTab('currency');
-                }}
-                className="flex-1 py-2 px-2.5 rounded-lg bg-slate-800 hover:bg-slate-700/80 text-slate-200 text-xs font-medium flex items-center justify-center gap-1.5 border border-slate-700/60 transition-all active:scale-95"
+                type="button"
+                onClick={() => setIsSheetExpanded(true)}
+                className="w-full py-1.5 flex items-center justify-center gap-1 text-[11px] font-medium text-slate-400 hover:text-slate-200 transition-colors border-t border-slate-800/80 mt-1"
+                aria-expanded="false"
               >
-                <Coins className="w-3.5 h-3.5 text-amber-400" />
-                <span>{t('place.detail.quick_currency')}</span>
+                <span>상세 정보 및 추가 도구 (시간·환율·저장·메뉴)</span>
+                <ChevronUp className="w-3.5 h-3.5" />
               </button>
+            )}
 
-              <button
-                onClick={() => {
-                  if (isPlaceSaved(activePlace.id)) {
-                    removePlace(activePlace.id);
-                  } else {
-                    savePlace(activePlace);
-                  }
-                }}
-                className={`py-2 px-3 rounded-lg text-xs font-medium flex items-center gap-1.5 border transition-all active:scale-95 ${
-                  isPlaceSaved(activePlace.id)
-                    ? 'bg-amber-950/60 border-amber-600/70 text-amber-300'
-                    : 'bg-slate-800 hover:bg-slate-700 text-slate-300 border-slate-700/60'
-                }`}
-              >
-                {isPlaceSaved(activePlace.id) ? (
+            {/* Expanded Content Section (Scrollable without touching map) */}
+            {isSheetExpanded && (
+              <div className="space-y-3 overflow-y-auto no-scrollbar border-t border-slate-800/80 pt-2.5">
+                {/* Hours & Description */}
+                {(activePlace.hoursText || activePlace.description) && (
+                  <div className="space-y-1.5 text-xs text-slate-300">
+                    {activePlace.hoursText && (
+                      <div className="flex items-center gap-1.5 text-slate-300">
+                        <Clock className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+                        <span className="font-semibold text-emerald-400">{t('place.detail.hours')}</span>
+                        <span className="text-slate-400">· {activePlace.hoursText}</span>
+                      </div>
+                    )}
+                    {activePlace.description && (
+                      <p className="text-slate-300 text-xs leading-relaxed">
+                        {activePlace.description}
+                      </p>
+                    )}
+                  </div>
+                )}
+
+                {/* Contextual Action Ordering based on category (P1 / P2) */}
+                {normalizeCategory(activePlace.category) === 'food' || normalizeCategory(activePlace.category) === 'cafe' ? (
                   <>
-                    <BookmarkCheck className="w-3.5 h-3.5 text-amber-400" />
-                    <span>{t('saved.action.remove')}</span>
+                    <button
+                      type="button"
+                      onClick={() => setIsCameraModalOpen(true)}
+                      className="w-full min-h-[44px] py-2.5 px-3 rounded-xl bg-emerald-950/70 border border-emerald-700/70 hover:bg-emerald-900/80 text-emerald-300 font-semibold text-xs flex items-center justify-center gap-1.5 shadow-sm active:scale-95 transition-all"
+                    >
+                      <Camera className="w-4 h-4 text-emerald-400" />
+                      <span>{t('camera.title')} (메뉴 촬영/번역)</span>
+                    </button>
+
+                    <div className="flex items-center gap-2 pt-0.5">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setActiveTab('currency');
+                        }}
+                        className="flex-1 min-h-[44px] py-2 px-2.5 rounded-lg bg-slate-800 hover:bg-slate-700/80 text-slate-200 text-xs font-medium flex items-center justify-center gap-1.5 border border-slate-700/60 transition-all active:scale-95"
+                      >
+                        <Coins className="w-3.5 h-3.5 text-amber-400" />
+                        <span>{t('place.detail.quick_currency')}</span>
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => {
+                          if (isPlaceSaved(activePlace.id)) {
+                            removePlace(activePlace.id);
+                          } else {
+                            savePlace(activePlace);
+                          }
+                        }}
+                        className={`min-h-[44px] py-2 px-3 rounded-lg text-xs font-medium flex items-center gap-1.5 border transition-all active:scale-95 ${
+                          isPlaceSaved(activePlace.id)
+                            ? 'bg-amber-950/60 border-amber-600/70 text-amber-300'
+                            : 'bg-slate-800 hover:bg-slate-700 text-slate-300 border-slate-700/60'
+                        }`}
+                      >
+                        {isPlaceSaved(activePlace.id) ? (
+                          <>
+                            <BookmarkCheck className="w-3.5 h-3.5 text-amber-400" />
+                            <span>{t('saved.action.remove')}</span>
+                          </>
+                        ) : (
+                          <>
+                            <Bookmark className="w-3.5 h-3.5" />
+                            <span>{t('saved.action.save')}</span>
+                          </>
+                        )}
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => handleSharePlace(activePlace)}
+                        className="min-h-[44px] min-w-[44px] flex items-center justify-center rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700/60 active:scale-95 transition-all"
+                        aria-label={t('place.detail.copy_address')}
+                      >
+                        <Share2 className="w-4 h-4" />
+                      </button>
+                    </div>
                   </>
                 ) : (
                   <>
-                    <Bookmark className="w-3.5 h-3.5" />
-                    <span>{t('saved.action.save')}</span>
+                    <div className="flex items-center gap-2 pt-0.5">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setActiveTab('currency');
+                        }}
+                        className="flex-1 min-h-[44px] py-2 px-2.5 rounded-lg bg-slate-800 hover:bg-slate-700/80 text-slate-200 text-xs font-medium flex items-center justify-center gap-1.5 border border-slate-700/60 transition-all active:scale-95"
+                      >
+                        <Coins className="w-3.5 h-3.5 text-amber-400" />
+                        <span>{t('place.detail.quick_currency')}</span>
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => {
+                          if (isPlaceSaved(activePlace.id)) {
+                            removePlace(activePlace.id);
+                          } else {
+                            savePlace(activePlace);
+                          }
+                        }}
+                        className={`min-h-[44px] py-2 px-3 rounded-lg text-xs font-medium flex items-center gap-1.5 border transition-all active:scale-95 ${
+                          isPlaceSaved(activePlace.id)
+                            ? 'bg-amber-950/60 border-amber-600/70 text-amber-300'
+                            : 'bg-slate-800 hover:bg-slate-700 text-slate-300 border-slate-700/60'
+                        }`}
+                      >
+                        {isPlaceSaved(activePlace.id) ? (
+                          <>
+                            <BookmarkCheck className="w-3.5 h-3.5 text-amber-400" />
+                            <span>{t('saved.action.remove')}</span>
+                          </>
+                        ) : (
+                          <>
+                            <Bookmark className="w-3.5 h-3.5" />
+                            <span>{t('saved.action.save')}</span>
+                          </>
+                        )}
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => handleSharePlace(activePlace)}
+                        className="min-h-[44px] min-w-[44px] flex items-center justify-center rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700/60 active:scale-95 transition-all"
+                        aria-label={t('place.detail.copy_address')}
+                      >
+                        <Share2 className="w-4 h-4" />
+                      </button>
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={() => setIsCameraModalOpen(true)}
+                      className="w-full min-h-[44px] py-2.5 px-3 rounded-xl bg-emerald-950/70 border border-emerald-700/70 hover:bg-emerald-900/80 text-emerald-300 font-semibold text-xs flex items-center justify-center gap-1.5 shadow-sm active:scale-95 transition-all"
+                    >
+                      <Camera className="w-4 h-4 text-emerald-400" />
+                      <span>{t('camera.title')} (메뉴/안내판 번역)</span>
+                    </button>
                   </>
                 )}
-              </button>
-
-              <button
-                onClick={() => handleSharePlace(activePlace)}
-                className="p-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700/60 active:scale-95 transition-all"
-                aria-label={t('place.detail.copy_address')}
-              >
-                <Share2 className="w-3.5 h-3.5" />
-              </button>
-            </div>
-
-            {/* Track B B2·B3: Camera Menu OCR Action */}
-            <div className="pt-1">
-              <button
-                onClick={() => setIsCameraModalOpen(true)}
-                className="w-full py-2.5 px-3 rounded-xl bg-emerald-950/70 border border-emerald-700/70 hover:bg-emerald-900/80 text-emerald-300 font-semibold text-xs flex items-center justify-center gap-1.5 shadow-sm active:scale-95 transition-all"
-              >
-                <Camera className="w-4 h-4 text-emerald-400" />
-                <span>{t('camera.title')} (메뉴 촬영/번역)</span>
-              </button>
-            </div>
+              </div>
+            )}
           </div>
         </div>
       )}

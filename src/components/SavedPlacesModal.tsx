@@ -51,15 +51,17 @@ export default function SavedPlacesModal({ isOpen, onClose }: { isOpen: boolean;
           <div className="flex items-center gap-2">
             {savedPlaces.length > 0 && (
               <button
+                type="button"
                 onClick={() => setIsConfirmDeleteAllOpen(true)}
-                className="text-xs text-rose-400 hover:text-rose-300 px-2 py-1 rounded-lg border border-rose-900/60 hover:bg-rose-950/40 transition-colors"
+                className="min-h-[44px] text-xs text-rose-400 hover:text-rose-300 px-2.5 py-1.5 rounded-lg border border-rose-900/60 hover:bg-rose-950/40 transition-colors flex items-center justify-center"
               >
                 {t('saved.delete_all.action')}
               </button>
             )}
             <button
+              type="button"
               onClick={onClose}
-              className="p-1.5 rounded-full text-slate-400 hover:text-slate-200 hover:bg-slate-800 transition-colors"
+              className="min-w-[44px] min-h-[44px] flex items-center justify-center rounded-full text-slate-400 hover:text-slate-200 hover:bg-slate-800 transition-colors"
               aria-label={t('common.action.close')}
             >
               <X className="w-5 h-5" />

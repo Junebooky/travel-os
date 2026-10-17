@@ -21,7 +21,11 @@ export default function Navigation() {
   ];
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 max-w-md mx-auto z-40 bg-slate-950/95 backdrop-blur-md border-t border-slate-800/80 px-2 pt-1.5 pb-[calc(0.375rem+env(safe-area-inset-bottom,0px))]">
+    <nav
+      role="navigation"
+      aria-label="하단 주 네비게이션"
+      className="fixed bottom-0 left-0 right-0 max-w-md mx-auto z-40 bg-slate-950/95 backdrop-blur-md border-t border-slate-800/80 px-1 sm:px-2 pt-1.5 pb-[calc(0.375rem+env(safe-area-inset-bottom,0px))]"
+    >
       <div className="flex items-center justify-around">
         {tabs.map((tab) => {
           const Icon = tab.icon;
@@ -30,7 +34,10 @@ export default function Navigation() {
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
-              className={`flex-1 min-h-[48px] py-1 flex flex-col items-center justify-center relative transition-all rounded-xl active:scale-95 ${
+              role="tab"
+              aria-selected={isActive}
+              aria-label={t(tab.labelKey)}
+              className={`flex-1 min-h-[48px] py-1 px-0.5 flex flex-col items-center justify-center relative transition-all rounded-xl active:scale-95 ${
                 isActive ? 'text-blue-400 font-semibold' : 'text-slate-400 hover:text-slate-200'
               }`}
             >
@@ -41,7 +48,7 @@ export default function Navigation() {
               >
                 <Icon className="w-5 h-5" />
               </div>
-              <span className="text-[11px] tracking-tight mt-0.5">
+              <span className="text-[10px] sm:text-[11px] tracking-tight mt-0.5 whitespace-nowrap overflow-hidden text-ellipsis max-w-full">
                 {t(tab.labelKey)}
               </span>
 

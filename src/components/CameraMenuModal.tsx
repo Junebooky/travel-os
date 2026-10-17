@@ -247,7 +247,7 @@ export default function CameraMenuModal({ isOpen, onClose, initialPlace }: Camer
             type="button"
             onClick={onClose}
             aria-label={t('common.action.close')}
-            className="p-1.5 text-slate-400 hover:text-white hover:bg-slate-800 rounded-lg transition-colors"
+            className="min-w-[44px] min-h-[44px] flex items-center justify-center text-slate-400 hover:text-white hover:bg-slate-800 rounded-lg transition-colors"
           >
             <X className="w-5 h-5" />
           </button>

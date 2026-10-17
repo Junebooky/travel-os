@@ -387,7 +387,7 @@ export default function VoiceChatModal({ isOpen, onClose }: VoiceChatModalProps)
                 type="button"
                 onClick={() => setMessages([])}
                 aria-label={t('voice.action.clear')}
-                className="p-1.5 text-slate-400 hover:text-rose-400 hover:bg-slate-800 rounded-lg transition-colors"
+                className="min-w-[44px] min-h-[44px] flex items-center justify-center text-slate-400 hover:text-rose-400 hover:bg-slate-800 rounded-lg transition-colors"
               >
                 <Trash2 className="w-4 h-4" />
               </button>
@@ -396,7 +396,7 @@ export default function VoiceChatModal({ isOpen, onClose }: VoiceChatModalProps)
               type="button"
               onClick={onClose}
               aria-label={t('common.action.close')}
-              className="p-1.5 text-slate-400 hover:text-white hover:bg-slate-800 rounded-lg transition-colors"
+              className="min-w-[44px] min-h-[44px] flex items-center justify-center text-slate-400 hover:text-white hover:bg-slate-800 rounded-lg transition-colors"
             >
               <X className="w-5 h-5" />
             </button>
@@ -408,9 +408,10 @@ export default function VoiceChatModal({ isOpen, onClose }: VoiceChatModalProps)
           <button
             type="button"
             onClick={() => setActiveSpeaker('me')}
-            className={`flex-1 py-1.5 px-3 rounded-lg font-medium text-center transition-all ${
+            aria-pressed={activeSpeaker === 'me'}
+            className={`flex-1 min-h-[44px] py-1.5 px-3 rounded-lg font-medium text-center flex items-center justify-center transition-all ${
               activeSpeaker === 'me'
-                ? 'bg-indigo-600 text-white shadow-sm ring-1 ring-indigo-400'
+                ? 'bg-indigo-600 text-white shadow-sm ring-1 ring-indigo-400 font-semibold'
                 : 'text-slate-400 hover:text-slate-200'
             }`}
           >
@@ -422,9 +423,10 @@ export default function VoiceChatModal({ isOpen, onClose }: VoiceChatModalProps)
           <button
             type="button"
             onClick={() => setActiveSpeaker('partner')}
-            className={`flex-1 py-1.5 px-3 rounded-lg font-medium text-center transition-all ${
+            aria-pressed={activeSpeaker === 'partner'}
+            className={`flex-1 min-h-[44px] py-1.5 px-3 rounded-lg font-medium text-center flex items-center justify-center transition-all ${
               activeSpeaker === 'partner'
-                ? 'bg-amber-600 text-white shadow-sm ring-1 ring-amber-400'
+                ? 'bg-amber-600 text-white shadow-sm ring-1 ring-amber-400 font-semibold'
                 : 'text-slate-400 hover:text-slate-200'
             }`}
           >
