@@ -2,8 +2,18 @@
 
 > **발신 A03 (디자인·UX Writing) → 수신 A02 (개발), A01 (오너)**  
 > **상태:** `DESIGN_REPLACED / MONOCHROME_THEME_NOT_APPLIED / DEVICE_QA_NOT_TESTED`  
-> **기준 코드:** Track B [PR #11](https://github.com/Junebooky/travel-os/pull/11) HEAD `277e9b97b0a8848db99318b76c8c4a4e17ec47a3` (당시 open/unmerged).  
+> **기준 코드:** Track B [PR #11](https://github.com/Junebooky/travel-os/pull/11) HEAD `277e9b97b0a8848db99318b76c8c4a4e17ec47a3` (owner screenshot local checkout SHA not independently checked) (당시 open/unmerged).  
 > **의미:** 아래 이미지는 **디자인 목적의 SVG 목업**이며 실제 실행 화면/QA 스크린샷이 아닙니다. 이미지 속 금액·장소·환율 기준일은 시각 설명을 위한 **가상 예시**입니다.
+
+## ⚠ A02 필독 — 오너 실화면 대비 구현 프롬프트
+
+**오너가 제시한 실제 localhost 화면은 아직 본 디자인과 다릅니다.** 다크 배경·보라·노랑·초록 UI가 남아 있고, 번역 언어와 결과의 정합성 및 지출 결제 수단 기본값도 점검이 필요합니다.
+
+➡️ **[A02_IMPLEMENTATION_PROMPT — 실제 화면 6종 Before/After + 소스 코드 위치 + 구현 프롬프트 + 완료 체크](./A02-IMPLEMENTATION-PROMPT.md)**
+
+**현재 단일 시각 정본:** 아래 8개 SVG + 전체 스토리보드(실제 스크린샷 아님). A02는 위 프롬프트와 SVG를 읽고 **PR #11의 실제 React/Tailwind 코드**를 수정합니다. 디자인 PR #18 문서 갱신만으로 UI 구현 완료 처리하면 안 됩니다.
+
+---
 
 ## 0. [오너 운영 규칙] 디자인 변경 시 GitHub **현재본 교체·구본 제거** — 반드시 준수
 
