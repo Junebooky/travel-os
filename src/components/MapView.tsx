@@ -134,6 +134,23 @@ export default function MapView() {
     setMapViewport({ center: country.defaultCenter, zoom: 15 });
   }
 
+  // Synchronize external viewport changes during render (e.g. from SavedPlacesModal, navigation, or Onboarding)
+  const [prevExternalVp, setPrevExternalVp] = useState(mapViewport);
+  if (
+    mapViewport &&
+    (mapViewport.center.lat !== prevExternalVp?.center.lat ||
+      mapViewport.center.lng !== prevExternalVp?.center.lng ||
+      mapViewport.zoom !== prevExternalVp?.zoom)
+  ) {
+    setPrevExternalVp(mapViewport);
+    if (mapCenter.lat !== mapViewport.center.lat || mapCenter.lng !== mapViewport.center.lng) {
+      setMapCenter(mapViewport.center);
+    }
+    if (zoomLevel !== mapViewport.zoom) {
+      setZoomLevel(mapViewport.zoom);
+    }
+  }
+
   // Connect to /api/places/search (strictly submit/category based, adhering to OSM Nominatim policy)
   const fetchPlaces = useCallback(
     async (
@@ -257,31 +274,53 @@ export default function MapView() {
       const newLng = tileXToLng(newCenterTileX, zoomLevel);
       const newLat = tileYToLat(newCenterTileY, zoomLevel);
 
-      setMapCenter({ lat: newLat, lng: newLng });
+      const newCenter = { lat: newLat, lng: newLng };
+      setMapCenter(newCenter);
+      setMapViewport({ center: newCenter, zoom: zoomLevel });
       setPanOffset({ x: 0, y: 0 });
     }
   };
 
-  // Zoom controls
-  const handleZoomIn = () => setZoomLevel((z) => Math.min(z + 1, 18));
-  const handleZoomOut = () => setZoomLevel((z) => Math.max(z - 1, 11));
+  // Zoom controls with viewport persistence
+  const handleZoomIn = () => {
+    setZoomLevel((z) => {
+      const next = Math.min(z + 1, 18);
+      setMapViewport({ center: mapCenter, zoom: next });
+      return next;
+    });
+  };
+
+  const handleZoomOut = () => {
+    setZoomLevel((z) => {
+      const next = Math.max(z - 1, 11);
+      setMapViewport({ center: mapCenter, zoom: next });
+      return next;
+    });
+  };
 
   // Current location handler
   const handleResetLocation = () => {
     if ('geolocation' in navigator) {
       navigator.geolocation.getCurrentPosition(
         (pos) => {
-          setMapCenter({ lat: pos.coords.latitude, lng: pos.coords.longitude });
+          const userCenter = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+          setMapCenter(userCenter);
+          setZoomLevel(16);
+          setMapViewport({ center: userCenter, zoom: 16 });
           showToast('현재 내 위치로 이동했어요', 'success');
         },
         () => {
           setMapCenter(country.defaultCenter);
+          setZoomLevel(15);
+          setMapViewport({ center: country.defaultCenter, zoom: 15 });
           showToast('현재 지역 기본 위치로 맞췄어요', 'info');
         },
         { timeout: 6000 }
       );
     } else {
       setMapCenter(country.defaultCenter);
+      setZoomLevel(15);
+      setMapViewport({ center: country.defaultCenter, zoom: 15 });
       showToast('현재 지역 기본 위치로 맞췄어요', 'info');
     }
   };

@@ -15,6 +15,41 @@ import {
   Plus,
 } from 'lucide-react';
 
+export const STORAGE_KEY_LAST_RATES = 'travel_os_last_rates_v1';
+export const MAX_RATE_AGE_MS = 7 * 24 * 60 * 60 * 1000; // 7 days
+
+export function getValidatedCachedRates(): ExchangeRateData | null {
+  if (typeof window === 'undefined' || !window.localStorage) return null;
+  try {
+    const raw = window.localStorage.getItem(STORAGE_KEY_LAST_RATES);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw);
+    if (
+      parsed &&
+      typeof parsed === 'object' &&
+      typeof parsed.provider === 'string' &&
+      typeof parsed.rateDate === 'string' &&
+      parsed.rates &&
+      typeof parsed.rates === 'object'
+    ) {
+      const parsedTime = new Date(parsed.rateDate).getTime();
+      if (!Number.isNaN(parsedTime)) {
+        const age = Date.now() - parsedTime;
+        // Only accept if within 7 days and not future beyond 1 day
+        if (age >= 0 && age <= MAX_RATE_AGE_MS) {
+          return {
+            ...parsed,
+            isStale: true,
+          };
+        }
+      }
+    }
+  } catch {
+    // Corrupt cache
+  }
+  return null;
+}
+
 export default function CurrencyView() {
   const {
     country,
@@ -34,7 +69,7 @@ export default function CurrencyView() {
   const fromCurrency = isSwapped ? homeCurrency : localCurrency;
   const toCurrency = isSwapped ? localCurrency : homeCurrency;
 
-  // Fetch exchange rates from backend API
+  // Fetch exchange rates from backend API with honest offline cache fallback
   const fetchRates = useCallback(async (notifySuccess = false) => {
     setIsLoading(true);
     setRateError(null);
@@ -44,14 +79,31 @@ export default function CurrencyView() {
       if (res.ok && data.success && data.rates) {
         setRateData(data);
         setRateError(null);
+        try {
+          localStorage.setItem(STORAGE_KEY_LAST_RATES, JSON.stringify(data));
+        } catch {
+          // ignore storage error
+        }
         if (notifySuccess) {
           showToast(t('currency.rate.updated'), 'success');
         }
       } else {
-        setRateError(data.message || t('common.error.service_unavailable'));
+        const cached = getValidatedCachedRates();
+        if (cached) {
+          setRateData(cached);
+          setRateError(null);
+        } else {
+          setRateError(data.message || t('common.error.service_unavailable'));
+        }
       }
     } catch {
-      setRateError(t('common.error.service_unavailable'));
+      const cached = getValidatedCachedRates();
+      if (cached) {
+        setRateData(cached);
+        setRateError(null);
+      } else {
+        setRateError(t('common.error.service_unavailable'));
+      }
     } finally {
       setIsLoading(false);
     }
@@ -66,12 +118,29 @@ export default function CurrencyView() {
         if (res.ok && data.success && data.rates && !ignore) {
           setRateData(data);
           setRateError(null);
+          try {
+            localStorage.setItem(STORAGE_KEY_LAST_RATES, JSON.stringify(data));
+          } catch {
+            // ignore
+          }
         } else if (!ignore) {
-          setRateError(data.message || t('common.error.service_unavailable'));
+          const cached = getValidatedCachedRates();
+          if (cached) {
+            setRateData(cached);
+            setRateError(null);
+          } else {
+            setRateError(data.message || t('common.error.service_unavailable'));
+          }
         }
       } catch {
         if (!ignore) {
-          setRateError(t('common.error.service_unavailable'));
+          const cached = getValidatedCachedRates();
+          if (cached) {
+            setRateData(cached);
+            setRateError(null);
+          } else {
+            setRateError(t('common.error.service_unavailable'));
+          }
         }
       }
     }

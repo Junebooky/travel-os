@@ -20,7 +20,7 @@ export default function Navigation() {
   ];
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 max-w-md mx-auto z-40 bg-slate-950/90 backdrop-blur-md border-t border-slate-800/80 px-2 py-1.5">
+    <nav className="fixed bottom-0 left-0 right-0 max-w-md mx-auto z-40 bg-slate-950/95 backdrop-blur-md border-t border-slate-800/80 px-2 pt-1.5 pb-[calc(0.375rem+env(safe-area-inset-bottom,0px))]">
       <div className="flex items-center justify-around">
         {tabs.map((tab) => {
           const Icon = tab.icon;
@@ -29,7 +29,7 @@ export default function Navigation() {
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
-              className={`flex-1 py-1.5 flex flex-col items-center justify-center relative transition-all rounded-xl active:scale-95 ${
+              className={`flex-1 min-h-[48px] py-1 flex flex-col items-center justify-center relative transition-all rounded-xl active:scale-95 ${
                 isActive ? 'text-blue-400 font-semibold' : 'text-slate-400 hover:text-slate-200'
               }`}
             >

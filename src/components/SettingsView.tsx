@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useSyncExternalStore } from 'react';
 import { useTravel } from '@/context/TravelContext';
 import { COUNTRIES, SUPPORTED_LANGUAGES } from '@/data/countries';
 import { t } from '@/lib/i18n';
@@ -14,7 +14,41 @@ import {
   RotateCcw,
   Check,
   ChevronRight,
+  Smartphone,
+  Download,
 } from 'lucide-react';
+
+function subscribeStandalone(callback: () => void) {
+  if (typeof window === 'undefined') return () => {};
+  const mql = window.matchMedia('(display-mode: standalone)');
+  mql.addEventListener('change', callback);
+  return () => mql.removeEventListener('change', callback);
+}
+
+function getStandaloneSnapshot(): boolean {
+  if (typeof window === 'undefined') return false;
+  return (
+    window.matchMedia('(display-mode: standalone)').matches ||
+    Boolean((window.navigator as unknown as { standalone?: boolean }).standalone)
+  );
+}
+
+function subscribePwaReady(callback: () => void) {
+  if (typeof window === 'undefined') return () => {};
+  window.addEventListener('travel_os_pwa_ready', callback);
+  return () => window.removeEventListener('travel_os_pwa_ready', callback);
+}
+
+function getCanInstallSnapshot(): boolean {
+  if (typeof window === 'undefined') return false;
+  return Boolean(window.__travel_os_deferred_prompt);
+}
+
+function getIsIOSSnapshot(): boolean {
+  if (typeof window === 'undefined') return false;
+  const ua = window.navigator.userAgent;
+  return /iPad|iPhone|iPod/.test(ua) && !('MSStream' in window);
+}
 
 export default function SettingsView() {
   const {
@@ -30,6 +64,26 @@ export default function SettingsView() {
   const [isSavedModalOpen, setIsSavedModalOpen] = useState<boolean>(false);
   const [isCountryPickerOpen, setIsCountryPickerOpen] = useState<boolean>(false);
   const [isConfirmResetOpen, setIsConfirmResetOpen] = useState<boolean>(false);
+  const [installPromptDismissed, setInstallPromptDismissed] = useState<boolean>(false);
+
+  const isStandalone = useSyncExternalStore(subscribeStandalone, getStandaloneSnapshot, () => false);
+  const canInstallPrompt = useSyncExternalStore(subscribePwaReady, getCanInstallSnapshot, () => false);
+  const isIOS = useSyncExternalStore(() => () => {}, getIsIOSSnapshot, () => false);
+
+  const canInstall = canInstallPrompt && !installPromptDismissed;
+
+  const handleInstallClick = async () => {
+    if (window.__travel_os_deferred_prompt) {
+      const promptEvent = window.__travel_os_deferred_prompt;
+      promptEvent.prompt();
+      const choice = await promptEvent.userChoice;
+      if (choice.outcome === 'accepted') {
+        showToast('앱 설치가 완료되었습니다', 'success');
+      }
+      window.__travel_os_deferred_prompt = null;
+      setInstallPromptDismissed(true);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100 pb-24 flex flex-col max-w-md mx-auto p-4 space-y-4">
@@ -112,6 +166,46 @@ export default function SettingsView() {
           </div>
           <ChevronRight className="w-4 h-4 text-slate-500 group-hover:text-slate-300 transition-colors" />
         </button>
+      </div>
+
+      {/* PWA Home Screen Installation Card */}
+      <div className="bg-slate-900/90 border border-slate-800 rounded-2xl p-4 shadow-xl space-y-3">
+        <div className="flex items-center justify-between">
+          <div className="text-xs font-semibold text-slate-400 flex items-center gap-1.5">
+            <Smartphone className="w-3.5 h-3.5 text-blue-400" />
+            <span>{t('pwa.install.title')}</span>
+          </div>
+          {isStandalone && (
+            <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-950/80 text-emerald-300 border border-emerald-800/60 flex items-center gap-1">
+              <Check className="w-3 h-3" />
+              <span>설치됨</span>
+            </span>
+          )}
+        </div>
+
+        <p className="text-xs text-slate-300 leading-relaxed">
+          {isStandalone
+            ? '현재 홈 화면 설치 모드로 실행 중입니다.'
+            : isIOS
+            ? 'iOS Safari 하단의 [공유] 버튼을 누른 후 "홈 화면에 추가"를 탭하면 앱으로 바로 사용할 수 있어요.'
+            : t('pwa.install.body')}
+        </p>
+
+        {!isStandalone && canInstall && (
+          <button
+            onClick={handleInstallClick}
+            className="w-full py-2.5 px-3 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-semibold text-xs flex items-center justify-center gap-1.5 shadow-md shadow-blue-600/30 transition-all active:scale-95"
+          >
+            <Download className="w-3.5 h-3.5" />
+            <span>{t('pwa.install.action')}</span>
+          </button>
+        )}
+
+        {!isStandalone && !canInstall && !isIOS && (
+          <div className="text-[11px] text-slate-500">
+            {t('pwa.install.unavailable')}
+          </div>
+        )}
       </div>
 
       {/* Device Storage Management Section */}
