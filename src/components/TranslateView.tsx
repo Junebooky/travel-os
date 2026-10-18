@@ -33,7 +33,7 @@ import VoiceChatModal from '@/components/VoiceChatModal';
 import CameraMenuModal from '@/components/CameraMenuModal';
 import CountryFlagIcon from '@/components/CountryFlagIcon';
 import CountryPickerModal from '@/components/CountryPickerModal';
-import { COUNTRIES, SUPPORTED_LANGUAGES } from '@/data/countries';
+import { COUNTRIES, SELECTABLE_COUNTRIES, SUPPORTED_LANGUAGES } from '@/data/countries';
 
 const CATEGORY_ICONS: Record<string, React.ComponentType<{ className?: string }>> = {
   food: Utensils,
@@ -64,6 +64,19 @@ export default function TranslateView() {
   } = useTravel();
 
   const [isCountryPickerOpen, setIsCountryPickerOpen] = useState<boolean>(false);
+  const [selectedSide, setSelectedSide] = useState<'source' | 'target'>('target');
+
+  const getLanguageDisplayName = (lang: string) => {
+    if (lang === 'ko') return '한국어';
+    const match = SUPPORTED_LANGUAGES.find((l) => l.code.toLowerCase() === lang.toLowerCase());
+    if (match) {
+      return `${match.name} (${lang.toUpperCase()})`;
+    }
+    if (country.defaultLang === lang) {
+      return `${country.name}어 (${lang.toUpperCase()})`;
+    }
+    return lang.toUpperCase();
+  };
 
   // Set default category based on activePlace category if available
   const initialCategory: PlaceCategory = activePlace?.category
@@ -329,50 +342,30 @@ export default function TranslateView() {
         {/* Language Selection Header (with Circular Flags) */}
         <div className="bg-[#FFFFFF] border border-[#E5E8EB] rounded-2xl p-3.5 flex items-center justify-between shadow-xs">
           {/* Source Language Side */}
-          {sourceLang !== 'ko' ? (
-            <button
-              type="button"
-              onClick={() => setIsCountryPickerOpen(true)}
-              className="flex-1 flex items-center gap-2.5 min-w-0 text-left p-1.5 -m-1.5 rounded-xl hover:bg-[#F8FAFC] active:scale-[0.98] transition-all group cursor-pointer outline-none focus-visible:ring-2 focus-visible:ring-[#1B64DA]"
-              aria-label="여행 국가 및 언어 변경"
-            >
-              <CountryFlagIcon
-                lang={sourceLang}
-                countryCode={country.code}
-                size={28}
-              />
-              <div className="min-w-0 flex-1">
-                <span className="text-[11px] font-medium text-[#8B95A1] block leading-tight">
-                  {t('translate.source.label')}
-                </span>
-                <span className="text-sm font-bold text-[#191F28] truncate flex items-center gap-1">
-                  <span>
-                    {SUPPORTED_LANGUAGES.find((l) => l.code === sourceLang)?.name ||
-                      (country.defaultLang === sourceLang
-                        ? `${country.name}어 (${sourceLang.toUpperCase()})`
-                        : sourceLang.toUpperCase())}
-                  </span>
-                  <ChevronDown className="w-3.5 h-3.5 text-[#8B95A1] group-hover:text-[#191F28] transition-colors shrink-0" />
-                </span>
-              </div>
-            </button>
-          ) : (
-            <div className="flex-1 flex items-center gap-2.5 min-w-0">
-              <CountryFlagIcon
-                lang="ko"
-                countryCode="KR"
-                size={28}
-              />
-              <div className="min-w-0">
-                <span className="text-[11px] font-medium text-[#8B95A1] block leading-tight">
-                  {t('translate.source.label')}
-                </span>
-                <span className="text-sm font-bold text-[#191F28] truncate block">
-                  한국어
-                </span>
-              </div>
+          <button
+            type="button"
+            onClick={() => {
+              setSelectedSide('source');
+              setIsCountryPickerOpen(true);
+            }}
+            className="flex-1 flex items-center gap-2.5 min-w-0 text-left p-1.5 -m-1.5 rounded-xl hover:bg-[#F8FAFC] active:scale-[0.98] transition-all group cursor-pointer outline-none focus-visible:ring-2 focus-visible:ring-[#1B64DA]"
+            aria-label="원문 언어 변경"
+          >
+            <CountryFlagIcon
+              lang={sourceLang}
+              countryCode={sourceLang === 'ko' ? 'KR' : (COUNTRIES.find((c) => c.defaultLang === sourceLang)?.code || country.code)}
+              size={28}
+            />
+            <div className="min-w-0 flex-1">
+              <span className="text-[11px] font-medium text-[#8B95A1] block leading-tight">
+                {t('translate.source.label')}
+              </span>
+              <span className="text-sm font-bold text-[#191F28] truncate flex items-center gap-1">
+                <span>{getLanguageDisplayName(sourceLang)}</span>
+                <ChevronDown className="w-3.5 h-3.5 text-[#8B95A1] group-hover:text-[#191F28] transition-colors shrink-0" />
+              </span>
             </div>
-          )}
+          </button>
 
           {/* Swap Button (min-h-[44px] min-w-[44px] pure white button) */}
           <button
@@ -384,49 +377,30 @@ export default function TranslateView() {
           </button>
 
           {/* Target Language Side */}
-          {targetLang !== 'ko' ? (
-            <button
-              type="button"
-              onClick={() => setIsCountryPickerOpen(true)}
-              className="flex-1 flex items-center justify-end gap-2.5 min-w-0 text-right p-1.5 -m-1.5 rounded-xl hover:bg-[#F8FAFC] active:scale-[0.98] transition-all group cursor-pointer outline-none focus-visible:ring-2 focus-visible:ring-[#1B64DA]"
-              aria-label="여행 국가 및 언어 변경"
-            >
-              <div className="min-w-0 flex-1">
-                <span className="text-[11px] font-medium text-[#8B95A1] block leading-tight">
-                  {t('translate.target.label')}
-                </span>
-                <span className="text-sm font-bold text-[#191F28] truncate flex items-center justify-end gap-1">
-                  <ChevronDown className="w-3.5 h-3.5 text-[#8B95A1] group-hover:text-[#191F28] transition-colors shrink-0" />
-                  <span>
-                    {SUPPORTED_LANGUAGES.find((l) => l.code === targetLang)?.name
-                      ? `${SUPPORTED_LANGUAGES.find((l) => l.code === targetLang)?.name} (${targetLang.toUpperCase()})`
-                      : `${country.name}어 (${targetLang.toUpperCase()})`}
-                  </span>
-                </span>
-              </div>
-              <CountryFlagIcon
-                lang={targetLang}
-                countryCode={country.code}
-                size={28}
-              />
-            </button>
-          ) : (
-            <div className="flex-1 flex items-center justify-end gap-2.5 min-w-0 text-right">
-              <div className="min-w-0">
-                <span className="text-[11px] font-medium text-[#8B95A1] block leading-tight">
-                  {t('translate.target.label')}
-                </span>
-                <span className="text-sm font-bold text-[#191F28] truncate block">
-                  한국어
-                </span>
-              </div>
-              <CountryFlagIcon
-                lang="ko"
-                countryCode="KR"
-                size={28}
-              />
+          <button
+            type="button"
+            onClick={() => {
+              setSelectedSide('target');
+              setIsCountryPickerOpen(true);
+            }}
+            className="flex-1 flex items-center justify-end gap-2.5 min-w-0 text-right p-1.5 -m-1.5 rounded-xl hover:bg-[#F8FAFC] active:scale-[0.98] transition-all group cursor-pointer outline-none focus-visible:ring-2 focus-visible:ring-[#1B64DA]"
+            aria-label="번역 언어 변경"
+          >
+            <div className="min-w-0 flex-1">
+              <span className="text-[11px] font-medium text-[#8B95A1] block leading-tight">
+                {t('translate.target.label')}
+              </span>
+              <span className="text-sm font-bold text-[#191F28] truncate flex items-center justify-end gap-1">
+                <ChevronDown className="w-3.5 h-3.5 text-[#8B95A1] group-hover:text-[#191F28] transition-colors shrink-0" />
+                <span>{getLanguageDisplayName(targetLang)}</span>
+              </span>
             </div>
-          )}
+            <CountryFlagIcon
+              lang={targetLang}
+              countryCode={targetLang === 'ko' ? 'KR' : (COUNTRIES.find((c) => c.defaultLang === targetLang)?.code || country.code)}
+              size={28}
+            />
+          </button>
         </div>
 
         {/* Input Text Box */}
@@ -725,12 +699,25 @@ export default function TranslateView() {
       {/* Country Picker Modal ("여행 정보 수정") */}
       <CountryPickerModal
         isOpen={isCountryPickerOpen}
-        countries={COUNTRIES}
-        selectedCode={country.code}
+        countries={SELECTABLE_COUNTRIES}
+        selectedCode={
+          selectedSide === 'source'
+            ? (SELECTABLE_COUNTRIES.find((c) => c.defaultLang === sourceLang)?.code || (sourceLang === 'ko' ? 'KR' : country.code))
+            : (SELECTABLE_COUNTRIES.find((c) => c.defaultLang === targetLang)?.code || (targetLang === 'ko' ? 'KR' : country.code))
+        }
         onConfirm={(nextCountry) => {
-          if (nextCountry.code !== country.code) {
-            setCountry(nextCountry);
-            showToast(`${nextCountry.name}(으)로 여행 설정을 변경했어요`, 'success');
+          if (selectedSide === 'source') {
+            setSourceLang(nextCountry.defaultLang);
+            if (nextCountry.code !== 'KR' && targetLang === 'ko') {
+              setCountry(nextCountry);
+            }
+            showToast(`${nextCountry.name} (${nextCountry.defaultLang.toUpperCase()}) 원문 언어로 설정했어요`, 'success');
+          } else {
+            setTargetLang(nextCountry.defaultLang);
+            if (nextCountry.code !== 'KR') {
+              setCountry(nextCountry);
+            }
+            showToast(`${nextCountry.name} (${nextCountry.defaultLang.toUpperCase()}) 번역 언어로 설정했어요`, 'success');
           }
           setIsCountryPickerOpen(false);
         }}

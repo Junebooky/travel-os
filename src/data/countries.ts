@@ -585,3 +585,20 @@ export const SUPPORTED_CURRENCIES = [
   { code: 'GBP', name: '영국 파운드', symbol: '£' },
   { code: 'SGD', name: '싱가포르 달러', symbol: 'S$' },
 ];
+
+export const KOREA_COUNTRY: Country = {
+  code: 'KR',
+  name: '한국',
+  flag: '🇰🇷',
+  defaultLang: 'ko',
+  defaultCurrency: 'KRW',
+  currencySymbol: '₩',
+  defaultCenter: { lat: 37.5665, lng: 126.978 },
+  defaultZoom: 14,
+  popularPlaces: [],
+};
+
+export const SELECTABLE_COUNTRIES: Country[] = [
+  ...COUNTRIES,
+  KOREA_COUNTRY,
+];
