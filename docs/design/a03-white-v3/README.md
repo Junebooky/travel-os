@@ -5,6 +5,20 @@
 > **기준 코드:** Track B [PR #11](https://github.com/Junebooky/travel-os/pull/11) HEAD `277e9b97b0a8848db99318b76c8c4a4e17ec47a3` (owner screenshot local checkout SHA not independently checked) (당시 open/unmerged).  
 > **의미:** 아래 이미지는 **디자인 목적의 SVG 목업**이며 실제 실행 화면/QA 스크린샷이 아닙니다. 이미지 속 금액·장소·환율 기준일은 시각 설명을 위한 **가상 예시**입니다.
 
+## 2026-10-18 오너 최종 개정 — **PURE WHITE + FLAG SELECTORS + NO VISIBLE PROVIDER LABEL**
+
+**이 섹션은 이전 토큰 설명보다 우선하는 최신 운영 계약이며 최신 8개 SVG에 반영됨.**
+
+1. **모든 앱 UI 배경·표면은 `#FFFFFF`.** 이전 `#FFFFFF` 화면 바탕, 필드 배경, secondary 버튼 배경, 안내/오류 배경 **전부 사용 금지**. 카드/입력/제어는 흰색 면 위에 **필요한 경우 `border border-[#E5E8EB]`**와 간격·타이포로 구분. 브랜드 블루는 기존대로 **`#1B64DA` 한 색**(옅은 파랑 음영 금지). 텍스트 `#191F28` / `#4E5968`.
+2. **번역 언어 선택 바:** 현재 원본 사용자 레퍼런스처럼 `bg-[#FFFFFF] border border-[#E5E8EB] rounded-2xl p-3.5 flex items-center justify-between shadow-sm`. 왼쪽 `[원형 한국 국기] 원문 언어·한국어 ▾`, 가운데 `⇄` 스왑(최소 44px 히트 영역), 오른쪽 `[원형 태국 국기] 번역 언어·태국어 (TH) ▾`. 언어코드·선택한 여행 국가에 따라 **국기와 실제 라벨 함께 동기화**. 고정 한국어/태국어 하드코딩 금지. 같은 언어끼리 스왑할 때 잘못된 번역 결과 노출 금지. [실제 수정 이미지](./images/02-translate.svg).
+3. **환율 기준/환산 통화 선택 바:** **같은 컴포넌트 구조**에 `[해당 통화 국기] THB (฿) ⇄ [한국 국기] KRW (₩)`. 실제 코드의 `fromCurrency / toCurrency`에 연동하고 스왑 시 라벨·국기·기호·계산 방향 모두 바뀌어야 한다. 예: `KRW→THB`면 반대로 표시. [실제 수정 이미지](./images/03-rate.svg).
+4. **국기 표시는 콘텐츠 예외:** 국기 자체의 빨강/파랑 등 공식 색은 **국가 정체성 정보**이므로 브랜드 팔레트 규칙의 예외. UI 버튼/면/경고/배지에는 임의 색 금지. 국기는 로컬 inline SVG/라이선스 확인된 에셋을 `24~32px` 원형 마스크로 공통 사용. `aria-hidden` 처리하고 **텍스트 언어/통화 이름을 항상 함께 노출**. `ko→KR, th→TH, ja→JP, vi→VN, en→US/GB(선택 국가 반영), fr→FR`; 통화는 `KRW→KR, THB→TH, JPY→JP, VND→VN, USD→US, GBP→GB, EUR→EU` 등 실제 매핑. 국가가 불분명하면 잘못된 국기를 임의 표시하지 말고 지구 아이콘 + 통화/언어 코드로 폴백.
+5. **`제공 : open.er-api` / `제공: open.er-api` 등 제공처 이름을 사용자에게 표시하지 않음 — 전체 UI 공통.** `CurrencyView`의 `t('currency.result.source',...)`를 렌더링하지 않고 환율 **실제 기준일·지난 캐시 여부·재시도 CTA**는 계속 보여준다. `price.rate.provider`, `wallet.rate.snapshot_provider`, `price.currency_rate_info` 등 **다른 화면의 제공처 텍스트 출력도 검색해 숨긴다**. 공급자 이름을 바꾸거나 fake date를 만들지 않는다. **내부 rate provider 필드·source/date 검증·스냅샷 데이터·API 구현·라이선스상 필수 귀속 표기는 보존**. 만약 데이터 라이선스가 사용자 출처 고지를 의무화한다면 오너에게 알리고, API 공급자 명칭을 숨긴 상태로 배포하지 않는다.
+6. **검증:** 번역 양쪽 국기/코드 2방향 스왑, THB↔KRW·JPY↔KRW 등 환율 양쪽 국기와 기호, 320/375/430px 줄바꿈·44px 터치, 모든 화면 `#FFFFFF` 제거, `제공 *: *open.er-api` UI 렌더 결과 0건(내부 로그/데이터 메타데이터는 별도).
+
+**업데이트 이력:** 기존 **8개 SVG를 동일 경로로 전체 교체**, 전체 overview 갱신, 불필요한 버전별 구 파일 신규 생성 없음. 실제 개발 코드 반영은 A02 PR #11의 새 SHA와 캡처로만 판정.
+
+---
 ## ⚠ A02 필독 — 오너 실화면 대비 구현 프롬프트
 
 **오너가 제시한 실제 localhost 화면은 아직 본 디자인과 다릅니다.** 다크 배경·보라·노랑·초록 UI가 남아 있고, 번역 언어와 결과의 정합성 및 지출 결제 수단 기본값도 점검이 필요합니다.
@@ -52,7 +66,7 @@
 |---|---|---|---|
 | 01 | [지도 홈](./images/01-map.svg) | `src/components/MapView.tsx`, `Navigation.tsx` | 선택 장소 → 길찾기/상황별 번역. 시트 peek/expanded/지도 맥락·safe-area 보존 |
 | 02 | [번역](./images/02-translate.svg) | `src/components/TranslateView.tsx` | **← 지도 복귀**는 독립 버튼. 장소명은 보조 텍스트. 실패 원문을 번역 성공처럼 표시 금지 |
-| 03 | [환율](./images/03-rate.svg) | `src/components/CurrencyView.tsx` | 신뢰 가능한 캐시에서만 환산, 공급자·날짜·stale 인라인, 재시도는 인접 |
+| 03 | [환율](./images/03-rate.svg) | `src/components/CurrencyView.tsx` | 신뢰 가능한 캐시에서만 환산, 실제 기준일·stale 인라인 (공급자 라벨 출력 금지), 재시도는 인접 |
 | 04 | [메뉴 사진 촬영 단계](./images/04-camera-capture.svg) | `src/components/CameraMenuModal.tsx` | 촬영·앨범 선택에 집중. 사진 서버/외부 AI 전송 사실은 업로드 **전에** 고지 |
 | 05 | [사진 분석 결과 단계](./images/05-camera-result.svg) | `CameraMenuModal.tsx` | 원문/번역/가격 검토 후 **지출 내용 확인하기**. 실패 후 같은 사진 재분석 |
 | 06 | [여행 지갑](./images/06-wallet.svg) | `src/components/WalletView.tsx` | 상단 `+ 기록`; 금액→날짜별 내역 연속. 미환산 N건은 요약에 바로 가시화 |
@@ -67,7 +81,7 @@
 
 | 의미 토큰 | 최종 색상 | 적용 방식 |
 |---|---|---|
-| `--os-page` | `#F2F4F6` | 화면 바탕, 선택되지 않은 중립 버튼 |
+| `--os-page` | `#FFFFFF` | 화면 전체 바탕, 보조 버튼 포함 모든 기본 표면 |
 | `--os-surface` | `#FFFFFF` | 헤더, 카드, 하단 5탭 |
 | `--os-text` | `#191F28` | 제목, 지출 금액, 버튼 보조 강조 |
 | `--os-text-secondary` | `#4E5968` | 장소, 날짜, 환율 출처, 오류/주의 안내 |
@@ -84,7 +98,7 @@
 - 카메라 프라이버시·유효하지 않은 환율·지갑 부분 합계의 **필수 사실 고지 숨김 금지**. 색 없는 오류/경고도 사용자가 구별 가능해야 함.
 
 ### UI 원칙
-- 서피스는 `#F2F4F6` 대 `#FFFFFF` 면으로 구분하고 일반 카드 테두리 제거. 입력 폼·키보드 포커스와 필수 오류의 식별 경계는 유지.
+- 전체 화면과 카드는 모두 `#FFFFFF`. 두 흰색 면은 여백과 필요한 경우 `#E5E8EB` 1px 선으로 구분하며, 포커스·오류 식별 경계는 유지.
 - 브랜드 블루는 주행동에만 강하게, 주변은 대부분 검은 텍스트/회색·화이트. 두 번째 버튼은 **회색 배경 + 진한 검정 텍스트**(희석 블루 배경·서브 블루 텍스트 없음).
 - 디자인의 상단 독립 ←/타이틀/장소명, 하단 5탭 일관된 채움형 아이콘은 유지. 카드 radius 16~20px, 간격 8/12/16/24px, 터치 영역 44px 이상, 본문 14~16px, 중요 고지 14px 이상.
 - 320/375/430px·200% 확대·safe area·키보드 대응. 상태는 색상 단독 신호 불가. 중요한 본문 최소 대비 4.5:1과 실제 화면 실측 요구.
@@ -106,7 +120,7 @@
 - 정상 응답 & 유효 데이터 → 예상 KRW + 실제 제공처·기준일.
 - API 실패 & **검증된 7일 이내 캐시** → 지난 환율로 계산한 금액 + 기준일·공급자·'지난 환율' + 카드 내부 인라인 재시도.
 - 캐시 없음/7일 초과/메타데이터 무효 → **예상 금액 미산정**(0원·1:1·추정 기본환율 금지) + '환율 확인이 필요해요' + 바로 옆 재시도.
-- **이미 존재:** `getValidatedCachedRates` 7일 유효성, `isStale`, `currency.rate.stale_body`, `currency.result.as_of/source` 재사용.
+- **이미 존재:** `getValidatedCachedRates` 7일 유효성, `isStale`, `currency.rate.stale_body`, `currency.result.as_of` 재사용; `currency.result.source` UI 렌더 금지.
 - **기존 이슈:** #17 D-P1-01('이전에 받은 환율'과 실제 캐시 없음)과 중복 수정 금지.
 
 ### C-04. 카메라 → C-05. 결과
@@ -161,7 +175,7 @@ A02가 PR #11 SHA `277e9b9`에서 P0 **326키 + Phase2 226키(기존 223 + 신�
 }
 ```
 
-기존 키: `wallet.form.confirm_actual` / `wallet.toast.save_failed` / `wallet.summary.partial` / `currency.rate.stale_body` / `currency.result.as_of` / `currency.result.source` / `camera.action.retry_analysis` / `camera.demo.notice`. 중복 추가 금지. string interpolation 방어(값 없는 placeholder·언어별 통화형 표시) 및 스크린리더 읽기 점검.
+`currency.result.source`는 기존 키 삭제·계약 훼손 없이 UI 렌더만 중단. 기존 키: `wallet.form.confirm_actual` / `wallet.toast.save_failed` / `wallet.summary.partial` / `currency.rate.stale_body` / `currency.result.as_of` / `camera.action.retry_analysis` / `camera.demo.notice`. 중복 추가 금지. string interpolation 방어(값 없는 placeholder·언어별 통화형 표시) 및 스크린리더 읽기 점검.
 
 ## E. A02 작업 배치: PR 변경과 증거 기준
 
