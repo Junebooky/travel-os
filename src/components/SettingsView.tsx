@@ -18,7 +18,7 @@ import {
 } from 'lucide-react';
 
 function subscribeStandalone(callback: () => void) {
-  if (typeof window === 'undefined') return () => {};
+  if (typeof window === 'undefined') return () => { };
   const mql = window.matchMedia('(display-mode: standalone)');
   mql.addEventListener('change', callback);
   return () => mql.removeEventListener('change', callback);
@@ -33,7 +33,7 @@ function getStandaloneSnapshot(): boolean {
 }
 
 function subscribePwaReady(callback: () => void) {
-  if (typeof window === 'undefined') return () => {};
+  if (typeof window === 'undefined') return () => { };
   const handler = () => callback();
   window.addEventListener('beforeinstallprompt', handler);
   window.addEventListener('appinstalled', handler);
@@ -72,7 +72,7 @@ export default function SettingsView() {
 
   const isStandalone = useSyncExternalStore(subscribeStandalone, getStandaloneSnapshot, () => false);
   const canInstallPrompt = useSyncExternalStore(subscribePwaReady, getCanInstallSnapshot, () => false);
-  const isIOS = useSyncExternalStore(() => () => {}, getIsIOSSnapshot, () => false);
+  const isIOS = useSyncExternalStore(() => () => { }, getIsIOSSnapshot, () => false);
 
   const canInstall = canInstallPrompt && !installPromptDismissed;
 
@@ -195,8 +195,8 @@ export default function SettingsView() {
               {isStandalone
                 ? '현재 홈 화면 설치 모드로 실행 중입니다.'
                 : isIOS
-                ? 'iOS Safari [공유] 후 "홈 화면에 추가"를 탭하세요.'
-                : '홈 화면에 추가하면 앱처럼\n더 빠르고 편하게 사용할 수 있어요.'}
+                  ? 'iOS Safari [공유] 후 "홈 화면에 추가"를 탭하세요.'
+                  : '홈 화면에 추가하면 앱처럼\n더 빠르고 편하게 사용할 수 있어요.'}
             </p>
           </div>
         </div>
@@ -246,21 +246,6 @@ export default function SettingsView() {
         </p>
       </div>
 
-      {/* Language & Currency Quick Badges Row (Preserved state context) */}
-      <div className="grid grid-cols-2 gap-2 text-xs">
-        <div className="p-3 rounded-2xl bg-[#FFFFFF] border border-[#E5E8EB] shadow-xs space-y-1">
-          <span className="text-[#8B95A1] block font-medium">{t('settings.travel.language')}</span>
-          <span className="font-bold text-[#191F28] text-sm">
-            {SUPPORTED_LANGUAGES.find((l) => l.code === targetLang)?.name || targetLang}
-          </span>
-        </div>
-        <div className="p-3 rounded-2xl bg-[#FFFFFF] border border-[#E5E8EB] shadow-xs space-y-1">
-          <span className="text-[#8B95A1] block font-medium">{t('settings.travel.currency')}</span>
-          <span className="font-bold text-[#191F28] text-sm">
-            {localCurrency} ({country.currencySymbol})
-          </span>
-        </div>
-      </div>
 
       {/* 5. Device Storage Reset Section */}
       <div className="bg-[#FFFFFF] border border-[#E5E8EB] rounded-2xl p-4 shadow-sm space-y-2">
