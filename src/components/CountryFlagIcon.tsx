@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useId } from 'react';
 
 export interface CountryFlagIconProps {
   countryCode?: string;
@@ -72,7 +72,9 @@ export default function CountryFlagIcon({
   ariaLabel,
 }: CountryFlagIconProps) {
   const flagKey = resolveFlagKey({ countryCode, lang, currency });
-  const clipId = `flag-clip-${flagKey}-${Math.random().toString(36).substring(2, 7)}`;
+  const rawId = useId();
+  const safeId = rawId.replace(/[^a-zA-Z0-9-_]/g, '');
+  const clipId = `flag-clip-${flagKey}-${safeId}`;
 
   return (
     <svg
