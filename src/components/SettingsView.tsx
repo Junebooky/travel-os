@@ -5,6 +5,7 @@ import { useTravel } from '@/context/TravelContext';
 import { COUNTRIES, SUPPORTED_LANGUAGES } from '@/data/countries';
 import { t } from '@/lib/i18n';
 import SavedPlacesModal from './SavedPlacesModal';
+import CountryPickerModal from './CountryPickerModal';
 import {
   Globe,
   Bookmark,
@@ -251,44 +252,17 @@ export default function SettingsView() {
       />
 
       {/* Country Picker Modal */}
-      {isCountryPickerOpen && (
-        <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-[#FFFFFF] border border-[#E5E8EB] rounded-2xl p-5 max-w-sm w-full space-y-3 shadow-2xl animate-in zoom-in-95 max-h-[80vh] flex flex-col">
-            <h3 className="text-base font-extrabold text-[#191F28]">
-              {t('onboarding.country.title')}
-            </h3>
-            <div className="flex-1 overflow-y-auto space-y-2 pr-1">
-              {COUNTRIES.map((c) => (
-                <button
-                  key={c.code}
-                  onClick={() => {
-                    setCountry(c);
-                    setIsCountryPickerOpen(false);
-                    showToast(`${c.name}(으)로 여행 설정을 변경했어요`, 'success');
-                  }}
-                  className={`w-full flex items-center justify-between p-3 rounded-xl border text-left text-xs transition-all ${
-                    country.code === c.code
-                      ? 'bg-[#FFFFFF] border-[#1B64DA] text-[#1B64DA] font-bold shadow-xs'
-                      : 'bg-[#FFFFFF] border-[#E5E8EB] text-[#4E5968] hover:bg-[#F8FAFC]'
-                  }`}
-                >
-                  <div className="flex items-center gap-2.5">
-                    <span className="text-xl">{c.flag}</span>
-                    <span className="font-bold text-[#191F28]">{c.name}</span>
-                  </div>
-                  {country.code === c.code && <Check className="w-4 h-4 text-[#1B64DA]" />}
-                </button>
-              ))}
-            </div>
-            <button
-              onClick={() => setIsCountryPickerOpen(false)}
-              className="w-full py-2.5 rounded-xl bg-[#FFFFFF] text-[#4E5968] hover:text-[#191F28] text-xs font-bold hover:bg-[#F8FAFC] border border-[#E5E8EB]"
-            >
-              {t('common.action.close')}
-            </button>
-          </div>
-        </div>
-      )}
+      <CountryPickerModal
+        isOpen={isCountryPickerOpen}
+        countries={COUNTRIES}
+        selectedCode={country.code}
+        onSelect={(nextCountry) => {
+          setCountry(nextCountry);
+          setIsCountryPickerOpen(false);
+          showToast(`${nextCountry.name}(으)로 여행 설정을 변경했어요`, 'success');
+        }}
+        onClose={() => setIsCountryPickerOpen(false)}
+      />
 
       {/* Storage Reset Confirmation Modal */}
       {isConfirmResetOpen && (
