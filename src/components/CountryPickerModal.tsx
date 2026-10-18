@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Check, Plane } from 'lucide-react';
 import { Country } from '@/types/travel';
 import CountryFlagSphere from './CountryFlagSphere';
@@ -10,7 +10,7 @@ export interface CountryPickerModalProps {
   isOpen: boolean;
   countries: Country[];
   selectedCode: string;
-  onSelect: (country: Country) => void;
+  onConfirm: (country: Country) => void;
   onClose: () => void;
 }
 
@@ -18,11 +18,22 @@ export default function CountryPickerModal({
   isOpen,
   countries,
   selectedCode,
-  onSelect,
+  onConfirm,
   onClose,
 }: CountryPickerModalProps) {
   const modalRef = useRef<HTMLDivElement>(null);
   const selectedButtonRef = useRef<HTMLButtonElement>(null);
+
+  // P0 Batch A: Local draft selection state initialized to selectedCode upon open
+  const [prevOpen, setPrevOpen] = useState<boolean>(isOpen);
+  const [draftCountryCode, setDraftCountryCode] = useState<string>(selectedCode);
+
+  if (prevOpen !== isOpen) {
+    setPrevOpen(isOpen);
+    if (isOpen) {
+      setDraftCountryCode(selectedCode);
+    }
+  }
 
   // Lock body scroll and handle Escape key
   useEffect(() => {
@@ -57,6 +68,11 @@ export default function CountryPickerModal({
   }, [isOpen, onClose]);
 
   if (!isOpen) return null;
+
+  const draftCountry =
+    countries.find((c) => c.code === draftCountryCode) ||
+    countries.find((c) => c.code === selectedCode) ||
+    countries[0];
 
   return (
     <div
@@ -122,15 +138,15 @@ export default function CountryPickerModal({
             className="grid grid-cols-3 gap-2.5 sm:gap-3 max-w-sm mx-auto"
           >
             {countries.map((c) => {
-              const isSelected = selectedCode === c.code;
+              const isSelected = draftCountryCode === c.code;
               return (
                 <button
                   key={c.code}
                   ref={isSelected ? selectedButtonRef : undefined}
                   type="button"
                   aria-pressed={isSelected}
-                  aria-label={`${c.name}${isSelected ? ', 선택됨' : ''}`}
-                  onClick={() => onSelect(c)}
+                  aria-label={`${c.name}${isSelected ? ', 선택 대기' : ''}`}
+                  onClick={() => setDraftCountryCode(c.code)}
                   className={`relative flex flex-col items-center justify-between p-3 rounded-[20px] transition-all active:scale-[0.96] min-h-[128px] sm:min-h-[134px] bg-[#FFFFFF] outline-none focus-visible:ring-2 focus-visible:ring-[#1B64DA] ${
                     isSelected
                       ? 'border-2 border-[#1B64DA] shadow-xs'
@@ -162,8 +178,23 @@ export default function CountryPickerModal({
           </div>
         </div>
 
-        {/* Bottom Fixed Footer CTA */}
-        <div className="shrink-0 p-4 border-t border-[#E5E8EB] bg-[#FFFFFF] pb-[max(1.25rem,env(safe-area-inset-bottom))]">
+        {/* Bottom Fixed Footer CTA (P0: Primary '여기로 여행갈까요?' directly above '닫기') */}
+        <div className="shrink-0 p-4 border-t border-[#E5E8EB] bg-[#FFFFFF] space-y-2.5 pb-[max(1.25rem,env(safe-area-inset-bottom))]">
+          {/* Selected Draft Destination Status */}
+          <div className="text-center text-xs font-semibold text-[#1B64DA]">
+            선택한 여행지 · {draftCountry.name} ({draftCountry.code})
+          </div>
+
+          {/* Primary Confirm CTA */}
+          <button
+            type="button"
+            onClick={() => onConfirm(draftCountry)}
+            className="w-full min-h-[52px] py-3.5 px-4 rounded-2xl bg-[#1B64DA] hover:bg-[#1554B8] text-white font-bold text-base shadow-sm active:scale-[0.99] transition-all flex items-center justify-center"
+          >
+            {t('settings.country_picker.confirm')}
+          </button>
+
+          {/* Secondary Close / Discard CTA */}
           <button
             type="button"
             onClick={onClose}

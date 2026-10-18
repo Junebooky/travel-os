@@ -224,5 +224,8 @@
   "flow.context_restored": "선택한 장소로 돌아왔어요.",
   "camera.privacy.benefit": "메뉴판 글자와 가격을 읽어드려요.",
   "wallet.review.open": "지출 내용 확인하기",
-  "wallet.form.submit_amount": "{{amount}}{{currencyName}} 지출 기록하기"
+  "wallet.form.submit_amount": "{{amount}}{{currencyName}} 지출 기록하기",
+  "settings.country_picker.confirm": "여기로 여행갈까요?",
+  "settings.country_picker.modify": "여행 정보 수정",
+  "settings.country_picker.draft_status": "선택한 여행지: {{countryName}} ({{countryCode}})"
 }
