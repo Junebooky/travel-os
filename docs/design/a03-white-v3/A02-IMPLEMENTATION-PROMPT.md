@@ -1,6 +1,9 @@
 # A02 DIRECT IMPLEMENTATION PROMPT — Owner latest (2026-10-18 21:32 KST)
 
-> **[CURRENT SPEC / Settings country picker]** 오너가 제공한 입체 국기 카드 레퍼런스에 따라 설정의 "여행 설정 바꾸기" 모달을 새로 설계했습니다. **[09-country-picker.svg](./images/09-country-picker.svg)** · **[Country picker A02 implementation prompt](./A02-COUNTRY-PICKER-IMPLEMENTATION.md)**. 기존 8개 기본 화면은 유지하고 새 모달 상태 1개가 추가되어 현재 9개 시각 상태입니다. **SettingsView.tsx lines 253–291의 구형 세로 목록을 실제 React 코드에서 교체해야 하며, SVG만 업데이트한 상태는 구현 완료가 아닙니다.**
+> **[LATEST / OWNER SETTINGS v4 — 2026-10-18]** A02 must implement **CountryPickerModal temporary draft selection** and a new primary `여기로 여행갈까요?` directly above `닫기`. Country tap **must not close/commit**. The existing Settings parent page must match the owner's two screenshots using the **actual owner files**, not AI-generated images: `public/assets/setting_tab/travel_setting.png` (verified 1920×1080 16:9) as the hero background, **dynamic current `country.flag/name/code` overlay**, **white `⚙ 여행 정보 수정 ›` pill at hero UPPER RIGHT**, and owner PNG icons for saved places, install and Travel OS cards. **Those 3 icon PNGs are not yet found at the expected public paths in remote development HEAD**; wire only once supplied and mark `ASSET_PENDING` if absent. Full [**current executable A02 plan**](./A02-COUNTRY-PICKER-IMPLEMENTATION.md) takes precedence over old Settings and picker guidance. [Updated 09 SVG with confirm footer](./images/09-country-picker.svg). Old generic [08-settings.svg](./images/08-settings.svg) is **SUPERSEDED** for the parent Settings screen—use owner's reference images and the current plan. **No new image generation.**
+
+
+> **[CURRENT SPEC / Settings country picker]** 오너가 제공한 입체 국기 카드 레퍼런스에 따라 설정의 "여행 설정 바꾸기" 모달을 새로 설계했습니다. **[09-country-picker.svg](./images/09-country-picker.svg)** · **[Country picker A02 implementation prompt](./A02-COUNTRY-PICKER-IMPLEMENTATION.md)**. 기존 8개 기본 화면은 유지하고 새 모달 상태 1개가 추가되어 현재 9개 시각 상태입니다. **현재 `CountryPickerModal.tsx`의 이미 구현된 3열 국기 UI는 재사용하되 `SettingsView.tsx`의 선택 즉시 setCountry/닫기 콜백을 수정해야 하며, SVG만 업데이트한 상태는 구현 완료가 아닙니다.**
 
 
 > **A03 → A02(실코드 반영), A01(오너 현황)**  
