@@ -489,13 +489,11 @@ export default function CurrencyView() {
             if (nextCountry.code !== 'KR') {
               setCountry(nextCountry);
             }
-            showToast(`${nextCountry.name} (${nextCountry.defaultCurrency}) 기준 통화로 설정했어요`, 'success');
           } else {
             setToCurrency(nextCountry.defaultCurrency);
             if (nextCountry.code !== 'KR' && fromCurrency === 'KRW') {
               setCountry(nextCountry);
             }
-            showToast(`${nextCountry.name} (${nextCountry.defaultCurrency}) 환산 통화로 설정했어요`, 'success');
           }
           setIsCountryPickerOpen(false);
         }}
