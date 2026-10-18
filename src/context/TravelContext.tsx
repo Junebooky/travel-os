@@ -234,6 +234,11 @@ export function TravelProvider({ children }: { children: ReactNode }) {
   }, [mapViewport]);
   const [onboardingCompleted, setOnboardingCompletedState] = useState<boolean>(getInitialOnboarding);
   const [savedPlaces, setSavedPlaces] = useState<Place[]>(getInitialSavedPlaces);
+  const savedPlacesRef = useRef<Place[]>(savedPlaces);
+
+  useEffect(() => {
+    savedPlacesRef.current = savedPlaces;
+  }, [savedPlaces]);
   const [isOnline, setIsOnline] = useState<boolean>(true);
   const [toasts, setToasts] = useState<ToastInfo[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<PlaceCategory>('all');
@@ -307,63 +312,71 @@ export function TravelProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const savePlace = useCallback((place: Place): boolean => {
-    let success = false;
-    setSavedPlaces((prev) => {
-      if (prev.some((p) => p.id === place.id)) {
-        showToast(t('saved.success'), 'info');
-        success = true;
-        return prev;
-      }
-      const updated = [place, ...prev];
-      const ok = safeSetItem(STORAGE_KEY_SAVED, JSON.stringify(updated));
-      if (!ok) {
-        showToast(t('saved.error'), 'error');
-        success = false;
-        return prev;
-      }
-      showToast(t('saved.success'), 'success');
-      success = true;
-      return updated;
-    });
-    return success;
+    const currentSaved = savedPlacesRef.current;
+    if (currentSaved.some((p) => p.id === place.id)) {
+      showToast(t('saved.success'), 'info');
+      return true;
+    }
+
+    const updated = [place, ...currentSaved];
+
+    // Persistence side effect: verify storage integrity before committing in-memory
+    const ok = safeSetItem(STORAGE_KEY_SAVED, JSON.stringify(updated));
+    if (!ok) {
+      showToast(t('saved.error'), 'error');
+      return false;
+    }
+
+    // Synchronously update the ref so rapid consecutive clicks immediately see the new item
+    savedPlacesRef.current = updated;
+
+    // Pure React state update: no side effects, no I/O, no toast inside setter
+    setSavedPlaces(updated);
+
+    showToast(t('saved.success'), 'success');
+    return true;
   }, [showToast]);
 
   const removePlace = useCallback((placeId: string): boolean => {
-    let success = false;
-    setSavedPlaces((prev) => {
-      const updated = prev.filter((p) => p.id !== placeId);
-      const ok = safeSetItem(STORAGE_KEY_SAVED, JSON.stringify(updated));
-      if (!ok) {
-        showToast(t('saved.remove.error'), 'error');
-        success = false;
-        return prev;
-      }
-      showToast(t('saved.remove.success'), 'info');
-      success = true;
-      return updated;
-    });
-    return success;
+    const currentSaved = savedPlacesRef.current;
+    if (!currentSaved.some((p) => p.id === placeId)) {
+      return true;
+    }
+
+    const updated = currentSaved.filter((p) => p.id !== placeId);
+
+    // Persistence side effect: verify storage integrity before committing in-memory
+    const ok = safeSetItem(STORAGE_KEY_SAVED, JSON.stringify(updated));
+    if (!ok) {
+      showToast(t('saved.remove.error'), 'error');
+      return false;
+    }
+
+    // Synchronously update the ref
+    savedPlacesRef.current = updated;
+
+    // Pure React state update
+    setSavedPlaces(updated);
+
+    showToast(t('saved.remove.success'), 'info');
+    return true;
   }, [showToast]);
 
   const isPlaceSaved = useCallback(
-    (placeId: string) => savedPlaces.some((p) => p.id === placeId),
-    [savedPlaces]
+    (placeId: string) => savedPlacesRef.current.some((p) => p.id === placeId),
+    []
   );
 
   const clearAllSavedPlaces = useCallback((): boolean => {
-    let success = false;
-    setSavedPlaces((prev) => {
-      const ok = safeRemoveItem(STORAGE_KEY_SAVED);
-      if (!ok) {
-        showToast(t('saved.delete_all.failed'), 'error');
-        success = false;
-        return prev;
-      }
-      showToast(t('saved.delete_all.success'), 'info');
-      success = true;
-      return [];
-    });
-    return success;
+    const ok = safeRemoveItem(STORAGE_KEY_SAVED);
+    if (!ok) {
+      showToast(t('saved.delete_all.failed'), 'error');
+      return false;
+    }
+    savedPlacesRef.current = [];
+    setSavedPlaces([]);
+    showToast(t('saved.delete_all.success'), 'info');
+    return true;
   }, [showToast]);
 
   const resetAllData = useCallback(() => {
@@ -381,7 +394,9 @@ export function TravelProvider({ children }: { children: ReactNode }) {
     setActiveTab('map');
     setMapViewportState({ center: COUNTRIES[0].defaultCenter, zoom: COUNTRIES[0].defaultZoom });
     setOnboardingCompletedState(false);
+    savedPlacesRef.current = [];
     setSavedPlaces([]);
+    expensesRef.current = [];
     setExpenses([]);
     setSelectedCategory('all');
     setSearchQuery('');
