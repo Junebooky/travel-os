@@ -34,6 +34,8 @@ import {
 } from 'lucide-react';
 import { MAP_CATEGORIES, normalizeCategory } from '@/lib/categories';
 import CameraMenuModal from '@/components/CameraMenuModal';
+import { MapProvider } from '@/types/travel';
+import { getActiveMapProvider, filterCompliantPlaces, isGoogleBillingApproved } from '@/lib/mapProvider';
 
 const CATEGORY_ICONS: Record<string, React.ComponentType<{ className?: string }>> = {
   all: Compass,
@@ -111,6 +113,7 @@ export default function MapView() {
   const [panOffset, setPanOffset] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
 
   const [apiPlaces, setApiPlaces] = useState<Place[] | null>(null);
+  const [mapProvider, setMapProvider] = useState<MapProvider>(getActiveMapProvider);
   const [isDemoMode, setIsDemoMode] = useState<boolean>(true);
   const [demoNotice, setDemoNotice] = useState<string>('');
   const [isSearchingPlaces, setIsSearchingPlaces] = useState<boolean>(false);
@@ -182,6 +185,7 @@ export default function MapView() {
       setSearchError(null);
       try {
         const params = new URLSearchParams({
+          provider: mapProvider,
           country: country.code,
           category: normalizeCategory(category),
           query: query.trim(),
@@ -217,15 +221,16 @@ export default function MapView() {
         setIsSearchingPlaces(false);
       }
     },
-    [country.code, setActivePlace, setMapViewport]
+    [country.code, mapProvider, setActivePlace, setMapViewport]
   );
 
-  // Load places when country or category changes (strictly event/change driven, no keystroke debounce)
+  // Load places when country, category, or mapProvider changes
   useEffect(() => {
     let ignore = false;
     async function loadCategoryPlaces() {
       try {
         const params = new URLSearchParams({
+          provider: mapProvider,
           country: country.code,
           category: normalizeCategory(selectedCategory),
           query: '',
@@ -251,12 +256,13 @@ export default function MapView() {
     return () => {
       ignore = true;
     };
-  }, [country.code, selectedCategory, mapCenter.lat, mapCenter.lng]);
+  }, [country.code, selectedCategory, mapCenter.lat, mapCenter.lng, mapProvider]);
 
-  // Filtered places
+  // Filtered places with strict Google ToS §14 compliance
   const filteredPlaces = useMemo(() => {
-    if (apiPlaces !== null) return apiPlaces;
-    return country.popularPlaces.filter((p) => {
+    const rawPlaces = apiPlaces !== null ? apiPlaces : country.popularPlaces;
+    const compliant = filterCompliantPlaces(rawPlaces, mapProvider);
+    return compliant.filter((p) => {
       const matchCategory =
         selectedCategory === 'all' ||
         normalizeCategory(p.category) === normalizeCategory(selectedCategory);
@@ -267,7 +273,7 @@ export default function MapView() {
         (p.description && p.description.toLowerCase().includes(searchQuery.toLowerCase()));
       return matchCategory && matchQuery;
     });
-  }, [apiPlaces, country.popularPlaces, selectedCategory, searchQuery]);
+  }, [apiPlaces, country.popularPlaces, mapProvider, selectedCategory, searchQuery]);
 
   // Mouse & Touch Drag Event Handlers
   const handlePointerDown = (clientX: number, clientY: number) => {
@@ -435,20 +441,42 @@ export default function MapView() {
             transform: `translate3d(${panOffset.x}px, ${panOffset.y}px, 0)`,
           }}
         >
-          {tiles.map((tile) => (
-            /* eslint-disable-next-line @next/next/no-img-element */
-            <img
-              key={tile.key}
-              src={`https://tile.openstreetmap.org/${zoomLevel}/${tile.urlX}/${tile.y}.png`}
-              alt=""
-              loading="lazy"
-              className="absolute w-[256px] h-[256px]"
-              style={{
-                left: `${tile.left}px`,
-                top: `${tile.top}px`,
-              }}
-            />
-          ))}
+          {mapProvider === 'osm' ? (
+            tiles.map((tile) => (
+              /* eslint-disable-next-line @next/next/no-img-element */
+              <img
+                key={tile.key}
+                src={`https://tile.openstreetmap.org/${zoomLevel}/${tile.urlX}/${tile.y}.png`}
+                alt=""
+                loading="lazy"
+                className="absolute w-[256px] h-[256px]"
+                style={{
+                  left: `${tile.left}px`,
+                  top: `${tile.top}px`,
+                }}
+              />
+            ))
+          ) : (
+            <div className="absolute inset-0 bg-[#E8ECEF] overflow-hidden">
+              <div
+                className="absolute inset-0 opacity-40 pointer-events-none"
+                style={{
+                  backgroundImage:
+                    'radial-gradient(#CBD5E1 1px, transparent 1px), linear-gradient(to right, #D8E0E8 1px, transparent 1px), linear-gradient(to bottom, #D8E0E8 1px, transparent 1px)',
+                  backgroundSize: '32px 32px, 128px 128px, 128px 128px',
+                }}
+              />
+              <div className="absolute bottom-20 left-4 pointer-events-none select-none opacity-80 flex items-center gap-1.5 bg-white/80 backdrop-blur-xs px-2.5 py-1 rounded-md shadow-xs border border-[#E5E8EB]">
+                <span className="text-[14px] font-bold tracking-tight text-[#4285F4]">G</span>
+                <span className="text-[14px] font-bold tracking-tight text-[#EA4335]">o</span>
+                <span className="text-[14px] font-bold tracking-tight text-[#FBBC05]">o</span>
+                <span className="text-[14px] font-bold tracking-tight text-[#4285F4]">g</span>
+                <span className="text-[14px] font-bold tracking-tight text-[#34A853]">l</span>
+                <span className="text-[14px] font-bold tracking-tight text-[#EA4335]">e</span>
+                <span className="text-[10px] text-[#4E5968] ml-1 font-medium">Maps (Unbilled Preview)</span>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Real Coordinates Place Marker Pins */}
@@ -633,8 +661,20 @@ export default function MapView() {
           })}
         </div>
 
-        {/* Honest Demo Mode / Live Places Status Notice (Non-truncated for critical disclaimers) */}
-        {isDemoMode ? (
+        {/* Honest Demo Mode / Live Places / Google Preview Status Notice */}
+        {mapProvider === 'google' && !isGoogleBillingApproved() ? (
+          <div
+            role="status"
+            className="flex items-start sm:items-center gap-2 px-3 py-2 rounded-xl bg-[#FFFFFF] border border-[#E5E8EB] shadow-sm text-xs text-[#4E5968]"
+          >
+            <span className="px-1.5 py-0.5 rounded font-bold bg-[#E8F3FF] text-[#1B64DA] border border-[#B9D9FE] shrink-0 text-[11px]">
+              Google 모드
+            </span>
+            <span className="text-[#4E5968] text-xs leading-relaxed break-keep">
+              과금 미승인 · 시뮬레이션 모드 (외부 유료 SDK 호출 차단 · $0.00 보호 중)
+            </span>
+          </div>
+        ) : isDemoMode ? (
           <div
             role="status"
             className="flex items-start sm:items-center gap-2 px-3 py-2 rounded-xl bg-[#FFFFFF] border border-[#E5E8EB] shadow-sm text-xs text-[#4E5968]"
@@ -661,7 +701,7 @@ export default function MapView() {
         )}
       </div>
 
-      {/* Map Control Floating Buttons (Zoom In/Out & My Location) - Dynamic Elevation Above Sheet */}
+      {/* Map Control Floating Buttons (Zoom In/Out, My Location & Provider Switch) - Dynamic Elevation Above Sheet */}
       <div
         className={`absolute right-4 z-20 flex flex-col items-center gap-2 pointer-events-auto transition-all duration-200 ${
           activePlace
@@ -671,6 +711,16 @@ export default function MapView() {
             : 'bottom-24 sm:bottom-28'
         }`}
       >
+        {/* Map Provider Evaluator Switch (OSM <-> Google) */}
+        <button
+          onClick={() => setMapProvider((prev) => (prev === 'google' ? 'osm' : 'google'))}
+          className="min-w-[44px] h-[32px] px-2 flex items-center justify-center rounded-xl bg-[#FFFFFF] border border-[#E5E8EB] text-[#4E5968] hover:text-[#1B64DA] hover:bg-[#F2F4F6] transition-all shadow-md active:scale-95 text-[11px] font-semibold"
+          aria-label={`현재 지도 공급자: ${mapProvider === 'google' ? 'Google' : 'OSM'}. 클릭하여 전환`}
+          title="지도 제공자 전환 (OSM / Google)"
+        >
+          {mapProvider === 'google' ? 'G-Map' : 'OSM'}
+        </button>
+
         <div className="flex flex-col bg-[#FFFFFF] border border-[#E5E8EB] rounded-2xl shadow-md overflow-hidden divide-y divide-[#E5E8EB]">
           <button
             onClick={handleZoomIn}
@@ -697,7 +747,7 @@ export default function MapView() {
         </button>
       </div>
 
-      {/* OpenStreetMap Legal Attribution */}
+      {/* Map Legal Attribution (Provider Aware: OSM / Google) */}
       <div
         className={`absolute right-2 z-20 pointer-events-auto transition-all duration-200 ${
           activePlace
@@ -707,15 +757,22 @@ export default function MapView() {
             : 'bottom-16 sm:bottom-20'
         }`}
       >
-        <a
-          href="https://www.openstreetmap.org/copyright"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="px-2.5 py-1 rounded bg-[#FFFFFF]/90 text-[10px] text-[#4E5968] hover:text-[#191F28] border border-[#E5E8EB] flex items-center gap-1 shadow-sm"
-        >
-          <Info className="w-3 h-3" />
-          <span>© OpenStreetMap</span>
-        </a>
+        {mapProvider === 'osm' ? (
+          <a
+            href="https://www.openstreetmap.org/copyright"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="px-2.5 py-1 rounded bg-[#FFFFFF]/90 text-[10px] text-[#4E5968] hover:text-[#191F28] border border-[#E5E8EB] flex items-center gap-1 shadow-sm"
+          >
+            <Info className="w-3 h-3" />
+            <span>© OpenStreetMap</span>
+          </a>
+        ) : (
+          <div className="px-2.5 py-1 rounded bg-[#FFFFFF]/90 text-[10px] text-[#4E5968] border border-[#E5E8EB] flex items-center gap-1 shadow-sm">
+            <Info className="w-3 h-3" />
+            <span>Map data © Google</span>
+          </div>
+        )}
       </div>
 
       {/* Search Error or Empty Search Results Floating Banner */}

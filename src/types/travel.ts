@@ -30,7 +30,10 @@ export interface Place {
   website?: string;
   distance?: string;
   description?: string;
+  sourceProvider?: MapProvider;
 }
+
+export type MapProvider = 'google' | 'osm';
 
 export interface Country {
   code: string;

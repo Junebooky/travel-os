@@ -93,13 +93,21 @@ export async function GET(req: NextRequest) {
     const lat = parseFloat(searchParams.get('lat') || '0');
     const lng = parseFloat(searchParams.get('lng') || '0');
 
+    const requestedProvider = (
+      searchParams.get('provider')?.trim().toLowerCase() ||
+      process.env.NEXT_PUBLIC_MAP_PROVIDER?.trim().toLowerCase() ||
+      'osm'
+    ) as 'google' | 'osm';
+
     const googleApiKey =
       process.env.GOOGLE_MAPS_API_KEY ||
       process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY ||
       process.env.GOOGLE_PLACES_API_KEY;
 
-    // 1. If Google Maps API key is configured, query official Google Places API (New & Legacy support)
-    if (googleApiKey) {
+    // 1. Google Places API (New & Legacy support)
+    // STRICT ToS §14 CHECK: Google Places API is ONLY queried if requestedProvider is 'google'.
+    // If provider is 'osm', Google Places Content is NEVER retrieved or overlaid on OSM map tiles.
+    if (requestedProvider === 'google' && googleApiKey) {
       try {
         // A. Primary: Google Places API (New)
         if (query) {
@@ -145,12 +153,14 @@ export async function GET(req: NextRequest) {
                 userRatingsTotal: p.userRatingCount,
                 distance: '검색 위치 주변',
                 description: p.formattedAddress,
+                sourceProvider: 'google',
               }));
 
               return NextResponse.json({
                 success: true,
                 isDemo: false,
                 provider: 'Google Places API',
+                attribution: 'Map & Places Data © Google Maps Platform',
                 places,
               });
             }
@@ -196,12 +206,14 @@ export async function GET(req: NextRequest) {
                 userRatingsTotal: p.userRatingCount,
                 distance: '검색 위치 주변',
                 description: p.formattedAddress,
+                sourceProvider: 'google',
               }));
 
               return NextResponse.json({
                 success: true,
                 isDemo: false,
                 provider: 'Google Places API',
+                attribution: 'Map & Places Data © Google Maps Platform',
                 places,
               });
             }
@@ -232,12 +244,14 @@ export async function GET(req: NextRequest) {
                 openNow: r.opening_hours?.open_now,
                 distance: '검색 위치 주변',
                 description: r.formatted_address,
+                sourceProvider: 'google',
               }));
 
               return NextResponse.json({
                 success: true,
                 isDemo: false,
                 provider: 'Google Places API',
+                attribution: 'Map & Places Data © Google Maps Platform',
                 places,
               });
             }
@@ -307,6 +321,7 @@ export async function GET(req: NextRequest) {
               lng: parseFloat(item.lon),
               distance: '검색 위치 주변',
               description: item.display_name,
+              sourceProvider: 'osm',
             }));
 
             // Store in server cache
@@ -349,15 +364,20 @@ export async function GET(req: NextRequest) {
     }
 
     const hasGoogleKey = Boolean(googleApiKey);
+    const isGoogleMode = requestedProvider === 'google';
     return NextResponse.json({
       success: true,
       isDemo: true,
-      provider: hasGoogleKey ? '추천 장소 (Google Places 연동)' : '추천 장소 (데모 모드)',
-      demoNotice: hasGoogleKey
-        ? (query ? '검색 결과가 없어 추천 장소를 표시하고 있습니다.' : 'Google Places API 연동 완료 · 추천 장소를 표시하고 있습니다.')
-        : 'Google Maps API 키가 설정되지 않아 OpenStreetMap 실지형 타일 및 추천 데이터를 표시하고 있습니다.',
-      attribution: '© OpenStreetMap contributors',
-      places: filtered,
+      provider: isGoogleMode
+        ? (hasGoogleKey ? '추천 장소 (Google Places 연동)' : '추천 장소 (Google 데모)')
+        : '추천 장소 (OpenStreetMap)',
+      demoNotice: isGoogleMode
+        ? (hasGoogleKey
+            ? (query ? '검색 결과가 없어 추천 장소를 표시하고 있습니다.' : 'Google Places API 연동 완료 · 추천 장소를 표시하고 있습니다.')
+            : 'Google Maps API 키가 설정되지 않아 데모 추천 데이터를 표시하고 있습니다.')
+        : 'Google Maps API 키 미설정 · OpenStreetMap 실지형 타일 및 추천 데이터를 표시하고 있습니다.',
+      attribution: isGoogleMode ? 'Google Maps Platform' : '© OpenStreetMap contributors',
+      places: filtered.map((p) => ({ ...p, sourceProvider: isGoogleMode ? 'google' : 'osm' })),
     });
   } catch (error) {
     if (typeof error === 'object' && error !== null && 'digest' in error) {
