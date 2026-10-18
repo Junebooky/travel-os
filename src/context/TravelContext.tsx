@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode, useCallback, useRef } from 'react';
 import { Country, Place, PlaceCategory, ExpenseRecord, ExchangeRateData } from '@/types/travel';
-import { COUNTRIES } from '@/data/countries';
+import { COUNTRIES, SELECTABLE_COUNTRIES } from '@/data/countries';
 import { t } from '@/lib/i18n';
 
 interface ToastInfo {
@@ -142,7 +142,7 @@ export function safeRemoveItem(key: string): boolean {
 function getInitialCountry(): Country {
   const code = safeGetItem(STORAGE_KEY_COUNTRY);
   if (code) {
-    const found = COUNTRIES.find((c) => c.code === code);
+    const found = SELECTABLE_COUNTRIES.find((c) => c.code === code) || COUNTRIES.find((c) => c.code === code);
     if (found) return found;
   }
   return COUNTRIES[0];

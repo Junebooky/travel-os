@@ -130,8 +130,8 @@ export default function CountryPickerModal({
           </p>
         </div>
 
-        {/* Middle Scrollable Country Grid (3 columns x 3 rows, 8 countries) */}
-        <div className="flex-1 overflow-y-auto px-4 py-4 min-h-0">
+        {/* Middle Scrollable Country Grid (3 columns x N rows) */}
+        <div className="flex-1 overflow-y-auto px-4 pt-3 pb-8 min-h-0 overscroll-contain scroll-smooth [WebkitOverflowScrolling:touch] [scrollbar-width:thin] [scrollbar-color:#D1D6DA_transparent] [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-[#D1D6DA] hover:[&::-webkit-scrollbar-thumb]:bg-[#8B95A1]">
           <div
             role="group"
             aria-label="여행지 선택 그리드"

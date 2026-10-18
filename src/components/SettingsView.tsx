@@ -3,7 +3,7 @@
 import React, { useState, useSyncExternalStore } from 'react';
 import Image from 'next/image';
 import { useTravel } from '@/context/TravelContext';
-import { COUNTRIES } from '@/data/countries';
+import { SELECTABLE_COUNTRIES } from '@/data/countries';
 import { t } from '@/lib/i18n';
 import SavedPlacesModal from './SavedPlacesModal';
 import CountryPickerModal from './CountryPickerModal';
@@ -274,7 +274,7 @@ export default function SettingsView() {
       {/* Country Picker Modal (P0 2-step confirmation) */}
       <CountryPickerModal
         isOpen={isCountryPickerOpen}
-        countries={COUNTRIES}
+        countries={SELECTABLE_COUNTRIES}
         selectedCode={country.code}
         onConfirm={(nextCountry) => {
           if (nextCountry.code !== country.code) {
