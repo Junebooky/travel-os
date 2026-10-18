@@ -148,8 +148,8 @@ export default function CountryPickerModal({
                   aria-label={`${c.name}${isSelected ? ', 선택 대기' : ''}`}
                   onClick={() => setDraftCountryCode(c.code)}
                   className={`relative flex flex-col items-center justify-between p-3 rounded-[20px] transition-all active:scale-[0.96] min-h-[128px] sm:min-h-[134px] bg-[#FFFFFF] outline-none focus-visible:ring-2 focus-visible:ring-[#1B64DA] ${isSelected
-                      ? 'border-2 border-[#1B64DA] shadow-xs'
-                      : 'border border-[#E5E8EB] hover:border-[#8B95A1]/50 hover:bg-[#F8FAFC]'
+                    ? 'border-2 border-[#1B64DA] shadow-xs'
+                    : 'border border-[#E5E8EB] hover:border-[#8B95A1]/50 hover:bg-[#F8FAFC]'
                     }`}
                 >
                   {/* Selected Solid Blue Badge with White Checkmark */}
@@ -178,7 +178,7 @@ export default function CountryPickerModal({
         </div>
 
         {/* Bottom Fixed Footer CTA (P0: Primary '여기로 여행갈까요?' directly above '닫기') */}
-        <div className="shrink-0 p-4 border-t border-[#E5E8EB] bg-[#FFFFFF] space-y-2.5 pb-[max(1.25rem,env(safe-area-inset-bottom))]">
+        <div className="shrink-0 p-4 bg-[#FFFFFF] space-y-2.5 pb-[max(1.25rem,env(safe-area-inset-bottom))]">
           {/* Primary Confirm CTA */}
           <button
             type="button"
