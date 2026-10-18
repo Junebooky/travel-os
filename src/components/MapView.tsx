@@ -36,6 +36,11 @@ import { MAP_CATEGORIES, normalizeCategory } from '@/lib/categories';
 import CameraMenuModal from '@/components/CameraMenuModal';
 import { MapProvider } from '@/types/travel';
 import { getActiveMapProvider, filterCompliantPlaces, isGoogleBillingApproved } from '@/lib/mapProvider';
+import {
+  loadGoogleMapsSdk,
+  getOrCreateGoogleMapInstance,
+  notifyGoogleMapResize,
+} from '@/lib/googleMapManager';
 
 const CATEGORY_ICONS: Record<string, React.ComponentType<{ className?: string }>> = {
   all: Compass,
@@ -77,7 +82,11 @@ function tileYToLat(y: number, zoom: number): number {
   return (180 / Math.PI) * Math.atan(0.5 * (Math.exp(n) - Math.exp(-n)));
 }
 
-export default function MapView() {
+interface MapViewProps {
+  isTabActive?: boolean;
+}
+
+export default function MapView({ isTabActive = true }: MapViewProps = {}) {
   const {
     country,
     activePlace,
@@ -107,13 +116,66 @@ export default function MapView() {
   );
   const [zoomLevel, setZoomLevel] = useState<number>(mapViewport?.zoom || 15);
 
+  const mapCenterRef = useRef(mapCenter);
+  useEffect(() => {
+    mapCenterRef.current = mapCenter;
+  }, [mapCenter]);
+
+  // Persistent Google Map DOM container and instance refs
+  const googleMapContainerRef = useRef<HTMLDivElement>(null);
+  const googleMapInstanceRef = useRef<unknown>(null);
+
+  // Tab activation & viewport resize observer
+  const prevTabActiveRef = useRef<boolean>(isTabActive);
+  useEffect(() => {
+    if (isTabActive && !prevTabActiveRef.current) {
+      if (containerRef.current) {
+        setDimensions({
+          width: containerRef.current.clientWidth || window.innerWidth,
+          height: containerRef.current.clientHeight || window.innerHeight,
+        });
+      }
+      if (googleMapInstanceRef.current) {
+        notifyGoogleMapResize(googleMapInstanceRef.current);
+      }
+    }
+    prevTabActiveRef.current = isTabActive;
+  }, [isTabActive]);
+
+  const [mapProvider, setMapProvider] = useState<MapProvider>(getActiveMapProvider);
+
+  // Google Maps SDK & Instance Loader (Single Instance lifecycle)
+  useEffect(() => {
+    if (mapProvider !== 'google') return;
+
+    let isCurrent = true;
+    async function initGoogleMap() {
+      const loadRes = await loadGoogleMapsSdk();
+      if (!isCurrent) return;
+
+      if (loadRes.success && googleMapContainerRef.current) {
+        const res = getOrCreateGoogleMapInstance(googleMapContainerRef.current, {
+          center: mapCenterRef.current,
+          zoom: zoomLevel,
+        });
+        if (res.instance) {
+          googleMapInstanceRef.current = res.instance;
+        }
+      }
+    }
+
+    initGoogleMap();
+    return () => {
+      isCurrent = false;
+    };
+  }, [mapProvider, zoomLevel]);
+
   // Drag interaction states
   const [isDragging, setIsDragging] = useState<boolean>(false);
   const [dragStart, setDragStart] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
   const [panOffset, setPanOffset] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
 
   const [apiPlaces, setApiPlaces] = useState<Place[] | null>(null);
-  const [mapProvider, setMapProvider] = useState<MapProvider>(getActiveMapProvider);
   const [isDemoMode, setIsDemoMode] = useState<boolean>(true);
   const [demoNotice, setDemoNotice] = useState<string>('');
   const [isSearchingPlaces, setIsSearchingPlaces] = useState<boolean>(false);
@@ -224,18 +286,19 @@ export default function MapView() {
     [country.code, mapProvider, setActivePlace, setMapViewport]
   );
 
-  // Load places when country, category, or mapProvider changes
+  // Load places when country, category, or mapProvider changes (decoupled from mapCenter to avoid unintended pan/zoom calls)
   useEffect(() => {
     let ignore = false;
     async function loadCategoryPlaces() {
       try {
+        const currentCenter = mapCenterRef.current;
         const params = new URLSearchParams({
           provider: mapProvider,
           country: country.code,
           category: normalizeCategory(selectedCategory),
           query: '',
-          lat: String(mapCenter.lat),
-          lng: String(mapCenter.lng),
+          lat: String(currentCenter.lat),
+          lng: String(currentCenter.lng),
         });
 
         const res = await fetch(`/api/places/search?${params.toString()}`);
@@ -256,7 +319,7 @@ export default function MapView() {
     return () => {
       ignore = true;
     };
-  }, [country.code, selectedCategory, mapCenter.lat, mapCenter.lng, mapProvider]);
+  }, [country.code, selectedCategory, mapProvider]);
 
   // Filtered places with strict Google ToS §14 compliance
   const filteredPlaces = useMemo(() => {
@@ -458,20 +521,31 @@ export default function MapView() {
             ))
           ) : (
             <div className="absolute inset-0 bg-[#E8ECEF] overflow-hidden">
+              {/* Persistent Google Map canvas container (attached once when SDK/mock available) */}
               <div
-                className="absolute inset-0 opacity-40 pointer-events-none"
-                style={{
-                  backgroundImage:
-                    'radial-gradient(#CBD5E1 1px, transparent 1px), linear-gradient(to right, #D8E0E8 1px, transparent 1px), linear-gradient(to bottom, #D8E0E8 1px, transparent 1px)',
-                  backgroundSize: '32px 32px, 128px 128px, 128px 128px',
-                }}
+                ref={googleMapContainerRef}
+                id="google-map-canvas"
+                data-testid="google-map-canvas"
+                className="absolute inset-0 w-full h-full"
               />
-              <div className="absolute bottom-20 left-4 pointer-events-none select-none opacity-90 flex items-center gap-1.5 bg-white/90 backdrop-blur-xs px-2.5 py-1 rounded-md shadow-xs border border-[#CBD5E1]">
-                <span className="w-2 h-2 rounded-full bg-[#1B64DA] animate-pulse" />
-                <span className="text-[11px] text-[#334155] font-semibold tracking-tight">
-                  Google 지도 연결 전 디자인 예시 (미승인 시뮬레이션)
-                </span>
-              </div>
+              {!isGoogleBillingApproved() && (
+                <>
+                  <div
+                    className="absolute inset-0 opacity-40 pointer-events-none"
+                    style={{
+                      backgroundImage:
+                        'radial-gradient(#CBD5E1 1px, transparent 1px), linear-gradient(to right, #D8E0E8 1px, transparent 1px), linear-gradient(to bottom, #D8E0E8 1px, transparent 1px)',
+                      backgroundSize: '32px 32px, 128px 128px, 128px 128px',
+                    }}
+                  />
+                  <div className="absolute bottom-20 left-4 pointer-events-none select-none opacity-90 flex items-center gap-1.5 bg-white/90 backdrop-blur-xs px-2.5 py-1 rounded-md shadow-xs border border-[#CBD5E1]">
+                    <span className="w-2 h-2 rounded-full bg-[#1B64DA] animate-pulse" />
+                    <span className="text-[11px] text-[#334155] font-semibold tracking-tight">
+                      Google 지도 연결 전 디자인 예시 (미승인 시뮬레이션)
+                    </span>
+                  </div>
+                </>
+              )}
             </div>
           )}
         </div>

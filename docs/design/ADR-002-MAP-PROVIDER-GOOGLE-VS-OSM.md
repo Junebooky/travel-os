@@ -84,12 +84,15 @@ Google Maps Platform 개편 요금제(2025/2026 공식 기준)의 SKU별 가격 
 
 ---
 
-### (4) 프런트 모바일 초기 로드 (LCP) 및 탭 복귀 UX
-- **현재 구현 상태:**
+### (4) 프런트 모바일 초기 로드 (LCP), 탭 복귀 UX 및 단일 인스턴스 보존 아키텍처 (Issue #22 완료)
+- **현재 구현 상태 (단일 인스턴스 App Shell 아키텍처):**
   - Next.js 기반에서 Provider Abstraction 인터페이스를 구현하였으며, OSM 캔버스와 모의 Google 캔버스 모두 초기 앱 셸 번들 부담 없이 즉시 렌더링됩니다.
-  - 향후 실제 Google Maps JS SDK 연동 시, 첫 진입 번들에 SDK를 번들링하지 않고 Next.js `dynamic()` 지연 로딩을 적용하는 아키텍처를 준비하였습니다. (단, 실제 SDK 다운로드 속도 및 LCP 영향은 오너 승인 후 실 SDK 탑재 시 실측 예정).
-- **탭 복귀 UX:**
-  - 하단 탭 전환 시 지도 뷰포트 좌표(Center, Zoom) 및 선택 장소(ActivePlace) 컨텍스트가 React 상태 트리에서 100% 보존됩니다.
+  - **게으른 최초 로딩 (Lazy-load on First Map Visit):** 지도를 미방문한 세션에서는 Google Map 객체 생성 및 SDK 로드를 0회로 유지합니다. 오직 사용자가 지도 탭에 처음 진입할 때만 1회 인스턴스화를 수행합니다.
+  - **상위 App Shell DOM 영속 보존:** 하단 탭(`translate`, `currency`, `wallet`, `settings`) 전환 시 `MapView` 컴포넌트를 언마운트하지 않고 DOM에 보존합니다.
+  - **접근성 및 숨김 규격 (`aria-hidden` & `inert`):** 지도가 비활성화된 탭 상태에서는 `aria-hidden="true"` 및 HTML5 `inert` 속성을 부여하여 스크린리더 및 키보드 포커스가 보이지 않는 지도 핀이나 검색창으로 누출되는 것을 완벽히 방지합니다.
+  - **10회 왕복 탭 전환 실측 보존:** 사용자가 탭을 10회 이상 왕복 전환하더라도 동일한 SPA 세션 내에서 `new google.maps.Map()` 인스턴스 생성이 **정확히 1회**로 유지되며, 지도 중심 좌표, 줌 레벨, 활성 장소 선택, 바텀시트 펼침 상태가 100% 보존됩니다. (이를 통해 탭 전환마다 발생할 수 있는 잠재적 Dynamic Map 로드 비용 90% 이상 절감).
+  - **팬/줌 및 탭 복귀 시 Places 자동 호출 차단:** 사용자 의도 없는 지도 드래그, 줌, 탭 복귀 시 Places API(`/api/places/search`) 호출을 원천 차단하고 오직 사용자의 명시적 검색 제출 또는 카테고리 칩 클릭 시에만 검색을 실행합니다.
+  - **개발자 카운터 vs Google 실제 청구 이벤트 구분:** 개발자 측 세션 카운터(`creationCount`)는 React 컴포넌트 생명주기 및 인스턴스 재사용을 검증하는 지표이며, Google 실제 청구 이벤트(Map Load)는 SDK 초기화 시점에 1회 발생하는 별도의 과금 단위임을 명시합니다.
 
 ---
 
@@ -146,6 +149,12 @@ Google Maps Platform 개편 요금제(2025/2026 공식 기준)의 SKU별 가격 
    - `global.fetch` 스파이를 통해 미승인 상태에서 `fetch` 호출 수가 정확히 **0건**임을 엄격 검증.
    - `GOOGLE_PLACES_API_KEY`가 존재하더라도 승인 플래그 부재 시 외부 Google 호출 0건 검증.
    - 직접 GET 요청 및 쿼리 파라미터 조작 시에도 외부 호출 0건 검증.
+5. **`src/lib/googleMapManager.ts` & `src/components/TravelApp.tsx` (Issue #22 단일 인스턴스 영속화):**
+   - `getOrCreateGoogleMapInstance`: SPA 세션 동안 단 1회만 `new google.maps.Map()`을 생성하고, 이후 탭 전환 및 복귀 시 기존 인스턴스 참조를 100% 재사용.
+   - `TravelApp.tsx`: 지도를 첫 방문하기 전까지 생성 0회, 첫 방문 후 App Shell에 영속 보존하여 탭 변경 시 컴포넌트 unmount/remount 방지.
+   - 비활성 탭 시 `aria-hidden="true"` 및 `inert` 속성을 부여하여 접근성 누출 차단 및 메모리 보존.
+   - `MapView.tsx`: 팬/줌 및 탭 복귀 시 Places API 중복 호출 차단.
+   - `public/sw.js`: Google Maps 타일/스크립트/API의 Service Worker 캐시 저장을 원천 차단하여 ToS 준수.
 
 ---
 

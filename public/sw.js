@@ -33,9 +33,14 @@ self.addEventListener('activate', (event) => {
 self.addEventListener('fetch', (event) => {
   const url = new URL(event.request.url);
 
-  // STRICT RULE: Never intercept or cache third-party map tiles, places APIs, or dynamic endpoints
+  // STRICT COMPLIANCE RULE (Google Maps Platform ToS & OpenStreetMap Usage Policy):
+  // Never intercept, store, or cache third-party map tiles (*.googleapis.com, *.gstatic.com, tile.openstreetmap.org),
+  // places APIs, or any dynamic API endpoints in Service Worker cache storage.
   if (
     url.origin !== self.location.origin ||
+    url.hostname.includes('googleapis.com') ||
+    url.hostname.includes('gstatic.com') ||
+    url.hostname.includes('openstreetmap.org') ||
     url.pathname.startsWith('/api/') ||
     event.request.method !== 'GET'
   ) {

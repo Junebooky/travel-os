@@ -23,6 +23,16 @@ export default function TravelApp() {
     () => false
   );
 
+  const [hasVisitedMap, setHasVisitedMap] = React.useState<boolean>(activeTab === 'map');
+  const [prevTab, setPrevTab] = React.useState<string>(activeTab);
+
+  if (activeTab !== prevTab) {
+    setPrevTab(activeTab);
+    if (activeTab === 'map' && !hasVisitedMap) {
+      setHasVisitedMap(true);
+    }
+  }
+
   if (!isMounted) {
     return (
       <div className="relative min-h-[100dvh] w-full max-w-md mx-auto bg-[#F2F4F6] text-[#191F28] shadow-2xl flex flex-col items-center justify-center">
@@ -51,8 +61,20 @@ export default function TravelApp() {
         <Onboarding />
       ) : (
         <>
-          <main className="flex-1 overflow-y-auto">
-            {activeTab === 'map' && <MapView />}
+          <main className="flex-1 overflow-y-auto relative">
+            {/* MapView persistent DOM container: lazy-loaded on first visit, preserved across 10+ tab switches */}
+            {hasVisitedMap && (
+              <div
+                id="persistent-map-container"
+                data-testid="persistent-map-container"
+                className={`w-full h-full ${activeTab === 'map' ? 'block' : 'hidden'}`}
+                aria-hidden={activeTab !== 'map'}
+                inert={activeTab !== 'map' ? true : undefined}
+                style={{ display: activeTab === 'map' ? 'block' : 'none' }}
+              >
+                <MapView isTabActive={activeTab === 'map'} />
+              </div>
+            )}
             {activeTab === 'translate' && <TranslateView />}
             {activeTab === 'currency' && <CurrencyView />}
             {activeTab === 'wallet' && <WalletView />}
