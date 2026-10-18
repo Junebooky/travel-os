@@ -1,5 +1,8 @@
 # A02 DIRECT IMPLEMENTATION PROMPT — Owner latest (2026-10-18 21:32 KST)
 
+> **[CURRENT SPEC / Settings country picker]** 오너가 제공한 입체 국기 카드 레퍼런스에 따라 설정의 "여행 설정 바꾸기" 모달을 새로 설계했습니다. **[09-country-picker.svg](./images/09-country-picker.svg)** · **[Country picker A02 implementation prompt](./A02-COUNTRY-PICKER-IMPLEMENTATION.md)**. 기존 8개 기본 화면은 유지하고 새 모달 상태 1개가 추가되어 현재 9개 시각 상태입니다. **SettingsView.tsx lines 253–291의 구형 세로 목록을 실제 React 코드에서 교체해야 하며, SVG만 업데이트한 상태는 구현 완료가 아닙니다.**
+
+
 > **A03 → A02(실코드 반영), A01(오너 현황)**  
 > **CURRENT INSTRUCTION, replaces the prior outdated dark-UI gap prompt at this exact path.**  
 > **Design:** https://github.com/Junebooky/travel-os/pull/18 (Draft; SVG/README only).  
