@@ -97,11 +97,7 @@ export default function CountryFlagIcon({
         {flagKey === 'KR' && (
           <>
             <rect width="32" height="32" fill="#FFFFFF" />
-            {/* Taegeuk Red & Blue */}
-            <path
-              d="M 8 16 A 8 8 0 0 1 24 16 A 4 4 0 0 0 16 16 A 4 4 0 0 1 8 16"
-              fill="#C83E4D"
-            />
+            {/* Taegeuk */}
             <path
               d="M 8 16 A 8 8 0 0 0 24 16 A 4 4 0 0 1 16 16 A 4 4 0 0 0 8 16"
               fill="#1753A6"

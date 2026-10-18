@@ -3,11 +3,11 @@
 import React, { useState, useSyncExternalStore } from 'react';
 import Image from 'next/image';
 import { useTravel } from '@/context/TravelContext';
-import { COUNTRIES, SUPPORTED_LANGUAGES } from '@/data/countries';
+import { COUNTRIES } from '@/data/countries';
 import { t } from '@/lib/i18n';
 import SavedPlacesModal from './SavedPlacesModal';
 import CountryPickerModal from './CountryPickerModal';
-import CountryFlagSphere from './CountryFlagSphere';
+import CountryFlagIcon from './CountryFlagIcon';
 import {
   Settings,
   ChevronRight,
@@ -58,8 +58,6 @@ export default function SettingsView() {
   const {
     country,
     setCountry,
-    targetLang,
-    localCurrency,
     savedPlaces,
     resetAllData,
     showToast,
@@ -127,7 +125,7 @@ export default function SettingsView() {
 
         {/* Middle-Left Country Flag & Info Overlay */}
         <div className="absolute left-4 sm:left-5 top-[38%] -translate-y-1/2 flex items-center gap-3 z-10">
-          <CountryFlagSphere countryCode={country.code} size={50} />
+          <CountryFlagIcon countryCode={country.code} size={50} />
           <div>
             <div className="font-black text-xl sm:text-2xl text-[#191F28] tracking-tight leading-none drop-shadow-[0_1px_2px_rgba(255,255,255,0.8)]">
               {country.name} ({country.code})

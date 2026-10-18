@@ -3,7 +3,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Check, Plane } from 'lucide-react';
 import { Country } from '@/types/travel';
-import CountryFlagSphere from './CountryFlagSphere';
+import CountryFlagIcon from './CountryFlagIcon';
 import { t } from '@/lib/i18n';
 
 export interface CountryPickerModalProps {
@@ -163,9 +163,9 @@ export default function CountryPickerModal({
                     </div>
                   )}
 
-                  {/* 3D Glossy Spherical Flag Icon */}
-                  <div className="w-full flex items-center justify-center pt-1 pb-1">
-                    <CountryFlagSphere countryCode={c.code} size={64} />
+                  {/* 2D Flag Icon */}
+                  <div className="w-full flex items-center justify-center pt-2 pb-2">
+                    <CountryFlagIcon countryCode={c.code} size={56} />
                   </div>
 
                   {/* Country Name */}
