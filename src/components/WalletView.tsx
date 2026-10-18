@@ -127,7 +127,7 @@ export default function WalletView() {
   };
 
   return (
-    <div className="min-h-screen bg-[#F2F4F6] text-[#191F28] pb-24 flex flex-col max-w-md mx-auto p-4 space-y-4">
+    <div className="min-h-screen bg-[#FFFFFF] text-[#191F28] pb-24 flex flex-col max-w-md mx-auto p-4 space-y-4">
       {/* Top Header */}
       <div className="flex items-center justify-between pt-2">
         <div>
@@ -158,7 +158,7 @@ export default function WalletView() {
               setPaymentMethodInput(undefined);
               setIsAddModalOpen(true);
             }}
-            className="py-2 px-3.5 bg-[#FFFFFF] hover:bg-[#F2F4F6] text-[#191F28] border border-[#E5E8EB] rounded-xl text-xs font-bold flex items-center gap-1 shadow-sm active:scale-95 transition-all"
+            className="py-2 px-3.5 bg-[#FFFFFF] hover:bg-[#F8FAFC] text-[#191F28] border border-[#E5E8EB] rounded-xl text-xs font-bold flex items-center gap-1 shadow-sm active:scale-95 transition-all"
           >
             <Plus className="w-4 h-4 text-[#1B64DA]" />
             {t('wallet.action.add')}
@@ -210,7 +210,7 @@ export default function WalletView() {
         </div>
 
         {hasUncalculatedExpenses && (
-          <div className="flex items-center justify-between text-[11px] text-[#4E5968] font-medium pt-1 border-t border-[#F2F4F6]">
+          <div className="flex items-center justify-between text-[11px] text-[#4E5968] font-medium pt-1 border-t border-[#E5E8EB]">
             <span>* {t('wallet.summary.partial')} {t('wallet.rate.not_available')}</span>
             <button
               type="button"
@@ -224,11 +224,11 @@ export default function WalletView() {
 
         {/* Category breakdown bar if expenses exist */}
         {expenses.length > 0 && (
-          <div className="pt-2 border-t border-[#F2F4F6] flex flex-wrap gap-1.5">
+          <div className="pt-2 border-t border-[#E5E8EB] flex flex-wrap gap-1.5">
             {Object.entries(categoryTotals).map(([cat, val]) => (
               <span
                 key={cat}
-                className="text-[10px] px-2.5 py-1 rounded-full bg-[#F2F4F6] text-[#4E5968] font-medium flex items-center gap-1"
+                className="text-[10px] px-2.5 py-1 rounded-full bg-[#FFFFFF] text-[#4E5968] font-medium flex items-center gap-1 border border-[#E5E8EB]"
               >
                 {getCategoryIcon(cat as PlaceCategory)}
                 {formatCurrency(val || 0, 'KRW')}
@@ -241,7 +241,7 @@ export default function WalletView() {
       {/* Empty State */}
       {expenses.length === 0 && (
         <div className="p-8 text-center bg-[#FFFFFF] border border-[#E5E8EB] rounded-2xl flex flex-col items-center justify-center space-y-2 shadow-sm">
-          <div className="w-12 h-12 rounded-full bg-[#F2F4F6] flex items-center justify-center text-[#8B95A1] mb-1">
+          <div className="w-12 h-12 rounded-full bg-[#FFFFFF] border border-[#E5E8EB] flex items-center justify-center text-[#8B95A1] mb-1 shadow-xs">
             <Wallet className="w-6 h-6 text-[#1B64DA]" />
           </div>
           <h3 className="text-sm font-bold text-[#191F28]">{t('wallet.empty.title')}</h3>
@@ -257,7 +257,7 @@ export default function WalletView() {
             className="p-3.5 bg-[#FFFFFF] border border-[#E5E8EB] rounded-2xl flex items-center justify-between hover:border-[#8B95A1] transition-all shadow-sm"
           >
             <div className="flex items-start space-x-3">
-              <div className="w-9 h-9 rounded-xl bg-[#F2F4F6] flex items-center justify-center shrink-0 mt-0.5">
+              <div className="w-9 h-9 rounded-xl bg-[#FFFFFF] border border-[#E5E8EB] flex items-center justify-center shrink-0 mt-0.5 shadow-xs">
                 {getCategoryIcon(item.category)}
               </div>
 
@@ -267,7 +267,7 @@ export default function WalletView() {
                     {item.placeName}
                   </h4>
                   {item.paymentMethod && item.paymentMethod !== 'unknown' && (
-                    <span className="text-[10px] px-1.5 py-0.2 rounded bg-[#F2F4F6] text-[#4E5968] flex items-center gap-0.5 font-medium">
+                    <span className="text-[10px] px-1.5 py-0.2 rounded bg-[#FFFFFF] text-[#4E5968] flex items-center gap-0.5 font-medium border border-[#E5E8EB]">
                       {item.paymentMethod === 'card' ? (
                         <CreditCard className="w-2.5 h-2.5 text-[#1B64DA]" />
                       ) : (
@@ -284,7 +284,7 @@ export default function WalletView() {
                 </p>
 
                 {item.memo && (
-                  <p className="text-[10px] text-[#4E5968] bg-[#F2F4F6] px-1.5 py-0.5 rounded italic truncate max-w-[190px]">
+                  <p className="text-[10px] text-[#4E5968] bg-[#FFFFFF] border border-[#E5E8EB] px-1.5 py-0.5 rounded italic truncate max-w-[190px]">
                     {item.memo}
                   </p>
                 )}
@@ -312,7 +312,7 @@ export default function WalletView() {
                 type="button"
                 onClick={() => setDeleteTargetId(item.id)}
                 aria-label={t('wallet.action.delete')}
-                className="p-1.5 text-[#8B95A1] hover:text-rose-600 hover:bg-[#F2F4F6] rounded-lg transition-colors"
+                className="p-1.5 text-[#8B95A1] hover:text-rose-600 hover:bg-[#F8FAFC] rounded-lg transition-colors"
               >
                 <Trash2 className="w-3.5 h-3.5" />
               </button>
@@ -335,7 +335,7 @@ export default function WalletView() {
               <button
                 type="button"
                 onClick={() => setIsAddModalOpen(false)}
-                className="p-2 text-[#8B95A1] hover:text-[#191F28] rounded-full hover:bg-[#F2F4F6]"
+                className="p-2 text-[#8B95A1] hover:text-[#191F28] rounded-full hover:bg-[#F8FAFC]"
                 aria-label={t('common.action.close')}
               >
                 <X className="w-5 h-5" />
@@ -357,12 +357,12 @@ export default function WalletView() {
                     placeholder="0"
                     value={amountInput}
                     onChange={(e) => setAmountInput(e.target.value)}
-                    className="flex-1 bg-[#F2F4F6] border border-[#E5E8EB] rounded-xl px-3.5 py-3 text-2xl font-bold text-[#191F28] focus:outline-none focus:ring-2 focus:ring-[#1B64DA]"
+                    className="flex-1 bg-[#FFFFFF] border border-[#E5E8EB] rounded-xl px-3.5 py-3 text-2xl font-bold text-[#191F28] focus:outline-none focus:ring-2 focus:ring-[#1B64DA]"
                   />
                   <select
                     value={currencyInput}
                     onChange={(e) => setCurrencyInput(e.target.value)}
-                    className="bg-[#F2F4F6] border border-[#E5E8EB] rounded-xl px-3 py-3 text-sm font-semibold text-[#191F28] focus:outline-none"
+                    className="bg-[#FFFFFF] border border-[#E5E8EB] rounded-xl px-3 py-3 text-sm font-semibold text-[#191F28] focus:outline-none"
                   >
                     <option value={localCurrency}>{localCurrency}</option>
                     <option value="KRW">KRW</option>
@@ -387,7 +387,7 @@ export default function WalletView() {
                     className={`min-h-[48px] rounded-xl font-bold text-sm transition-all flex items-center justify-center gap-1.5 border ${
                       paymentMethodInput === 'card'
                         ? 'bg-[#191F28] text-white border-[#191F28] shadow-sm'
-                        : 'bg-[#F2F4F6] text-[#4E5968] border-[#E5E8EB] hover:bg-[#E5E8EB]'
+                        : 'bg-[#FFFFFF] text-[#4E5968] border-[#E5E8EB] hover:bg-[#F8FAFC]'
                     }`}
                   >
                     <CreditCard className="w-4 h-4" />
@@ -402,7 +402,7 @@ export default function WalletView() {
                     className={`min-h-[48px] rounded-xl font-bold text-sm transition-all flex items-center justify-center gap-1.5 border ${
                       paymentMethodInput === 'cash'
                         ? 'bg-[#191F28] text-white border-[#191F28] shadow-sm'
-                        : 'bg-[#F2F4F6] text-[#4E5968] border-[#E5E8EB] hover:bg-[#E5E8EB]'
+                        : 'bg-[#FFFFFF] text-[#4E5968] border-[#E5E8EB] hover:bg-[#F8FAFC]'
                     }`}
                   >
                     <Banknote className="w-4 h-4" />
@@ -423,7 +423,7 @@ export default function WalletView() {
                     placeholder="상호명 또는 장소 입력"
                     value={placeNameInput}
                     onChange={(e) => setPlaceNameInput(e.target.value)}
-                    className="w-full bg-[#F2F4F6] border border-[#E5E8EB] rounded-xl px-3.5 py-2.5 text-xs text-[#191F28] focus:outline-none focus:ring-2 focus:ring-[#1B64DA] pl-8"
+                    className="w-full bg-[#FFFFFF] border border-[#E5E8EB] rounded-xl px-3.5 py-2.5 text-xs text-[#191F28] focus:outline-none focus:ring-2 focus:ring-[#1B64DA] pl-8"
                   />
                   <MapPin className="w-3.5 h-3.5 text-[#8B95A1] absolute left-2.5 top-3" />
                 </div>
@@ -437,7 +437,7 @@ export default function WalletView() {
                 <select
                   value={categoryInput}
                   onChange={(e) => setCategoryInput(e.target.value as PlaceCategory)}
-                  className="w-full bg-[#F2F4F6] border border-[#E5E8EB] rounded-xl px-3 py-2.5 text-xs font-medium text-[#191F28] focus:outline-none"
+                  className="w-full bg-[#FFFFFF] border border-[#E5E8EB] rounded-xl px-3 py-2.5 text-xs font-medium text-[#191F28] focus:outline-none"
                 >
                   <option value="food">식비 / 카페</option>
                   <option value="transit">교통</option>
@@ -458,7 +458,7 @@ export default function WalletView() {
                   placeholder={t('wallet.form.memo_placeholder')}
                   value={memoInput}
                   onChange={(e) => setMemoInput(e.target.value)}
-                  className="w-full bg-[#F2F4F6] border border-[#E5E8EB] rounded-xl px-3.5 py-2.5 text-xs text-[#191F28] focus:outline-none focus:ring-2 focus:ring-[#1B64DA]"
+                  className="w-full bg-[#FFFFFF] border border-[#E5E8EB] rounded-xl px-3.5 py-2.5 text-xs text-[#191F28] focus:outline-none focus:ring-2 focus:ring-[#1B64DA]"
                 />
               </div>
 
@@ -489,7 +489,7 @@ export default function WalletView() {
       {isClearAllOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-in fade-in duration-200">
           <div className="bg-[#FFFFFF] border border-[#E5E8EB] rounded-2xl w-full max-w-sm p-5 space-y-3 shadow-xl">
-            <div className="w-10 h-10 rounded-full bg-[#F2F4F6] text-[#4E5968] flex items-center justify-center mx-auto mb-1">
+            <div className="w-10 h-10 rounded-full bg-[#FFFFFF] border border-[#E5E8EB] text-[#4E5968] flex items-center justify-center mx-auto mb-1 shadow-xs">
               <AlertTriangle className="w-5 h-5 text-rose-600" />
             </div>
             <h3 className="text-sm font-bold text-center text-[#191F28]">
@@ -502,7 +502,7 @@ export default function WalletView() {
               <button
                 type="button"
                 onClick={() => setIsClearAllOpen(false)}
-                className="flex-1 py-2.5 bg-[#F2F4F6] hover:bg-[#E5E8EB] text-[#4E5968] rounded-xl text-xs font-semibold"
+                className="flex-1 py-2.5 bg-[#FFFFFF] hover:bg-[#F8FAFC] text-[#4E5968] rounded-xl text-xs font-semibold border border-[#E5E8EB]"
               >
                 {t('wallet.delete_all.cancel')}
               </button>
@@ -512,7 +512,7 @@ export default function WalletView() {
                   clearAllExpenses();
                   setIsClearAllOpen(false);
                 }}
-                className="flex-1 py-2.5 bg-rose-600 hover:bg-rose-500 text-white rounded-xl text-xs font-semibold"
+                className="flex-1 py-2.5 bg-rose-600 hover:bg-rose-500 text-white rounded-xl text-xs font-semibold shadow-xs"
               >
                 {t('wallet.delete_all.action')}
               </button>
@@ -525,7 +525,7 @@ export default function WalletView() {
       {deleteTargetId && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-in fade-in duration-200">
           <div className="bg-[#FFFFFF] border border-[#E5E8EB] rounded-2xl w-full max-w-sm p-5 space-y-3 shadow-xl">
-            <div className="w-10 h-10 rounded-full bg-[#F2F4F6] text-[#4E5968] flex items-center justify-center mx-auto mb-1">
+            <div className="w-10 h-10 rounded-full bg-[#FFFFFF] border border-[#E5E8EB] text-[#4E5968] flex items-center justify-center mx-auto mb-1 shadow-xs">
               <AlertTriangle className="w-5 h-5 text-rose-600" />
             </div>
             <h3 className="text-sm font-bold text-center text-[#191F28]">
@@ -538,7 +538,7 @@ export default function WalletView() {
               <button
                 type="button"
                 onClick={() => setDeleteTargetId(null)}
-                className="flex-1 py-2.5 bg-[#F2F4F6] hover:bg-[#E5E8EB] text-[#4E5968] rounded-xl text-xs font-semibold"
+                className="flex-1 py-2.5 bg-[#FFFFFF] hover:bg-[#F8FAFC] text-[#4E5968] rounded-xl text-xs font-semibold border border-[#E5E8EB]"
               >
                 {t('wallet.delete_all.cancel')}
               </button>
@@ -548,7 +548,7 @@ export default function WalletView() {
                   deleteExpense(deleteTargetId);
                   setDeleteTargetId(null);
                 }}
-                className="flex-1 py-2.5 bg-rose-600 hover:bg-rose-500 text-white rounded-xl text-xs font-semibold"
+                className="flex-1 py-2.5 bg-rose-600 hover:bg-rose-500 text-white rounded-xl text-xs font-semibold shadow-xs"
               >
                 {t('wallet.delete_one.action')}
               </button>

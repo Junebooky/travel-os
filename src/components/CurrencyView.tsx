@@ -14,6 +14,8 @@ import {
   X,
   Plus,
 } from 'lucide-react';
+import CountryFlagIcon from '@/components/CountryFlagIcon';
+import { SUPPORTED_CURRENCIES } from '@/data/countries';
 
 export const STORAGE_KEY_LAST_RATES = 'travel_os_last_rates_v1';
 export const MAX_RATE_AGE_MS = 7 * 24 * 60 * 60 * 1000; // 7 days
@@ -221,11 +223,18 @@ export default function CurrencyView() {
     }));
   }, [fromCurrency, currentRate]);
 
+  const getCurrencySymbol = (code: string) => {
+    return (
+      SUPPORTED_CURRENCIES.find((c) => c.code === code)?.symbol ||
+      (code === country.defaultCurrency ? country.currencySymbol : code)
+    );
+  };
+
   return (
-    <div className="min-h-screen bg-[#F2F4F6] text-[#191F28] pb-24 flex flex-col max-w-md mx-auto">
+    <div className="min-h-screen bg-[#FFFFFF] text-[#191F28] pb-24 flex flex-col max-w-md mx-auto">
       {/* Active Place Context Sticky Banner */}
       {activePlace && (
-        <div className="sticky top-0 z-30 bg-[#FFFFFF] border-b border-[#E5E8EB] px-4 py-2.5 flex items-center justify-between shadow-sm">
+        <div className="sticky top-0 z-30 bg-[#FFFFFF] border-b border-[#E5E8EB] px-4 py-2.5 flex items-center justify-between shadow-xs">
           <div className="flex items-center gap-2 min-w-0 pr-2">
             <MapPin className="w-4 h-4 text-[#1B64DA] shrink-0" />
             <span className="text-xs font-semibold text-[#191F28] truncate">
@@ -234,7 +243,7 @@ export default function CurrencyView() {
           </div>
           <button
             onClick={() => returnToMapWithPlace(activePlace)}
-            className="flex items-center gap-1 text-xs font-semibold text-[#4E5968] hover:text-[#191F28] bg-[#F2F4F6] hover:bg-[#E5E8EB] px-2.5 py-1.5 rounded-lg border border-[#E5E8EB] transition-all active:scale-95 shrink-0"
+            className="flex items-center gap-1 text-xs font-semibold text-[#4E5968] hover:text-[#191F28] bg-[#FFFFFF] hover:bg-[#F8FAFC] px-2.5 py-1.5 rounded-lg border border-[#E5E8EB] transition-all active:scale-95 shrink-0"
           >
             <ArrowLeft className="w-3.5 h-3.5" />
             <span>{t('currency.return_map')}</span>
@@ -244,37 +253,46 @@ export default function CurrencyView() {
 
       {/* Main Container */}
       <div className="p-4 space-y-4">
-        {/* Currency Selector Bar */}
-        <div className="bg-[#FFFFFF] border border-[#E5E8EB] rounded-2xl p-3.5 flex items-center justify-between shadow-sm">
-          <div className="flex-1 text-center">
-            <span className="text-[11px] font-medium text-[#8B95A1] block mb-0.5">
-              {t('currency.from.label')}
-            </span>
-            <span className="text-sm font-bold text-[#191F28]">
-              {fromCurrency} ({country.currencySymbol || fromCurrency})
-            </span>
+        {/* Currency Selector Bar (with Circular Flags) */}
+        <div className="bg-[#FFFFFF] border border-[#E5E8EB] rounded-2xl p-3.5 flex items-center justify-between shadow-xs">
+          {/* From Currency Side */}
+          <div className="flex-1 flex items-center gap-2.5 min-w-0">
+            <CountryFlagIcon currency={fromCurrency} size={28} />
+            <div className="min-w-0">
+              <span className="text-[11px] font-medium text-[#8B95A1] block leading-tight">
+                {t('currency.from.label')}
+              </span>
+              <span className="text-sm font-bold text-[#191F28] truncate block">
+                {fromCurrency} ({getCurrencySymbol(fromCurrency)})
+              </span>
+            </div>
           </div>
 
+          {/* Swap Button (min-h-[44px] min-w-[44px] pure white button) */}
           <button
             onClick={handleSwapCurrencies}
-            className="p-2.5 rounded-full bg-[#F2F4F6] hover:bg-[#E5E8EB] text-[#1B64DA] border border-[#E5E8EB] active:scale-90 transition-all shadow-sm mx-2"
+            className="w-11 h-11 min-w-[44px] min-h-[44px] rounded-full bg-[#FFFFFF] hover:bg-[#F8FAFC] text-[#1B64DA] border border-[#E5E8EB] active:scale-90 transition-all shadow-xs flex items-center justify-center shrink-0 mx-1"
             aria-label={t('currency.swap')}
           >
             <ArrowRightLeft className="w-4 h-4" />
           </button>
 
-          <div className="flex-1 text-center">
-            <span className="text-[11px] font-medium text-[#8B95A1] block mb-0.5">
-              {t('currency.to.label')}
-            </span>
-            <span className="text-sm font-bold text-[#191F28]">
-              {toCurrency} (₩)
-            </span>
+          {/* To Currency Side */}
+          <div className="flex-1 flex items-center justify-end gap-2.5 min-w-0 text-right">
+            <div className="min-w-0">
+              <span className="text-[11px] font-medium text-[#8B95A1] block leading-tight">
+                {t('currency.to.label')}
+              </span>
+              <span className="text-sm font-bold text-[#191F28] truncate block">
+                {toCurrency} ({getCurrencySymbol(toCurrency)})
+              </span>
+            </div>
+            <CountryFlagIcon currency={toCurrency} size={28} />
           </div>
         </div>
 
         {/* Input Amount Card */}
-        <div className="bg-[#FFFFFF] border border-[#E5E8EB] rounded-2xl p-4 shadow-sm space-y-3">
+        <div className="bg-[#FFFFFF] border border-[#E5E8EB] rounded-2xl p-4 shadow-xs space-y-3">
           <div className="flex items-center justify-between text-xs text-[#8B95A1] font-medium">
             <span>{t('currency.input.label')}</span>
             {inputAmount > 0 && (
@@ -300,12 +318,12 @@ export default function CurrencyView() {
           </div>
 
           {/* Quick Increment Chips */}
-          <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar pt-2 border-t border-[#F2F4F6]">
+          <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar pt-2 border-t border-[#E5E8EB]">
             {chipIncrements.map((chipVal) => (
               <button
                 key={chipVal}
                 onClick={() => handleAddAmount(chipVal)}
-                className="flex items-center gap-1 px-3 py-1.5 rounded-xl bg-[#F2F4F6] hover:bg-[#E5E8EB] text-[#191F28] text-xs font-semibold whitespace-nowrap border border-[#E5E8EB] active:scale-95 transition-all"
+                className="flex items-center gap-1 px-3 py-1.5 rounded-xl bg-[#FFFFFF] hover:bg-[#F8FAFC] text-[#191F28] text-xs font-semibold whitespace-nowrap border border-[#E5E8EB] active:scale-95 transition-all shadow-xs"
               >
                 <Plus className="w-3 h-3 text-[#1B64DA]" />
                 <span>{formatAmountNumber(chipVal, fromCurrency)}</span>
@@ -316,7 +334,7 @@ export default function CurrencyView() {
 
         {/* Real-time Converted Result Card or Error State */}
         {rateError || !currentRate ? (
-          <div className="bg-[#FFFFFF] border border-[#E5E8EB] rounded-2xl p-4 shadow-sm space-y-3">
+          <div className="bg-[#FFFFFF] border border-[#E5E8EB] rounded-2xl p-4 shadow-xs space-y-3">
             <div className="flex items-start gap-2.5">
               <AlertCircle className="w-5 h-5 text-[#4E5968] shrink-0 mt-0.5" />
               <div>
@@ -332,7 +350,7 @@ export default function CurrencyView() {
               <button
                 onClick={() => fetchRates()}
                 disabled={isLoading}
-                className="py-2 px-3 rounded-xl bg-[#F2F4F6] hover:bg-[#E5E8EB] text-[#191F28] text-xs font-semibold flex items-center gap-1.5 transition-all active:scale-95 disabled:opacity-50 border border-[#E5E8EB]"
+                className="py-2 px-3 rounded-xl bg-[#FFFFFF] hover:bg-[#F8FAFC] text-[#191F28] text-xs font-semibold flex items-center gap-1.5 transition-all active:scale-95 disabled:opacity-50 border border-[#E5E8EB]"
               >
                 <RefreshCw className={`w-3.5 h-3.5 ${isLoading ? 'animate-spin' : ''}`} />
                 <span>{t('currency.rate.retry')}</span>
@@ -340,13 +358,13 @@ export default function CurrencyView() {
             </div>
           </div>
         ) : (
-          <div className="bg-[#FFFFFF] border border-[#E5E8EB] rounded-2xl p-4 shadow-sm space-y-3">
+          <div className="bg-[#FFFFFF] border border-[#E5E8EB] rounded-2xl p-4 shadow-xs space-y-3">
             <div className="flex items-center justify-between text-xs font-semibold text-[#4E5968]">
               <span>{t('currency.title')}</span>
               <button
                 onClick={() => fetchRates(true)}
                 disabled={isLoading}
-                className="flex items-center gap-1 px-2.5 py-1 rounded-lg bg-[#F2F4F6] hover:bg-[#E5E8EB] text-[11px] text-[#4E5968] hover:text-[#191F28] border border-[#E5E8EB] transition-all active:scale-95 disabled:opacity-50"
+                className="flex items-center gap-1 px-2.5 py-1 rounded-lg bg-[#FFFFFF] hover:bg-[#F8FAFC] text-[11px] text-[#4E5968] hover:text-[#191F28] border border-[#E5E8EB] transition-all active:scale-95 disabled:opacity-50"
               >
                 <RefreshCw className={`w-3 h-3 ${isLoading ? 'animate-spin' : ''}`} />
                 <span>{t('currency.rate.retry')}</span>
@@ -370,13 +388,13 @@ export default function CurrencyView() {
 
             {/* Stale rate warning if applicable */}
             {rateData?.isStale && (
-              <div className="p-2.5 rounded-xl bg-[#F2F4F6] border border-[#E5E8EB] text-xs text-[#4E5968]">
+              <div className="p-2.5 rounded-xl bg-[#FFFFFF] border border-[#E5E8EB] text-xs text-[#4E5968]">
                 {t('currency.rate.stale_body', { rateDate: rateData.rateDate })}
               </div>
             )}
 
-            {/* Rate Breakdown Badges */}
-            <div className="p-3 rounded-xl bg-[#F2F4F6] border border-[#E5E8EB] space-y-1.5 text-xs">
+            {/* Rate Breakdown Badges (Without visible provider text) */}
+            <div className="p-3 rounded-xl bg-[#FFFFFF] border border-[#E5E8EB] space-y-1.5 text-xs shadow-xs">
               <div className="flex items-center justify-between text-[#191F28]">
                 <span className="text-[#8B95A1]">{t('currency.result.rate_label')}</span>
                 <span className="font-semibold text-[#191F28]">
@@ -386,7 +404,6 @@ export default function CurrencyView() {
 
               <div className="flex items-center justify-between text-[#8B95A1] text-[11px]">
                 <span>{t('currency.result.as_of', { rateDate: rateData?.rateDate || formatDate(new Date()) })}</span>
-                <span>{t('currency.result.source', { providerName: rateData?.provider || 'open.er-api' })}</span>
               </div>
             </div>
 
@@ -399,7 +416,7 @@ export default function CurrencyView() {
         )}
 
         {/* Quick Travel Budget Comparison Table */}
-        <div className="bg-[#FFFFFF] border border-[#E5E8EB] rounded-2xl p-4 shadow-sm space-y-2.5">
+        <div className="bg-[#FFFFFF] border border-[#E5E8EB] rounded-2xl p-4 shadow-xs space-y-2.5">
           <div className="flex items-center justify-between text-xs font-semibold text-[#4E5968]">
             <span className="flex items-center gap-1.5">
               <TrendingUp className="w-3.5 h-3.5 text-[#1B64DA]" />
@@ -413,7 +430,7 @@ export default function CurrencyView() {
               <div
                 key={row.base}
                 onClick={() => setInputAmount(row.base)}
-                className="py-2.5 flex items-center justify-between hover:bg-[#F2F4F6] px-1 rounded-lg cursor-pointer transition-colors"
+                className="py-2.5 flex items-center justify-between hover:bg-[#F8FAFC] px-1 rounded-lg cursor-pointer transition-colors"
               >
                 <span className="font-semibold text-[#191F28]">
                   {formatCurrency(row.base, fromCurrency)}

@@ -81,7 +81,7 @@ export default function Onboarding() {
   };
 
   return (
-    <div className="min-h-screen bg-[#F2F4F6] text-[#191F28] flex flex-col justify-between p-6 max-w-md mx-auto relative overflow-hidden">
+    <div className="min-h-screen bg-[#FFFFFF] text-[#191F28] flex flex-col justify-between p-6 max-w-md mx-auto relative overflow-hidden">
       {/* Header & Progress Indicator */}
       <div className="relative z-10 pt-2">
         <div className="flex items-center justify-between mb-4">
@@ -203,7 +203,7 @@ export default function Onboarding() {
                   </span>
                   <span className="text-sm font-semibold text-[#191F28]">한국어 (Korean)</span>
                 </div>
-                <span className="text-xs text-[#1B64DA] bg-[#F2F4F6] px-2 py-0.5 rounded border border-[#E5E8EB] font-medium">
+                <span className="text-xs text-[#1B64DA] bg-[#FFFFFF] px-2 py-0.5 rounded border border-[#E5E8EB] font-medium">
                   기본
                 </span>
               </div>
@@ -263,7 +263,7 @@ export default function Onboarding() {
                   </span>
                   <span className="text-sm font-semibold text-[#191F28]">대한민국 원 (KRW, ₩)</span>
                 </div>
-                <span className="text-xs text-[#1B64DA] bg-[#F2F4F6] px-2 py-0.5 rounded border border-[#E5E8EB] font-medium">
+                <span className="text-xs text-[#1B64DA] bg-[#FFFFFF] px-2 py-0.5 rounded border border-[#E5E8EB] font-medium">
                   기본
                 </span>
               </div>
@@ -286,7 +286,7 @@ export default function Onboarding() {
                         }`}
                       >
                         <div className="flex items-center gap-3">
-                          <span className="w-8 h-8 rounded-lg bg-[#F2F4F6] flex items-center justify-center font-bold text-[#191F28] text-sm">
+                          <span className="w-8 h-8 rounded-lg bg-[#FFFFFF] border border-[#E5E8EB] flex items-center justify-center font-bold text-[#191F28] text-sm">
                             {curr.symbol}
                           </span>
                           <div>
@@ -346,7 +346,7 @@ export default function Onboarding() {
 
               <button
                 onClick={handleFinish}
-                className="w-full bg-[#FFFFFF] hover:bg-[#F2F4F6] text-[#4E5968] font-medium py-3.5 px-4 rounded-xl border border-[#E5E8EB] transition-all active:scale-[0.98]"
+                className="w-full bg-[#FFFFFF] hover:bg-[#F8FAFC] text-[#4E5968] font-medium py-3.5 px-4 rounded-xl border border-[#E5E8EB] transition-all active:scale-[0.98]"
               >
                 {t('onboarding.location.not_now')}
               </button>
@@ -361,7 +361,7 @@ export default function Onboarding() {
           {step > 1 ? (
             <button
               onClick={handleBack}
-              className="flex-1 py-3 px-4 rounded-xl bg-[#FFFFFF] hover:bg-[#F2F4F6] text-[#4E5968] font-medium border border-[#E5E8EB] transition-all flex items-center justify-center gap-2 shadow-sm"
+              className="flex-1 py-3 px-4 rounded-xl bg-[#FFFFFF] hover:bg-[#F8FAFC] text-[#4E5968] font-medium border border-[#E5E8EB] transition-all flex items-center justify-center gap-2 shadow-sm"
             >
               <ArrowLeft className="w-4 h-4" />
               <span>{t('onboarding.back')}</span>

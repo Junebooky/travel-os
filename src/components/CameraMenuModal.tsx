@@ -257,7 +257,7 @@ export default function CameraMenuModal({ isOpen, onClose, initialPlace }: Camer
             <div>
               <h2 className="text-sm font-bold text-[#191F28] flex items-center gap-1.5">
                 {t('camera.title')}
-                <span className="text-[10px] px-1.5 py-0.5 rounded bg-[#F2F4F6] text-[#4E5968] font-mono">
+                <span className="text-[10px] px-1.5 py-0.5 rounded bg-[#FFFFFF] text-[#4E5968] font-mono border border-[#E5E8EB]">
                   B2·B3
                 </span>
               </h2>
@@ -273,7 +273,7 @@ export default function CameraMenuModal({ isOpen, onClose, initialPlace }: Camer
             type="button"
             onClick={onClose}
             aria-label={t('common.action.close')}
-            className="min-w-[44px] min-h-[44px] flex items-center justify-center text-[#8B95A1] hover:text-[#191F28] hover:bg-[#F2F4F6] rounded-lg transition-colors"
+            className="min-w-[44px] min-h-[44px] flex items-center justify-center text-[#8B95A1] hover:text-[#191F28] hover:bg-[#F8FAFC] rounded-lg transition-colors"
           >
             <X className="w-5 h-5" />
           </button>
@@ -297,11 +297,11 @@ export default function CameraMenuModal({ isOpen, onClose, initialPlace }: Camer
         />
 
         {/* Content Body */}
-        <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-[#F2F4F6]">
+        <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-[#FFFFFF]">
           {/* Top Actions: Take Photo / Upload */}
           {!imagePreview && (
             <div className="border-2 border-dashed border-[#E5E8EB] rounded-2xl p-6 flex flex-col items-center justify-center text-center space-y-3 bg-[#FFFFFF]">
-              <div className="w-14 h-14 rounded-full bg-[#F2F4F6] flex items-center justify-center text-[#1B64DA]">
+              <div className="w-14 h-14 rounded-full bg-[#FFFFFF] border border-[#E5E8EB] flex items-center justify-center text-[#1B64DA] shadow-xs">
                 <Camera className="w-7 h-7" />
               </div>
               <div>
@@ -321,7 +321,7 @@ export default function CameraMenuModal({ isOpen, onClose, initialPlace }: Camer
                 <button
                   type="button"
                   onClick={() => fileInputRef.current?.click()}
-                  className="flex-1 py-2.5 px-3 bg-[#FFFFFF] border border-[#E5E8EB] hover:bg-[#F2F4F6] text-[#191F28] rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 active:scale-95 transition-all"
+                  className="flex-1 py-2.5 px-3 bg-[#FFFFFF] border border-[#E5E8EB] hover:bg-[#F8FAFC] text-[#191F28] rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 active:scale-95 transition-all"
                 >
                   <Upload className="w-4 h-4 text-[#4E5968]" />
                   {t('camera.action.upload')}
@@ -339,7 +339,7 @@ export default function CameraMenuModal({ isOpen, onClose, initialPlace }: Camer
               </button>
 
               {/* Privacy Notice */}
-              <div className="flex items-start gap-1.5 text-[11px] text-[#4E5968] bg-[#F2F4F6] p-2.5 rounded-xl border border-[#E5E8EB] text-left w-full max-w-xs mt-1">
+              <div className="flex items-start gap-1.5 text-[11px] text-[#4E5968] bg-[#FFFFFF] p-2.5 rounded-xl border border-[#E5E8EB] text-left w-full max-w-xs mt-1 shadow-xs">
                 <AlertCircle className="w-3.5 h-3.5 text-[#8B95A1] shrink-0 mt-0.5" />
                 <div className="space-y-0.5">
                   <span className="block text-[#191F28] font-semibold">{t('camera.privacy.benefit')}</span>
@@ -383,7 +383,7 @@ export default function CameraMenuModal({ isOpen, onClose, initialPlace }: Camer
                     setMenuItems([]);
                     setReviewingItem(null);
                   }}
-                  className="px-2.5 py-1.5 bg-[#F2F4F6] hover:bg-[#E5E8EB] text-[#4E5968] rounded-lg text-xs flex items-center gap-1 transition-colors"
+                  className="px-2.5 py-1.5 bg-[#FFFFFF] hover:bg-[#F8FAFC] text-[#4E5968] rounded-lg text-xs flex items-center gap-1 transition-colors border border-[#E5E8EB]"
                 >
                   <RotateCcw className="w-3.5 h-3.5" />
                   {t('camera.action.rephoto')}
@@ -458,12 +458,12 @@ export default function CameraMenuModal({ isOpen, onClose, initialPlace }: Camer
                     </div>
                     <div className="flex items-center gap-1.5 shrink-0">
                       {(item.isDemo || isDemo) && (
-                        <span className="text-[10px] px-1.5 py-0.5 rounded bg-[#F2F4F6] text-[#4E5968] font-medium border border-[#E5E8EB]">
+                        <span className="text-[10px] px-1.5 py-0.5 rounded bg-[#FFFFFF] text-[#4E5968] font-medium border border-[#E5E8EB]">
                           {t('camera.sample_badge')}
                         </span>
                       )}
                       {item.confidence && (
-                        <span className="text-[10px] px-1.5 py-0.5 rounded bg-[#F2F4F6] text-[#8B95A1] font-mono">
+                        <span className="text-[10px] px-1.5 py-0.5 rounded bg-[#FFFFFF] text-[#8B95A1] font-mono border border-[#E5E8EB]">
                           {t('camera.preview.confidence_label', { confidencePercent: Math.round(item.confidence * 100) })}
                         </span>
                       )}
@@ -563,7 +563,7 @@ export default function CameraMenuModal({ isOpen, onClose, initialPlace }: Camer
                 </button>
               </div>
 
-              <div className="p-3 bg-[#F2F4F6] border border-[#E5E8EB] rounded-xl space-y-2">
+              <div className="p-3 bg-[#FFFFFF] border border-[#E5E8EB] rounded-xl space-y-2">
                 <p className="text-xs font-semibold text-[#4E5968]">
                   {t('wallet.form.confirm_source')}
                 </p>
@@ -604,7 +604,7 @@ export default function CameraMenuModal({ isOpen, onClose, initialPlace }: Camer
                 <button
                   type="button"
                   onClick={() => setReviewingItem(null)}
-                  className="flex-1 py-2 bg-[#F2F4F6] hover:bg-[#E5E8EB] text-[#4E5968] rounded-xl text-xs font-medium"
+                  className="flex-1 py-2 bg-[#FFFFFF] hover:bg-[#F8FAFC] text-[#4E5968] rounded-xl text-xs font-medium border border-[#E5E8EB]"
                 >
                   {t('wallet.form.cancel')}
                 </button>
@@ -629,7 +629,7 @@ export default function CameraMenuModal({ isOpen, onClose, initialPlace }: Camer
             <button
               type="button"
               onClick={handleReturnToMap}
-              className="py-2 px-3 bg-[#F2F4F6] hover:bg-[#E5E8EB] text-[#191F28] rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-colors border border-[#E5E8EB]"
+              className="py-2 px-3 bg-[#FFFFFF] hover:bg-[#F8FAFC] text-[#191F28] rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-colors border border-[#E5E8EB]"
             >
               <MapPin className="w-3.5 h-3.5 text-[#1B64DA]" />
               {t('camera.action.view_on_map')}

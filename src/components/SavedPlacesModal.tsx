@@ -61,7 +61,7 @@ export default function SavedPlacesModal({ isOpen, onClose }: { isOpen: boolean;
             <button
               type="button"
               onClick={onClose}
-              className="min-w-[44px] min-h-[44px] flex items-center justify-center rounded-full text-[#8B95A1] hover:text-[#191F28] hover:bg-[#F2F4F6] transition-colors"
+              className="min-w-[44px] min-h-[44px] flex items-center justify-center rounded-full text-[#8B95A1] hover:text-[#191F28] hover:bg-[#F8FAFC] transition-colors"
               aria-label={t('common.action.close')}
             >
               <X className="w-5 h-5" />
@@ -73,7 +73,7 @@ export default function SavedPlacesModal({ isOpen, onClose }: { isOpen: boolean;
         <div className="flex-1 overflow-y-auto space-y-2.5 pr-1 -mr-1">
           {savedPlaces.length === 0 ? (
             <div className="text-center py-16 space-y-3">
-              <div className="w-16 h-16 rounded-full bg-[#F2F4F6] flex items-center justify-center mx-auto text-[#8B95A1]">
+              <div className="w-16 h-16 rounded-full bg-[#FFFFFF] border border-[#E5E8EB] flex items-center justify-center mx-auto text-[#8B95A1] shadow-xs">
                 <Bookmark className="w-8 h-8" />
               </div>
               <div>
@@ -129,7 +129,7 @@ export default function SavedPlacesModal({ isOpen, onClose }: { isOpen: boolean;
                   </button>
                   <button
                     onClick={() => handleDirections(place)}
-                    className="flex-1 py-1.5 px-2.5 rounded-lg bg-[#F2F4F6] hover:bg-[#E5E8EB] text-[#191F28] text-xs font-semibold flex items-center justify-center gap-1 active:scale-95 transition-all border border-[#E5E8EB]"
+                    className="flex-1 py-1.5 px-2.5 rounded-lg bg-[#FFFFFF] hover:bg-[#F8FAFC] text-[#191F28] text-xs font-semibold flex items-center justify-center gap-1 active:scale-95 transition-all border border-[#E5E8EB]"
                   >
                     <ExternalLink className="w-3.5 h-3.5" />
                     <span>{t('saved.action.directions')}</span>
@@ -157,7 +157,7 @@ export default function SavedPlacesModal({ isOpen, onClose }: { isOpen: boolean;
             <div className="flex items-center gap-2 pt-2">
               <button
                 onClick={() => setIsConfirmDeleteAllOpen(false)}
-                className="flex-1 py-2 rounded-xl bg-[#F2F4F6] text-[#4E5968] font-medium text-xs hover:bg-[#E5E8EB] transition-colors"
+                className="flex-1 py-2 rounded-xl bg-[#FFFFFF] text-[#4E5968] font-medium text-xs hover:bg-[#F8FAFC] transition-colors border border-[#E5E8EB]"
               >
                 {t('saved.delete_all.cancel')}
               </button>

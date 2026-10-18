@@ -86,7 +86,7 @@ export default function SettingsView() {
   };
 
   return (
-    <div className="min-h-screen bg-[#F2F4F6] text-[#191F28] pb-24 flex flex-col max-w-md mx-auto p-4 space-y-4">
+    <div className="min-h-screen bg-[#FFFFFF] text-[#191F28] pb-24 flex flex-col max-w-md mx-auto p-4 space-y-4">
       {/* Settings Title */}
       <div className="pt-2">
         <h1 className="text-2xl font-extrabold tracking-tight text-[#191F28] mb-1">
@@ -105,7 +105,7 @@ export default function SettingsView() {
         </div>
 
         {/* Current Destination Country */}
-        <div className="flex items-center justify-between p-3.5 rounded-xl bg-[#F2F4F6] border border-[#E5E8EB]">
+        <div className="flex items-center justify-between p-3.5 rounded-xl bg-[#FFFFFF] border border-[#E5E8EB]">
           <div className="flex items-center gap-3">
             <span className="text-2xl">{country.flag}</span>
             <div>
@@ -119,7 +119,7 @@ export default function SettingsView() {
           </div>
           <button
             onClick={() => setIsCountryPickerOpen(true)}
-            className="text-xs font-bold text-[#1B64DA] hover:text-[#1652B5] bg-[#FFFFFF] hover:bg-[#F2F4F6] px-3 py-1.5 rounded-lg border border-[#E5E8EB] transition-all active:scale-95 shadow-sm"
+            className="text-xs font-bold text-[#1B64DA] hover:text-[#1652B5] bg-[#FFFFFF] hover:bg-[#F8FAFC] px-3 py-1.5 rounded-lg border border-[#E5E8EB] transition-all active:scale-95 shadow-sm"
           >
             {t('settings.travel.change')}
           </button>
@@ -127,13 +127,13 @@ export default function SettingsView() {
 
         {/* Current Language & Currency Quick Badges */}
         <div className="grid grid-cols-2 gap-2 text-xs">
-          <div className="p-3 rounded-xl bg-[#F2F4F6] border border-[#E5E8EB] space-y-1">
+          <div className="p-3 rounded-xl bg-[#FFFFFF] border border-[#E5E8EB] space-y-1">
             <span className="text-[#8B95A1] block font-medium">{t('settings.travel.language')}</span>
             <span className="font-bold text-[#191F28]">
               {SUPPORTED_LANGUAGES.find((l) => l.code === targetLang)?.name || targetLang}
             </span>
           </div>
-          <div className="p-3 rounded-xl bg-[#F2F4F6] border border-[#E5E8EB] space-y-1">
+          <div className="p-3 rounded-xl bg-[#FFFFFF] border border-[#E5E8EB] space-y-1">
             <span className="text-[#8B95A1] block font-medium">{t('settings.travel.currency')}</span>
             <span className="font-bold text-[#191F28]">
               {localCurrency} ({country.currencySymbol})
@@ -149,13 +149,13 @@ export default function SettingsView() {
           className="w-full flex items-center justify-between group text-left"
         >
           <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl bg-[#F2F4F6] border border-[#E5E8EB] flex items-center justify-center text-[#1B64DA]">
+            <div className="w-9 h-9 rounded-xl bg-[#FFFFFF] border border-[#E5E8EB] flex items-center justify-center text-[#1B64DA]">
               <Bookmark className="w-5 h-5" />
             </div>
             <div>
               <div className="font-bold text-sm text-[#191F28] flex items-center gap-2">
                 {t('saved.title')}
-                <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-[#F2F4F6] text-[#4E5968] border border-[#E5E8EB]">
+                <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-[#FFFFFF] text-[#4E5968] border border-[#E5E8EB]">
                   {savedPlaces.length}개
                 </span>
               </div>
@@ -176,7 +176,7 @@ export default function SettingsView() {
             <span>{t('pwa.install.title')}</span>
           </div>
           {isStandalone && (
-            <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-[#F2F4F6] text-[#191F28] border border-[#E5E8EB] flex items-center gap-1">
+            <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-[#FFFFFF] text-[#191F28] border border-[#E5E8EB] flex items-center gap-1">
               <Check className="w-3 h-3 text-[#1B64DA]" />
               <span>설치됨</span>
             </span>
@@ -221,7 +221,7 @@ export default function SettingsView() {
 
         <button
           onClick={() => setIsConfirmResetOpen(true)}
-          className="w-full py-2.5 px-3 rounded-xl bg-[#F2F4F6] hover:bg-[#E5E8EB] border border-[#E5E8EB] text-rose-600 text-xs font-bold flex items-center justify-center gap-1.5 transition-all active:scale-95"
+          className="w-full py-2.5 px-3 rounded-xl bg-[#FFFFFF] hover:bg-[#F8FAFC] border border-[#E5E8EB] text-rose-600 text-xs font-bold flex items-center justify-center gap-1.5 transition-all active:scale-95 shadow-xs"
         >
           <RotateCcw className="w-3.5 h-3.5" />
           <span>{t('settings.storage.clear_action')}</span>
@@ -268,8 +268,8 @@ export default function SettingsView() {
                   }}
                   className={`w-full flex items-center justify-between p-3 rounded-xl border text-left text-xs transition-all ${
                     country.code === c.code
-                      ? 'bg-[#F2F4F6] border-[#1B64DA] text-[#1B64DA] font-bold'
-                      : 'bg-[#FFFFFF] border-[#E5E8EB] text-[#4E5968] hover:bg-[#F2F4F6]'
+                      ? 'bg-[#FFFFFF] border-[#1B64DA] text-[#1B64DA] font-bold shadow-xs'
+                      : 'bg-[#FFFFFF] border-[#E5E8EB] text-[#4E5968] hover:bg-[#F8FAFC]'
                   }`}
                 >
                   <div className="flex items-center gap-2.5">
@@ -282,7 +282,7 @@ export default function SettingsView() {
             </div>
             <button
               onClick={() => setIsCountryPickerOpen(false)}
-              className="w-full py-2.5 rounded-xl bg-[#F2F4F6] text-[#4E5968] hover:text-[#191F28] text-xs font-bold hover:bg-[#E5E8EB]"
+              className="w-full py-2.5 rounded-xl bg-[#FFFFFF] text-[#4E5968] hover:text-[#191F28] text-xs font-bold hover:bg-[#F8FAFC] border border-[#E5E8EB]"
             >
               {t('common.action.close')}
             </button>
@@ -294,7 +294,7 @@ export default function SettingsView() {
       {isConfirmResetOpen && (
         <div className="fixed inset-0 z-60 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4">
           <div className="bg-[#FFFFFF] border border-[#E5E8EB] rounded-2xl p-5 max-w-xs w-full space-y-3 text-center shadow-2xl animate-in zoom-in-95">
-            <div className="w-12 h-12 rounded-full bg-[#F2F4F6] text-rose-600 flex items-center justify-center mx-auto">
+            <div className="w-12 h-12 rounded-full bg-[#FFFFFF] border border-[#E5E8EB] text-rose-600 flex items-center justify-center mx-auto shadow-xs">
               <AlertTriangle className="w-6 h-6" />
             </div>
             <h3 className="text-base font-extrabold text-[#191F28]">
@@ -306,7 +306,7 @@ export default function SettingsView() {
             <div className="flex items-center gap-2 pt-2">
               <button
                 onClick={() => setIsConfirmResetOpen(false)}
-                className="flex-1 py-2.5 rounded-xl bg-[#F2F4F6] text-[#4E5968] font-bold text-xs hover:bg-[#E5E8EB] transition-colors"
+                className="flex-1 py-2.5 rounded-xl bg-[#FFFFFF] text-[#4E5968] font-bold text-xs hover:bg-[#F8FAFC] transition-colors border border-[#E5E8EB]"
               >
                 {t('common.action.cancel')}
               </button>
@@ -315,7 +315,7 @@ export default function SettingsView() {
                   resetAllData();
                   setIsConfirmResetOpen(false);
                 }}
-                className="flex-1 py-2.5 rounded-xl bg-rose-600 text-white font-bold text-xs hover:bg-rose-500 transition-colors"
+                className="flex-1 py-2.5 rounded-xl bg-rose-600 text-white font-bold text-xs hover:bg-rose-500 transition-colors shadow-xs"
               >
                 {t('settings.storage.clear_confirm')}
               </button>

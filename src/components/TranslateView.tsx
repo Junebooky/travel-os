@@ -30,6 +30,8 @@ import {
 import { TRANSLATE_CATEGORIES, normalizeCategory } from '@/lib/categories';
 import VoiceChatModal from '@/components/VoiceChatModal';
 import CameraMenuModal from '@/components/CameraMenuModal';
+import CountryFlagIcon from '@/components/CountryFlagIcon';
+import { SUPPORTED_LANGUAGES } from '@/data/countries';
 
 const CATEGORY_ICONS: Record<string, React.ComponentType<{ className?: string }>> = {
   food: Utensils,
@@ -297,10 +299,10 @@ export default function TranslateView() {
   };
 
   return (
-    <div className="min-h-screen bg-[#F2F4F6] text-[#191F28] pb-24 flex flex-col max-w-md mx-auto">
+    <div className="min-h-screen bg-[#FFFFFF] text-[#191F28] pb-24 flex flex-col max-w-md mx-auto">
       {/* Active Place Context Sticky Banner */}
       {activePlace && (
-        <div className="sticky top-0 z-30 bg-[#FFFFFF] border-b border-[#E5E8EB] px-4 py-2.5 flex items-center justify-between shadow-sm">
+        <div className="sticky top-0 z-30 bg-[#FFFFFF] border-b border-[#E5E8EB] px-4 py-2.5 flex items-center justify-between shadow-xs">
           <div className="flex items-center gap-2 min-w-0 pr-2">
             <MapPin className="w-4 h-4 text-[#1B64DA] shrink-0" />
             <span className="text-xs font-semibold text-[#191F28] truncate">
@@ -309,7 +311,7 @@ export default function TranslateView() {
           </div>
           <button
             onClick={() => returnToMapWithPlace(activePlace)}
-            className="flex items-center gap-1 text-xs font-semibold text-[#4E5968] hover:text-[#191F28] bg-[#F2F4F6] hover:bg-[#E5E8EB] px-2.5 py-1.5 rounded-lg border border-[#E5E8EB] transition-all active:scale-95 shrink-0"
+            className="flex items-center gap-1 text-xs font-semibold text-[#4E5968] hover:text-[#191F28] bg-[#FFFFFF] hover:bg-[#F8FAFC] px-2.5 py-1.5 rounded-lg border border-[#E5E8EB] transition-all active:scale-95 shrink-0"
           >
             <ArrowLeft className="w-3.5 h-3.5" />
             <span>{t('translate.return_map')}</span>
@@ -319,37 +321,63 @@ export default function TranslateView() {
 
       {/* Main Container */}
       <div className="p-4 space-y-4">
-        {/* Language Selection Header */}
-        <div className="bg-[#FFFFFF] border border-[#E5E8EB] rounded-2xl p-3.5 flex items-center justify-between shadow-sm">
-          <div className="flex-1 text-center">
-            <span className="text-[11px] font-medium text-[#8B95A1] block mb-0.5">
-              {t('translate.source.label')}
-            </span>
-            <span className="text-sm font-bold text-[#191F28]">
-              {sourceLang === 'ko' ? '한국어' : sourceLang.toUpperCase()}
-            </span>
+        {/* Language Selection Header (with Circular Flags) */}
+        <div className="bg-[#FFFFFF] border border-[#E5E8EB] rounded-2xl p-3.5 flex items-center justify-between shadow-xs">
+          {/* Source Language Side */}
+          <div className="flex-1 flex items-center gap-2.5 min-w-0">
+            <CountryFlagIcon
+              lang={sourceLang}
+              countryCode={sourceLang === 'ko' ? 'KR' : country.code}
+              size={28}
+            />
+            <div className="min-w-0">
+              <span className="text-[11px] font-medium text-[#8B95A1] block leading-tight">
+                {t('translate.source.label')}
+              </span>
+              <span className="text-sm font-bold text-[#191F28] truncate block">
+                {sourceLang === 'ko'
+                  ? '한국어'
+                  : (SUPPORTED_LANGUAGES.find((l) => l.code === sourceLang)?.name ||
+                    (country.defaultLang === sourceLang
+                      ? `${country.name}어 (${sourceLang.toUpperCase()})`
+                      : sourceLang.toUpperCase()))}
+              </span>
+            </div>
           </div>
 
+          {/* Swap Button (min-h-[44px] min-w-[44px] pure white button) */}
           <button
             onClick={handleSwapLanguages}
-            className="p-2.5 rounded-full bg-[#F2F4F6] hover:bg-[#E5E8EB] text-[#1B64DA] border border-[#E5E8EB] active:scale-90 transition-all shadow-sm mx-2"
+            className="w-11 h-11 min-w-[44px] min-h-[44px] rounded-full bg-[#FFFFFF] hover:bg-[#F8FAFC] text-[#1B64DA] border border-[#E5E8EB] active:scale-90 transition-all shadow-xs flex items-center justify-center shrink-0 mx-1"
             aria-label={t('translate.language.swap')}
           >
             <ArrowRightLeft className="w-4 h-4" />
           </button>
 
-          <div className="flex-1 text-center">
-            <span className="text-[11px] font-medium text-[#8B95A1] block mb-0.5">
-              {t('translate.target.label')}
-            </span>
-            <span className="text-sm font-bold text-[#191F28]">
-              {targetLang === 'ko' ? '한국어' : `${country.name}어 (${targetLang.toUpperCase()})`}
-            </span>
+          {/* Target Language Side */}
+          <div className="flex-1 flex items-center justify-end gap-2.5 min-w-0 text-right">
+            <div className="min-w-0">
+              <span className="text-[11px] font-medium text-[#8B95A1] block leading-tight">
+                {t('translate.target.label')}
+              </span>
+              <span className="text-sm font-bold text-[#191F28] truncate block">
+                {targetLang === 'ko'
+                  ? '한국어'
+                  : (SUPPORTED_LANGUAGES.find((l) => l.code === targetLang)?.name
+                    ? `${SUPPORTED_LANGUAGES.find((l) => l.code === targetLang)?.name} (${targetLang.toUpperCase()})`
+                    : `${country.name}어 (${targetLang.toUpperCase()})`)}
+              </span>
+            </div>
+            <CountryFlagIcon
+              lang={targetLang}
+              countryCode={targetLang === 'ko' ? 'KR' : country.code}
+              size={28}
+            />
           </div>
         </div>
 
         {/* Input Text Box */}
-        <div className="relative bg-[#FFFFFF] border border-[#E5E8EB] rounded-2xl p-4 shadow-sm focus-within:ring-2 focus-within:ring-[#1B64DA]">
+        <div className="relative bg-[#FFFFFF] border border-[#E5E8EB] rounded-2xl p-4 shadow-xs focus-within:ring-2 focus-within:ring-[#1B64DA]">
           <div className="flex items-center justify-between mb-1.5">
             <span className="text-[11px] font-medium text-[#8B95A1]">
               {t('translate.input.label')}
@@ -373,11 +401,11 @@ export default function TranslateView() {
             className="w-full bg-transparent text-lg font-bold text-[#191F28] placeholder-[#8B95A1] resize-none focus:outline-none"
           />
 
-          <div className="flex justify-end pt-2 border-t border-[#F2F4F6]">
+          <div className="flex justify-end pt-2 border-t border-[#E5E8EB]">
             <button
               onClick={() => handleTranslate(inputText)}
               disabled={isLoading || !inputText.trim()}
-              className="w-full py-3 rounded-xl bg-[#1B64DA] hover:bg-[#1652B5] text-white font-bold text-sm shadow-sm flex items-center justify-center gap-1.5 active:scale-95 disabled:opacity-50 transition-all"
+              className="w-full py-3 rounded-xl bg-[#1B64DA] hover:bg-[#1652B5] text-white font-bold text-sm shadow-xs flex items-center justify-center gap-1.5 active:scale-95 disabled:opacity-50 transition-all"
             >
               <Send className="w-4 h-4" />
               <span>{isLoading ? t('translate.processing') : t('translate.action')}</span>
@@ -387,7 +415,7 @@ export default function TranslateView() {
 
         {/* Translation Error & Safety Card */}
         {errorMessage && (
-          <div className="bg-[#FFFFFF] border border-[#E5E8EB] rounded-2xl p-4 shadow-sm space-y-3">
+          <div className="bg-[#FFFFFF] border border-[#E5E8EB] rounded-2xl p-4 shadow-xs space-y-3">
             <div className="flex items-start gap-2.5">
               <AlertCircle className="w-4 h-4 text-[#4E5968] shrink-0 mt-0.5" />
               <div className="flex-1 min-w-0">
@@ -403,7 +431,7 @@ export default function TranslateView() {
             <div className="flex items-center gap-2 pt-1 border-t border-[#E5E8EB]">
               <button
                 onClick={() => handleTranslate(inputText)}
-                className="py-2 px-3 rounded-xl bg-[#F2F4F6] hover:bg-[#E5E8EB] text-[#191F28] text-xs font-semibold transition-all active:scale-95 border border-[#E5E8EB]"
+                className="py-2 px-3 rounded-xl bg-[#FFFFFF] hover:bg-[#F8FAFC] text-[#191F28] text-xs font-semibold transition-all active:scale-95 border border-[#E5E8EB]"
               >
                 {t('common.action.retry')}
               </button>
@@ -420,7 +448,7 @@ export default function TranslateView() {
                     <button
                       key={alt.id}
                       onClick={() => handleSelectPhrase(alt)}
-                      className="w-full text-left p-2.5 rounded-xl bg-[#F2F4F6] hover:bg-[#E5E8EB] border border-[#E5E8EB] text-xs transition-all text-[#191F28]"
+                      className="w-full text-left p-2.5 rounded-xl bg-[#FFFFFF] hover:bg-[#F8FAFC] border border-[#E5E8EB] text-xs transition-all text-[#191F28]"
                     >
                       <div className="font-semibold text-[#191F28]">{alt.korean}</div>
                       <div className="text-[11px] text-[#1B64DA]">{alt.translation}</div>
@@ -434,7 +462,7 @@ export default function TranslateView() {
 
         {/* Translation Result Card */}
         {translatedText && (
-          <div className="bg-[#FFFFFF] border border-[#E5E8EB] rounded-2xl p-4 shadow-sm space-y-3 relative overflow-hidden">
+          <div className="bg-[#FFFFFF] border border-[#E5E8EB] rounded-2xl p-4 shadow-xs space-y-3 relative overflow-hidden">
             <div className="flex items-center justify-between text-xs text-[#4E5968] font-semibold">
               <span className="flex items-center gap-1.5">
                 <Check className="w-3.5 h-3.5 text-[#1B64DA]" />
@@ -442,7 +470,7 @@ export default function TranslateView() {
               </span>
               <button
                 onClick={() => setIsFullscreenModalOpen(true)}
-                className="flex items-center gap-1 px-2.5 py-1 rounded-lg bg-[#F2F4F6] hover:bg-[#E5E8EB] border border-[#E5E8EB] text-[11px] text-[#4E5968] hover:text-[#191F28] transition-all active:scale-95"
+                className="flex items-center gap-1 px-2.5 py-1 rounded-lg bg-[#FFFFFF] hover:bg-[#F8FAFC] border border-[#E5E8EB] text-[11px] text-[#4E5968] hover:text-[#191F28] transition-all active:scale-95"
               >
                 <Maximize2 className="w-3 h-3" />
                 <span>{t('translate.result.large')}</span>
@@ -456,7 +484,7 @@ export default function TranslateView() {
 
             {/* Romanization / Pronunciation Guide */}
             {romanization && (
-              <div className="p-2.5 rounded-xl bg-[#F2F4F6] border border-[#E5E8EB] text-xs text-[#4E5968] font-medium">
+              <div className="p-2.5 rounded-xl bg-[#FFFFFF] border border-[#E5E8EB] text-xs text-[#4E5968] font-medium">
                 <span className="text-[10px] text-[#8B95A1] block mb-0.5">발음 안내</span>
                 {romanization}
               </div>
@@ -466,7 +494,7 @@ export default function TranslateView() {
             <div className="flex items-center gap-2 pt-2 border-t border-[#E5E8EB]">
               <button
                 onClick={() => handleSpeakText(translatedText, targetLang)}
-                className="flex-1 py-2.5 px-3 rounded-xl bg-[#F2F4F6] hover:bg-[#E5E8EB] text-[#191F28] font-semibold text-xs flex items-center justify-center gap-1.5 border border-[#E5E8EB] transition-all active:scale-95 shadow-sm"
+                className="flex-1 py-2.5 px-3 rounded-xl bg-[#FFFFFF] hover:bg-[#F8FAFC] text-[#191F28] font-semibold text-xs flex items-center justify-center gap-1.5 border border-[#E5E8EB] transition-all active:scale-95 shadow-xs"
               >
                 <Volume2 className="w-3.5 h-3.5 text-[#1B64DA]" />
                 <span>{t('translate.result.listen')}</span>
@@ -474,7 +502,7 @@ export default function TranslateView() {
 
               <button
                 onClick={() => handleCopyText(translatedText)}
-                className="flex-1 py-2.5 px-3 rounded-xl bg-[#F2F4F6] hover:bg-[#E5E8EB] text-[#191F28] font-semibold text-xs flex items-center justify-center gap-1.5 border border-[#E5E8EB] transition-all active:scale-95 shadow-sm"
+                className="flex-1 py-2.5 px-3 rounded-xl bg-[#FFFFFF] hover:bg-[#F8FAFC] text-[#191F28] font-semibold text-xs flex items-center justify-center gap-1.5 border border-[#E5E8EB] transition-all active:scale-95 shadow-xs"
               >
                 <Copy className="w-3.5 h-3.5 text-[#4E5968]" />
                 <span>{t('translate.result.copy')}</span>
@@ -484,7 +512,7 @@ export default function TranslateView() {
         )}
 
         {/* Track B Features Launcher Row (Clean Neutral Card Style) */}
-        <div className="bg-[#FFFFFF] border border-[#E5E8EB] rounded-2xl p-3.5 shadow-sm space-y-2">
+        <div className="bg-[#FFFFFF] border border-[#E5E8EB] rounded-2xl p-3.5 shadow-xs space-y-2">
           <div className="text-xs font-semibold text-[#8B95A1] px-1">
             다른 방식
           </div>
@@ -492,7 +520,7 @@ export default function TranslateView() {
             <button
               type="button"
               onClick={() => setIsVoiceModalOpen(true)}
-              className="p-3 bg-[#F2F4F6] hover:bg-[#E5E8EB] border border-[#E5E8EB] rounded-xl flex items-center space-x-2.5 text-left transition-all active:scale-95"
+              className="p-3 bg-[#FFFFFF] hover:bg-[#F8FAFC] border border-[#E5E8EB] rounded-xl flex items-center space-x-2.5 text-left transition-all active:scale-95 shadow-xs"
             >
               <div className="w-8 h-8 rounded-lg bg-[#FFFFFF] text-[#1B64DA] flex items-center justify-center shrink-0 border border-[#E5E8EB]">
                 <Mic className="w-4 h-4" />
@@ -508,7 +536,7 @@ export default function TranslateView() {
             <button
               type="button"
               onClick={() => setIsCameraModalOpen(true)}
-              className="p-3 bg-[#F2F4F6] hover:bg-[#E5E8EB] border border-[#E5E8EB] rounded-xl flex items-center space-x-2.5 text-left transition-all active:scale-95"
+              className="p-3 bg-[#FFFFFF] hover:bg-[#F8FAFC] border border-[#E5E8EB] rounded-xl flex items-center space-x-2.5 text-left transition-all active:scale-95 shadow-xs"
             >
               <div className="w-8 h-8 rounded-lg bg-[#FFFFFF] text-[#1B64DA] flex items-center justify-center shrink-0 border border-[#E5E8EB]">
                 <Camera className="w-4 h-4" />
