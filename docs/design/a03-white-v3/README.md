@@ -5,9 +5,21 @@
 > **기준 코드:** Track B [PR #11](https://github.com/Junebooky/travel-os/pull/11) HEAD `277e9b97b0a8848db99318b76c8c4a4e17ec47a3` (owner screenshot local checkout SHA not independently checked) (당시 open/unmerged).  
 > **의미:** 아래 이미지는 **디자인 목적의 SVG 목업**이며 실제 실행 화면/QA 스크린샷이 아닙니다. 이미지 속 금액·장소·환율 기준일은 시각 설명을 위한 **가상 예시**입니다.
 
+## 🔵 CURRENT 2026-10-18 · 설정 → 여행 설정 바꾸기 국가 선택 모달 새 UI
+
+**오너 업로드 레퍼런스 기반 현재 디자인:** [09-country-picker.svg](./images/09-country-picker.svg) · [전체 9개 상태 스토리보드](./white-ui-v3-overview.svg) · **[A02 실제 구현 전용 명세/프롬프트](./A02-COUNTRY-PICKER-IMPLEMENTATION.md)**.
+
+- **변경 대상은 기존 설정 화면의 국가 선택 팝업뿐:** 현재 `SettingsView.tsx` 253–291행의 작고 세로로 긴 국가 선택 리스트를 **모바일 전체 화면 흰색 3열 국가 카드 UI**로 교체.
+- **보여줄 8개 국가(현재 `COUNTRIES` 순서 보존):** 일본 · 미국 · 프랑스 / 대만 · 태국 · 베트남 / 영국 · 이탈리아 · (빈칸). 진짜 9번째 국가를 만들지 않음.
+- **레퍼런스 요소:** `TRAVEL OS` 작게 → 큰 제목 "**여행할 나라를 선택하세요**" → 부제 "**어디로 떠나시나요?**" → 그림자/광택 있는 **입체적인 구형 국가 국기 SVG** → 현재 선택국에 브랜드 블루 `#1B64DA` 2px 테두리+우상단 체크 → 화면 하단 순백 테두리 "**닫기**".
+- 이전 고객 요구대로 페이지·카드는 **`#FFFFFF`**. 카드 외곽선은 **`#E5E8EB`** 1px(흰색 바탕에서 구분 필요) 허용. 국가 국기의 고유 색만 콘텐츠 예외. 회색·파스텔 블루 채움 배경/주황 브랜드 강조 금지.
+- **동작 보존:** 현재 `COUNTRIES.map`과 `setCountry(c)`, 저장/언어/통화/지도 업데이트, 선택 후 자동 닫기/실제 성공 토스트를 유지. `닫기`는 변경 없이 dismiss. 선택 상태는 현재 `country.code` 동기화(일본만 고정 X), 키보드/스크린리더/200% 확대·safe area 검증.
+- **버전 처리:** 기존 `08-settings.svg`는 부모 설정 탭 시안으로 유지, **새로운 독립 모달 상태** `09-country-picker.svg` 추가. 기존 실제 코드의 낡은 세로 팝업은 **SUPERSEDED**. 8개 기본 상태 + 1개 모달 = 9개 현재 디자인 상태. GitHub 기존 파일 별도 v4/old 복제 없음. PR #11 실제 코드 구현은 **A02 담당 / 현재 별도**.
+
+---
 ## 2026-10-18 오너 최종 개정 — **PURE WHITE + FLAG SELECTORS + NO VISIBLE PROVIDER LABEL**
 
-**이 섹션은 이전 토큰 설명보다 우선하는 최신 운영 계약이며 최신 8개 SVG에 반영됨.**
+**이 색상 섹션은 이전 토큰 설명보다 우선하는 적용 계약이며 최신 8개 SVG에 반영됨.**
 
 1. **모든 앱 UI 배경·표면은 `#FFFFFF`.** 이전 회색 표면 색상(`rgb(242,244,246)`)을 **화면·필드·보조 버튼·안내/오류 카드에서 모두 사용 금지**. 카드/입력/제어는 흰색 면 위에 **필요한 경우 `border border-[#E5E8EB]`**와 간격·타이포로 구분. 브랜드 블루는 기존대로 **`#1B64DA` 한 색**(옅은 파랑 음영 금지). 텍스트 `#191F28` / `#4E5968`.
 2. **번역 언어 선택 바:** 현재 원본 사용자 레퍼런스처럼 `bg-[#FFFFFF] border border-[#E5E8EB] rounded-2xl p-3.5 flex items-center justify-between shadow-sm`. 왼쪽 `[원형 한국 국기] 원문 언어·한국어 ▾`, 가운데 `⇄` 스왑(최소 44px 히트 영역), 오른쪽 `[원형 태국 국기] 번역 언어·태국어 (TH) ▾`. 언어코드·선택한 여행 국가에 따라 **국기와 실제 라벨 함께 동기화**. 고정 한국어/태국어 하드코딩 금지. 같은 언어끼리 스왑할 때 잘못된 번역 결과 노출 금지. [실제 수정 이미지](./images/02-translate.svg).
@@ -72,6 +84,7 @@
 | 06 | [여행 지갑](./images/06-wallet.svg) | `src/components/WalletView.tsx` | 상단 `+ 기록`; 금액→날짜별 내역 연속. 미환산 N건은 요약에 바로 가시화 |
 | 07 | [지출 입력](./images/07-expense.svg) | `WalletView.tsx`, `src/context/TravelContext.tsx` | OCR 후보/수동 금액 수정 → 최종 버튼 → **기기 저장 확인** 후에만 합계 반영 |
 | 08 | [설정](./images/08-settings.svg) | `SettingsView.tsx` | 여행 기본 설정·저장 장소·오프라인 이용·데이터 삭제를 명확히 분리 |
+| 09 | **[국가 선택 모달](./images/09-country-picker.svg)** | **`SettingsView.tsx` 253–291 → `CountryPickerModal.tsx` 제안** | 오너 레퍼런스: 전체화면·3열·8개 구형 국기·선택/닫기/모바일 safe-area |
 
 개발자가 이 문서/이미지를 복사해 실행 가능한 앱으로 오해하지 않도록 **화면 스타일 명세와 실제 수용 동작을 분리**했습니다.
 
