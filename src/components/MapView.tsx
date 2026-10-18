@@ -466,14 +466,11 @@ export default function MapView() {
                   backgroundSize: '32px 32px, 128px 128px, 128px 128px',
                 }}
               />
-              <div className="absolute bottom-20 left-4 pointer-events-none select-none opacity-80 flex items-center gap-1.5 bg-white/80 backdrop-blur-xs px-2.5 py-1 rounded-md shadow-xs border border-[#E5E8EB]">
-                <span className="text-[14px] font-bold tracking-tight text-[#4285F4]">G</span>
-                <span className="text-[14px] font-bold tracking-tight text-[#EA4335]">o</span>
-                <span className="text-[14px] font-bold tracking-tight text-[#FBBC05]">o</span>
-                <span className="text-[14px] font-bold tracking-tight text-[#4285F4]">g</span>
-                <span className="text-[14px] font-bold tracking-tight text-[#34A853]">l</span>
-                <span className="text-[14px] font-bold tracking-tight text-[#EA4335]">e</span>
-                <span className="text-[10px] text-[#4E5968] ml-1 font-medium">Maps (Unbilled Preview)</span>
+              <div className="absolute bottom-20 left-4 pointer-events-none select-none opacity-90 flex items-center gap-1.5 bg-white/90 backdrop-blur-xs px-2.5 py-1 rounded-md shadow-xs border border-[#CBD5E1]">
+                <span className="w-2 h-2 rounded-full bg-[#1B64DA] animate-pulse" />
+                <span className="text-[11px] text-[#334155] font-semibold tracking-tight">
+                  Google 지도 연결 전 디자인 예시 (미승인 시뮬레이션)
+                </span>
               </div>
             </div>
           )}
@@ -668,10 +665,10 @@ export default function MapView() {
             className="flex items-start sm:items-center gap-2 px-3 py-2 rounded-xl bg-[#FFFFFF] border border-[#E5E8EB] shadow-sm text-xs text-[#4E5968]"
           >
             <span className="px-1.5 py-0.5 rounded font-bold bg-[#E8F3FF] text-[#1B64DA] border border-[#B9D9FE] shrink-0 text-[11px]">
-              Google 모드
+              디자인 예시
             </span>
             <span className="text-[#4E5968] text-xs leading-relaxed break-keep">
-              과금 미승인 · 시뮬레이션 모드 (외부 유료 SDK 호출 차단 · $0.00 보호 중)
+              Google 지도 연결 전 디자인 예시 (과금 미승인 · 외부 API 호출 차단)
             </span>
           </div>
         ) : isDemoMode ? (
@@ -770,7 +767,7 @@ export default function MapView() {
         ) : (
           <div className="px-2.5 py-1 rounded bg-[#FFFFFF]/90 text-[10px] text-[#4E5968] border border-[#E5E8EB] flex items-center gap-1 shadow-sm">
             <Info className="w-3 h-3" />
-            <span>Map data © Google</span>
+            <span>Google 지도 연결 전 디자인 예시</span>
           </div>
         )}
       </div>

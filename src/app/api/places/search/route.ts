@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { COUNTRIES } from '@/data/countries';
 import { Place, PlaceCategory } from '@/types/travel';
 import { normalizeCategory } from '@/lib/categories';
+import { isGooglePlacesCallAllowed, getServerGooglePlacesApiKey } from '@/lib/mapProvider';
 
 interface GooglePlaceItem {
   place_id?: string;
@@ -99,15 +100,18 @@ export async function GET(req: NextRequest) {
       'osm'
     ) as 'google' | 'osm';
 
-    const googleApiKey =
-      process.env.GOOGLE_MAPS_API_KEY ||
-      process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY ||
-      process.env.GOOGLE_PLACES_API_KEY;
+    const serverGoogleApiKey = getServerGooglePlacesApiKey();
+    const isGoogleCallPermitted =
+      requestedProvider === 'google' &&
+      isGooglePlacesCallAllowed() &&
+      Boolean(serverGoogleApiKey);
 
     // 1. Google Places API (New & Legacy support)
-    // STRICT ToS §14 CHECK: Google Places API is ONLY queried if requestedProvider is 'google'.
-    // If provider is 'osm', Google Places Content is NEVER retrieved or overlaid on OSM map tiles.
-    if (requestedProvider === 'google' && googleApiKey) {
+    // STRICT P0 ZERO-COST GATE: Outbound Google Places API calls are ONLY permitted when:
+    // a) requestedProvider === 'google' (preventing ToS §14 violations on non-Google maps)
+    // b) GOOGLE_MAPS_BILLING_APPROVED === 'true' (authoritative server-side owner approval)
+    // c) GOOGLE_PLACES_API_KEY is explicitly configured (server-side secret isolation)
+    if (isGoogleCallPermitted && serverGoogleApiKey) {
       try {
         // A. Primary: Google Places API (New)
         if (query) {
@@ -131,7 +135,7 @@ export async function GET(req: NextRequest) {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
-              'X-Goog-Api-Key': googleApiKey,
+              'X-Goog-Api-Key': serverGoogleApiKey,
               'X-Goog-FieldMask':
                 'places.id,places.displayName,places.formattedAddress,places.location,places.rating,places.userRatingCount,places.types,places.primaryTypeDisplayName',
             },
@@ -174,7 +178,7 @@ export async function GET(req: NextRequest) {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
-              'X-Goog-Api-Key': googleApiKey,
+              'X-Goog-Api-Key': serverGoogleApiKey,
               'X-Goog-FieldMask':
                 'places.id,places.displayName,places.formattedAddress,places.location,places.rating,places.userRatingCount,places.types,places.primaryTypeDisplayName',
             },
@@ -225,7 +229,7 @@ export async function GET(req: NextRequest) {
           const locationParam = lat && lng ? `&location=${lat},${lng}&radius=10000` : '';
           const googleUrl = `https://maps.googleapis.com/maps/api/place/textsearch/json?query=${encodeURIComponent(
             query
-          )}${locationParam}&language=ko&key=${googleApiKey}`;
+          )}${locationParam}&language=ko&key=${serverGoogleApiKey}`;
 
           const res = await fetch(googleUrl);
           if (res.ok) {
@@ -263,9 +267,9 @@ export async function GET(req: NextRequest) {
     }
 
     // 2. OpenStreetMap / Nominatim live geocoded search
-    // Strictly used for EXPLICIT SEARCH SUBMISSIONS (not keystroke autocomplete)
+    // Strictly used for EXPLICIT SEARCH SUBMISSIONS in OSM mode (not keystroke autocomplete)
     // Server enforces: 1req/sec global throttle, 1hr caching, and compliant User-Agent
-    if (query && query.length >= 2) {
+    if (requestedProvider === 'osm' && query && query.length >= 2) {
       const cacheKey = `${query.toLowerCase()}#${category}#${countryCode}`;
       const cached = nominatimCache.get(cacheKey);
 
@@ -363,20 +367,23 @@ export async function GET(req: NextRequest) {
       );
     }
 
-    const hasGoogleKey = Boolean(googleApiKey);
+    const hasServerGoogleKey = Boolean(serverGoogleApiKey);
     const isGoogleMode = requestedProvider === 'google';
+    const isApproved = isGooglePlacesCallAllowed();
     return NextResponse.json({
       success: true,
       isDemo: true,
       provider: isGoogleMode
-        ? (hasGoogleKey ? '추천 장소 (Google Places 연동)' : '추천 장소 (Google 데모)')
+        ? (isApproved && hasServerGoogleKey
+            ? '추천 장소 (Google Places 연동)'
+            : '추천 장소 (과금 미승인 모의)')
         : '추천 장소 (OpenStreetMap)',
       demoNotice: isGoogleMode
-        ? (hasGoogleKey
+        ? (isApproved && hasServerGoogleKey
             ? (query ? '검색 결과가 없어 추천 장소를 표시하고 있습니다.' : 'Google Places API 연동 완료 · 추천 장소를 표시하고 있습니다.')
-            : 'Google Maps API 키가 설정되지 않아 데모 추천 데이터를 표시하고 있습니다.')
+            : 'Google Maps 과금 미승인 · 외부 유료 API 호출이 안전하게 차단되었습니다.')
         : 'Google Maps API 키 미설정 · OpenStreetMap 실지형 타일 및 추천 데이터를 표시하고 있습니다.',
-      attribution: isGoogleMode ? 'Google Maps Platform' : '© OpenStreetMap contributors',
+      attribution: isGoogleMode ? 'Travel OS Safe Mock (No Outbound Billable Calls)' : '© OpenStreetMap contributors',
       places: filtered.map((p) => ({ ...p, sourceProvider: isGoogleMode ? 'google' : 'osm' })),
     });
   } catch (error) {

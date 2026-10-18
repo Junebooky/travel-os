@@ -13,15 +13,40 @@ export function getActiveMapProvider(): MapProvider {
 }
 
 /**
- * Checks whether the project owner has explicitly approved Google Maps billing.
- * Without explicit owner approval ('true'), live Google Maps JS SDK network calls
- * and billable Map Loads are strictly prevented.
+ * Client-side check for UI indicator.
+ * Strictly used for display/mock banners in the browser.
  */
 export function isGoogleBillingApproved(): boolean {
-  return (
-    process.env.NEXT_PUBLIC_GOOGLE_MAPS_BILLING_APPROVED === 'true' ||
-    process.env.GOOGLE_MAPS_BILLING_APPROVED === 'true'
-  );
+  return process.env.NEXT_PUBLIC_GOOGLE_MAPS_BILLING_APPROVED === 'true';
+}
+
+/**
+ * Server-side authoritative billing approval check.
+ * Strictly checks the private server environment variable GOOGLE_MAPS_BILLING_APPROVED.
+ * Does NOT trust client-side or NEXT_PUBLIC_* variables for authorizing backend outbound billing calls.
+ */
+export function isServerGoogleBillingApproved(): boolean {
+  return process.env.GOOGLE_MAPS_BILLING_APPROVED === 'true';
+}
+
+/**
+ * Server-side Places API Key resolver.
+ * Strictly requires the dedicated server secret GOOGLE_PLACES_API_KEY.
+ * NEVER falls back to NEXT_PUBLIC_* client keys, ensuring strict separation of keys.
+ */
+export function getServerGooglePlacesApiKey(): string | null {
+  const key = process.env.GOOGLE_PLACES_API_KEY?.trim();
+  return key || null;
+}
+
+/**
+ * Authoritative gate for outbound Google Places API network calls.
+ * Both conditions MUST be met:
+ * 1. Owner has explicitly approved billing (GOOGLE_MAPS_BILLING_APPROVED === 'true')
+ * 2. Dedicated server key (GOOGLE_PLACES_API_KEY) is configured
+ */
+export function isGooglePlacesCallAllowed(): boolean {
+  return isServerGoogleBillingApproved() && Boolean(getServerGooglePlacesApiKey());
 }
 
 /**
