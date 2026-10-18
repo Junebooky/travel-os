@@ -541,7 +541,7 @@ export default function MapView({ isTabActive = true }: MapViewProps = {}) {
                   <div className="absolute bottom-20 left-4 pointer-events-none select-none opacity-90 flex items-center gap-1.5 bg-white/90 backdrop-blur-xs px-2.5 py-1 rounded-md shadow-xs border border-[#CBD5E1]">
                     <span className="w-2 h-2 rounded-full bg-[#1B64DA] animate-pulse" />
                     <span className="text-[11px] text-[#334155] font-semibold tracking-tight">
-                      Google 지도 연결 전 디자인 예시 (미승인 시뮬레이션)
+                      지도 미리보기 (미승인 시뮬레이션)
                     </span>
                   </div>
                 </>
@@ -631,7 +631,7 @@ export default function MapView({ isTabActive = true }: MapViewProps = {}) {
               type="button"
               onClick={() => fetchPlaces(searchQuery, selectedCategory, mapCenter, { recenterOnResult: true })}
               className="pl-3.5 pr-2 text-[#8B95A1] hover:text-[#1B64DA] transition-colors"
-              aria-label="장소 검색"
+              aria-label="어디로 가볼까요?"
             >
               <Search className={`w-4 h-4 ${isSearchingPlaces ? 'animate-pulse text-[#1B64DA]' : ''}`} />
             </button>
@@ -670,7 +670,7 @@ export default function MapView({ isTabActive = true }: MapViewProps = {}) {
                 disabled={isSearchingPlaces || !searchQuery.trim()}
                 className="min-h-[36px] px-3 py-1 bg-[#1B64DA] hover:bg-[#1652B5] disabled:opacity-40 text-white text-xs font-semibold rounded-lg shadow-sm transition-all active:scale-95"
               >
-                검색
+                찾아보기
               </button>
             </div>
           </div>
@@ -739,10 +739,10 @@ export default function MapView({ isTabActive = true }: MapViewProps = {}) {
             className="flex items-start sm:items-center gap-2 px-3 py-2 rounded-xl bg-[#FFFFFF] border border-[#E5E8EB] shadow-sm text-xs text-[#4E5968]"
           >
             <span className="px-1.5 py-0.5 rounded font-bold bg-[#E8F3FF] text-[#1B64DA] border border-[#B9D9FE] shrink-0 text-[11px]">
-              디자인 예시
+              지도 미리보기
             </span>
             <span className="text-[#4E5968] text-xs leading-relaxed break-keep">
-              Google 지도 연결 전 디자인 예시 (과금 미승인 · 외부 API 호출 차단)
+              지도 미리보기 (과금 미승인 · 외부 API 호출 차단)
             </span>
           </div>
         ) : isDemoMode ? (
@@ -763,10 +763,10 @@ export default function MapView({ isTabActive = true }: MapViewProps = {}) {
             className="flex items-start sm:items-center gap-2 px-3 py-2 rounded-xl bg-[#FFFFFF] border border-[#E5E8EB] shadow-sm text-xs text-[#1B64DA]"
           >
             <span className="px-1.5 py-0.5 rounded font-bold bg-[#FFFFFF] text-[#1B64DA] border border-[#E5E8EB] shrink-0 text-[11px]">
-              실시간 장소
+              주변 스팟
             </span>
             <span className="text-[#4E5968] text-xs leading-relaxed">
-              실시간 지도 검색 데이터 적용 완료
+              주변 장소를 지도에서 확인해 보세요
             </span>
           </div>
         )}
@@ -786,10 +786,10 @@ export default function MapView({ isTabActive = true }: MapViewProps = {}) {
         <button
           onClick={() => setMapProvider((prev) => (prev === 'google' ? 'osm' : 'google'))}
           className="min-w-[44px] h-[32px] px-2 flex items-center justify-center rounded-xl bg-[#FFFFFF] border border-[#E5E8EB] text-[#4E5968] hover:text-[#1B64DA] hover:bg-[#F8FAFC] transition-all shadow-md active:scale-95 text-[11px] font-semibold"
-          aria-label={`현재 지도 공급자: ${mapProvider === 'google' ? 'Google' : 'OSM'}. 클릭하여 전환`}
-          title="지도 제공자 전환 (OSM / Google)"
+          aria-label={`현재 지도: ${mapProvider === 'google' ? 'Google 지도' : 'OSM'}. 클릭하여 지도 바꾸기`}
+          title="지도 바꾸기 (OSM / Google 지도)"
         >
-          {mapProvider === 'google' ? 'G-Map' : 'OSM'}
+          {mapProvider === 'google' ? 'Google 지도' : 'OSM'}
         </button>
 
         <div className="flex flex-col bg-[#FFFFFF] border border-[#E5E8EB] rounded-2xl shadow-md overflow-hidden divide-y divide-[#E5E8EB]">
@@ -841,7 +841,7 @@ export default function MapView({ isTabActive = true }: MapViewProps = {}) {
         ) : (
           <div className="px-2.5 py-1 rounded bg-[#FFFFFF]/90 text-[10px] text-[#4E5968] border border-[#E5E8EB] flex items-center gap-1 shadow-sm">
             <Info className="w-3 h-3" />
-            <span>Google 지도 연결 전 디자인 예시</span>
+            <span>지도 미리보기</span>
           </div>
         )}
       </div>

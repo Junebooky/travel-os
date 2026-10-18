@@ -164,13 +164,13 @@ export default function CountryPickerModal({
             id="country-picker-title"
             className="text-2xl sm:text-[27px] font-black text-[#191F28] tracking-tight leading-snug relative z-10"
           >
-            여행할 나라를 선택하세요
+            새로운 여행을 시작해 볼까요?
           </h2>
           <p
             id="country-picker-desc"
             className="text-sm sm:text-base font-semibold text-[#6B7684] mt-1 relative z-10"
           >
-            어디로 떠나시나요?
+            다음 여행지는 어디?
           </p>
 
           {/* Search Bar UI */}
@@ -181,9 +181,9 @@ export default function CountryPickerModal({
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="국가명 또는 코드 검색 (예: 한국, 미국, KR, US)"
+                placeholder="가고 싶은 나라 검색 (예: 한국, 미국, KR, US)"
                 className="w-full bg-transparent text-xs sm:text-sm font-semibold text-[#191F28] placeholder-[#8B95A1] outline-none"
-                aria-label="국가 검색"
+                aria-label="가고 싶은 나라 검색"
               />
               {searchQuery && (
                 <button
@@ -263,7 +263,7 @@ export default function CountryPickerModal({
           )}
         </div>
 
-        {/* Bottom Fixed Footer CTA (P0: Primary '여기로 여행갈까요?' directly above '닫기') */}
+        {/* Bottom Fixed Footer CTA (P0: Primary '이 나라로 떠나기' directly above '닫기') */}
         <div className="shrink-0 p-4 bg-[#FFFFFF] space-y-2.5 pb-[max(1.25rem,env(safe-area-inset-bottom))]">
           {/* Primary Confirm CTA */}
           <button

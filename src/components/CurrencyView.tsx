@@ -54,6 +54,18 @@ export function getValidatedCachedRates(): ExchangeRateData | null {
   return null;
 }
 
+export function getCurrencyDisplayName(code: string): string {
+  if (code === 'KRW') return '원화';
+  const found = SUPPORTED_CURRENCIES.find((c) => c.code === code);
+  if (found) {
+    return found.name
+      .replace('대한민국 ', '')
+      .replace('신 ', '')
+      .replace('유럽연합 ', '');
+  }
+  return code;
+}
+
 export default function CurrencyView() {
   const {
     country,
@@ -268,7 +280,7 @@ export default function CurrencyView() {
       <div className="p-4 space-y-4">
         {/* Currency Selector Bar (with Circular Flags) */}
         <div className="bg-[#FFFFFF] border border-[#E5E8EB] rounded-2xl p-3.5 flex items-center justify-between shadow-xs">
-          {/* From Currency Side (기준 통화) */}
+          {/* From Currency Side (바꿀 통화) */}
           <button
             type="button"
             onClick={() => {
@@ -276,7 +288,7 @@ export default function CurrencyView() {
               setIsCountryPickerOpen(true);
             }}
             className="flex-1 flex items-center gap-2.5 min-w-0 text-left p-1.5 -m-1.5 rounded-xl hover:bg-[#F8FAFC] active:scale-[0.98] transition-all group cursor-pointer outline-none focus-visible:ring-2 focus-visible:ring-[#1B64DA]"
-            aria-label="기준 통화 변경"
+            aria-label="바꿀 통화 변경"
           >
             <CountryFlagIcon currency={fromCurrency} size={28} />
             <div className="min-w-0 flex-1">
@@ -299,7 +311,7 @@ export default function CurrencyView() {
             <ArrowRightLeft className="w-4 h-4" />
           </button>
 
-          {/* To Currency Side (환산 통화) */}
+          {/* To Currency Side (환산할 통화) */}
           <button
             type="button"
             onClick={() => {
@@ -307,7 +319,7 @@ export default function CurrencyView() {
               setIsCountryPickerOpen(true);
             }}
             className="flex-1 flex items-center justify-end gap-2.5 min-w-0 text-right p-1.5 -m-1.5 rounded-xl hover:bg-[#F8FAFC] active:scale-[0.98] transition-all group cursor-pointer outline-none focus-visible:ring-2 focus-visible:ring-[#1B64DA]"
-            aria-label="환산 통화 변경"
+            aria-label="환산할 통화 변경"
           >
             <div className="min-w-0 flex-1">
               <span className="text-[11px] font-medium text-[#8B95A1] block leading-tight">
@@ -332,7 +344,7 @@ export default function CurrencyView() {
                 className="text-xs text-[#8B95A1] hover:text-[#191F28] p-0.5 flex items-center gap-0.5"
               >
                 <X className="w-3.5 h-3.5" />
-                <span>지우기</span>
+                <span>초기화</span>
               </button>
             )}
           </div>
@@ -434,14 +446,21 @@ export default function CurrencyView() {
               </div>
 
               <div className="flex items-center justify-between text-[#8B95A1] text-[11px]">
-                <span>{t('currency.result.as_of', { rateDate: rateData?.rateDate || formatDate(new Date()) })}</span>
+                <span>
+                  {rateData?.rateDate
+                    ? `${rateData.rateDate.replace(/-/g, '.')} 기준`
+                    : `${formatDate(new Date()).replace(/-/g, '.')} 기준`}
+                </span>
               </div>
             </div>
 
             {/* Honest Disclaimer */}
             <div className="flex items-start gap-1.5 text-[11px] text-[#8B95A1] pt-1">
               <AlertCircle className="w-3.5 h-3.5 text-[#8B95A1] shrink-0 mt-0.5" />
-              <span>{t('currency.result.warning')}</span>
+              <div className="leading-relaxed">
+                <div>환율은 참고용이에요.</div>
+                <div>실제 결제 금액은 카드사 환율과 수수료에 따라 달라질 수 있어요.</div>
+              </div>
             </div>
           </div>
         )}
@@ -451,9 +470,11 @@ export default function CurrencyView() {
           <div className="flex items-center justify-between text-xs font-semibold text-[#4E5968]">
             <span className="flex items-center gap-1.5">
               <TrendingUp className="w-3.5 h-3.5 text-[#1B64DA]" />
-              <span className="text-[#191F28] font-bold">현지 주요 금액 환산표</span>
+              <span className="text-[#191F28] font-bold">금액별 빠른 환산</span>
             </span>
-            <span className="text-[11px] text-[#8B95A1] font-normal">기준: {fromCurrency} → {toCurrency}</span>
+            <span className="text-[11px] text-[#8B95A1] font-normal">
+              {getCurrencyDisplayName(fromCurrency)} → {getCurrencyDisplayName(toCurrency)}
+            </span>
           </div>
 
           <div className="divide-y divide-[#E5E8EB] text-xs">
