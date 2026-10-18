@@ -5,16 +5,27 @@
 > **기준 코드:** Track B [PR #11](https://github.com/Junebooky/travel-os/pull/11) HEAD `277e9b97b0a8848db99318b76c8c4a4e17ec47a3` (owner screenshot local checkout SHA not independently checked) (당시 open/unmerged).  
 > **의미:** 아래 이미지는 **디자인 목적의 SVG 목업**이며 실제 실행 화면/QA 스크린샷이 아닙니다. 이미지 속 금액·장소·환율 기준일은 시각 설명을 위한 **가상 예시**입니다.
 
-## 🔵 CURRENT 2026-10-18 · 설정 → 여행 설정 바꾸기 국가 선택 모달 새 UI
+## ✅ CURRENT 2026-10-18 · Settings redesign v4 / confirm country before switching
 
-**오너 업로드 레퍼런스 기반 현재 디자인:** [09-country-picker.svg](./images/09-country-picker.svg) · [전체 9개 상태 스토리보드](./white-ui-v3-overview.svg) · **[A02 실제 구현 전용 명세/프롬프트](./A02-COUNTRY-PICKER-IMPLEMENTATION.md)**.
+**Owner's supplied two reference images and owner-provided PNG assets define the Settings layout.** New images must **NOT** be AI-generated. [**A02 current implementation/asset plan**](./A02-COUNTRY-PICKER-IMPLEMENTATION.md) is the primary contract.
 
-- **변경 대상은 기존 설정 화면의 국가 선택 팝업뿐:** 현재 `SettingsView.tsx` 253–291행의 작고 세로로 긴 국가 선택 리스트를 **모바일 전체 화면 흰색 3열 국가 카드 UI**로 교체.
-- **보여줄 8개 국가(현재 `COUNTRIES` 순서 보존):** 일본 · 미국 · 프랑스 / 대만 · 태국 · 베트남 / 영국 · 이탈리아 · (빈칸). 진짜 9번째 국가를 만들지 않음.
-- **레퍼런스 요소:** `TRAVEL OS` 작게 → 큰 제목 "**여행할 나라를 선택하세요**" → 부제 "**어디로 떠나시나요?**" → 그림자/광택 있는 **입체적인 구형 국가 국기 SVG** → 현재 선택국에 브랜드 블루 `#1B64DA` 2px 테두리+우상단 체크 → 화면 하단 순백 테두리 "**닫기**".
-- 이전 고객 요구대로 페이지·카드는 **`#FFFFFF`**. 카드 외곽선은 **`#E5E8EB`** 1px(흰색 바탕에서 구분 필요) 허용. 국가 국기의 고유 색만 콘텐츠 예외. 회색·파스텔 블루 채움 배경/주황 브랜드 강조 금지.
-- **동작 보존:** 현재 `COUNTRIES.map`과 `setCountry(c)`, 저장/언어/통화/지도 업데이트, 선택 후 자동 닫기/실제 성공 토스트를 유지. `닫기`는 변경 없이 dismiss. 선택 상태는 현재 `country.code` 동기화(일본만 고정 X), 키보드/스크린리더/200% 확대·safe area 검증.
-- **버전 처리:** 기존 `08-settings.svg`는 부모 설정 탭 시안으로 유지, **새로운 독립 모달 상태** `09-country-picker.svg` 추가. 기존 실제 코드의 낡은 세로 팝업은 **SUPERSEDED**. 8개 기본 상태 + 1개 모달 = 9개 현재 디자인 상태. GitHub 기존 파일 별도 v4/old 복제 없음. PR #11 실제 코드 구현은 **A02 담당 / 현재 별도**.
+**1. Country selection UX — now a two-step decision.** [09-country-picker.svg](./images/09-country-picker.svg) has been **updated at the original filename** with a blue `여기로 여행갈까요?` button **above** secondary `닫기`; the [nine-state overview](./white-ui-v3-overview.svg) is synced. Card tap only changes a **temporary draft selection**. Only Confirm invokes `setCountry` and closes; Close/Escape drops the draft. **Old A03 guidance of 'country tap immediately commits and auto-closes' is SUPERSEDED.**
+
+**2. Settings parent page — redesign to owner's first reference.** White airy header `설정` → **16:9 scenic hero card** using existing `public/assets/setting_tab/travel_setting.png` (**FOUND; 1920×1080**) → Saved Places card → App Install card → Saved Data/Delete card → Travel OS information card → 5-tab bottom GNB. Hero renders **`country.flag`, `country.name`, `country.code` as DOM text** so switching country updates in real time; no Thailand content is baked into the banner.
+
+**3. Hero top-right button — precise second-reference placement.** Floating WHITE pill `⚙ 여행 정보 수정 ›` near hero's **top-right inset**, never under/beside the country name as the small existing button. It opens Country Picker but does not change travel settings. Preserve 16:9 aspect, text-safe placement, accessible 44px+ target.
+
+**4. Owner artwork mapping, do not invent substitutes:**
+- `/assets/setting_tab/travel_setting.png` → **hero background** (present under `public/assets/setting_tab/`).
+- `/assets/setting_tab/saved_setting.png` → Saved Places icon (**not found in current remote dev branch**).
+- `/assets/setting_tab/download_setting.png` → App Install icon (**not found in current remote dev branch**).
+- `/assets/setting_tab/travel_os.png` → Travel OS icon (**not found in current remote dev branch**; duplicated mention in owner's message refers to same file).
+
+Missing owner-made icons must be copied/committed at the exact public paths before marking `ASSETS_APPLIED`. A02 can make the working UI with existing semantic fallback icons while noting `ASSET_PENDING`; do not generate replacements. Keep actual functionality and truthfulness of PWA install, saved-place count, data deletion confirmation and privacy notice.
+
+**5. Current design source precedence:** The older [08-settings.svg](./images/08-settings.svg) is **SUPERSEDED for the Settings parent layout** until updated with owner's actual artwork. It is **not** A02's implementation template. The user's **first settings screenshot + second 16:9 hero/button reference + this plan** take precedence. `09-country-picker.svg` and its confirm footer are current. No duplicate `v5-final` files.
+
+**Status:** A03 `SPEC_UPDATED`, A02 `CODE_PENDING`. Actual implementation is in [PR #11](https://github.com/Junebooky/travel-os/pull/11), not this Draft design PR.
 
 ---
 ## 2026-10-18 오너 최종 개정 — **PURE WHITE + FLAG SELECTORS + NO VISIBLE PROVIDER LABEL**
@@ -83,8 +94,8 @@
 | 05 | [사진 분석 결과 단계](./images/05-camera-result.svg) | `CameraMenuModal.tsx` | 원문/번역/가격 검토 후 **지출 내용 확인하기**. 실패 후 같은 사진 재분석 |
 | 06 | [여행 지갑](./images/06-wallet.svg) | `src/components/WalletView.tsx` | 상단 `+ 기록`; 금액→날짜별 내역 연속. 미환산 N건은 요약에 바로 가시화 |
 | 07 | [지출 입력](./images/07-expense.svg) | `WalletView.tsx`, `src/context/TravelContext.tsx` | OCR 후보/수동 금액 수정 → 최종 버튼 → **기기 저장 확인** 후에만 합계 반영 |
-| 08 | [설정](./images/08-settings.svg) | `SettingsView.tsx` | 여행 기본 설정·저장 장소·오프라인 이용·데이터 삭제를 명확히 분리 |
-| 09 | **[국가 선택 모달](./images/09-country-picker.svg)** | **`SettingsView.tsx` 253–291 → `CountryPickerModal.tsx` 제안** | 오너 레퍼런스: 전체화면·3열·8개 구형 국기·선택/닫기/모바일 safe-area |
+| 08 | **설정 — 오너 이미지 기준, 옛 SVG는 SUPERSEDED** | `SettingsView.tsx` | 16:9 오너 PNG 히어로·우측 상단 수정 버튼·오너 제공 3개 카드 아이콘; [A02 current plan](./A02-COUNTRY-PICKER-IMPLEMENTATION.md) |
+| 09 | **[국가 선택 모달](./images/09-country-picker.svg)** | `CountryPickerModal.tsx` + `SettingsView.tsx` | **카드 선택은 draft만**, `여기로 여행갈까요?` 확정 후 변경·닫기, `닫기` 취소 |
 
 개발자가 이 문서/이미지를 복사해 실행 가능한 앱으로 오해하지 않도록 **화면 스타일 명세와 실제 수용 동작을 분리**했습니다.
 
