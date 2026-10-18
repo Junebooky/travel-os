@@ -13,9 +13,11 @@ import {
   AlertCircle,
   X,
   Plus,
+  ChevronDown,
 } from 'lucide-react';
 import CountryFlagIcon from '@/components/CountryFlagIcon';
-import { SUPPORTED_CURRENCIES } from '@/data/countries';
+import CountryPickerModal from '@/components/CountryPickerModal';
+import { COUNTRIES, SUPPORTED_CURRENCIES } from '@/data/countries';
 
 export const STORAGE_KEY_LAST_RATES = 'travel_os_last_rates_v1';
 export const MAX_RATE_AGE_MS = 7 * 24 * 60 * 60 * 1000; // 7 days
@@ -55,6 +57,7 @@ export function getValidatedCachedRates(): ExchangeRateData | null {
 export default function CurrencyView() {
   const {
     country,
+    setCountry,
     homeCurrency,
     localCurrency,
     activePlace,
@@ -62,6 +65,7 @@ export default function CurrencyView() {
     showToast,
   } = useTravel();
 
+  const [isCountryPickerOpen, setIsCountryPickerOpen] = useState<boolean>(false);
   const [isSwapped, setIsSwapped] = useState<boolean>(false);
   const [inputAmount, setInputAmount] = useState<number>(1000);
   const [rateData, setRateData] = useState<ExchangeRateData | null>(null);
@@ -256,17 +260,37 @@ export default function CurrencyView() {
         {/* Currency Selector Bar (with Circular Flags) */}
         <div className="bg-[#FFFFFF] border border-[#E5E8EB] rounded-2xl p-3.5 flex items-center justify-between shadow-xs">
           {/* From Currency Side */}
-          <div className="flex-1 flex items-center gap-2.5 min-w-0">
-            <CountryFlagIcon currency={fromCurrency} size={28} />
-            <div className="min-w-0">
-              <span className="text-[11px] font-medium text-[#8B95A1] block leading-tight">
-                {t('currency.from.label')}
-              </span>
-              <span className="text-sm font-bold text-[#191F28] truncate block">
-                {fromCurrency} ({getCurrencySymbol(fromCurrency)})
-              </span>
+          {fromCurrency === localCurrency ? (
+            <button
+              type="button"
+              onClick={() => setIsCountryPickerOpen(true)}
+              className="flex-1 flex items-center gap-2.5 min-w-0 text-left p-1.5 -m-1.5 rounded-xl hover:bg-[#F8FAFC] active:scale-[0.98] transition-all group cursor-pointer outline-none focus-visible:ring-2 focus-visible:ring-[#1B64DA]"
+              aria-label="여행 국가 및 통화 변경"
+            >
+              <CountryFlagIcon currency={fromCurrency} size={28} />
+              <div className="min-w-0 flex-1">
+                <span className="text-[11px] font-medium text-[#8B95A1] block leading-tight">
+                  {t('currency.from.label')}
+                </span>
+                <span className="text-sm font-bold text-[#191F28] truncate flex items-center gap-1">
+                  <span>{fromCurrency} ({getCurrencySymbol(fromCurrency)})</span>
+                  <ChevronDown className="w-3.5 h-3.5 text-[#8B95A1] group-hover:text-[#191F28] transition-colors shrink-0" />
+                </span>
+              </div>
+            </button>
+          ) : (
+            <div className="flex-1 flex items-center gap-2.5 min-w-0">
+              <CountryFlagIcon currency={fromCurrency} size={28} />
+              <div className="min-w-0">
+                <span className="text-[11px] font-medium text-[#8B95A1] block leading-tight">
+                  {t('currency.from.label')}
+                </span>
+                <span className="text-sm font-bold text-[#191F28] truncate block">
+                  {fromCurrency} ({getCurrencySymbol(fromCurrency)})
+                </span>
+              </div>
             </div>
-          </div>
+          )}
 
           {/* Swap Button (min-h-[44px] min-w-[44px] pure white button) */}
           <button
@@ -278,17 +302,37 @@ export default function CurrencyView() {
           </button>
 
           {/* To Currency Side */}
-          <div className="flex-1 flex items-center justify-end gap-2.5 min-w-0 text-right">
-            <div className="min-w-0">
-              <span className="text-[11px] font-medium text-[#8B95A1] block leading-tight">
-                {t('currency.to.label')}
-              </span>
-              <span className="text-sm font-bold text-[#191F28] truncate block">
-                {toCurrency} ({getCurrencySymbol(toCurrency)})
-              </span>
+          {toCurrency === localCurrency ? (
+            <button
+              type="button"
+              onClick={() => setIsCountryPickerOpen(true)}
+              className="flex-1 flex items-center justify-end gap-2.5 min-w-0 text-right p-1.5 -m-1.5 rounded-xl hover:bg-[#F8FAFC] active:scale-[0.98] transition-all group cursor-pointer outline-none focus-visible:ring-2 focus-visible:ring-[#1B64DA]"
+              aria-label="여행 국가 및 통화 변경"
+            >
+              <div className="min-w-0 flex-1">
+                <span className="text-[11px] font-medium text-[#8B95A1] block leading-tight">
+                  {t('currency.to.label')}
+                </span>
+                <span className="text-sm font-bold text-[#191F28] truncate flex items-center justify-end gap-1">
+                  <ChevronDown className="w-3.5 h-3.5 text-[#8B95A1] group-hover:text-[#191F28] transition-colors shrink-0" />
+                  <span>{toCurrency} ({getCurrencySymbol(toCurrency)})</span>
+                </span>
+              </div>
+              <CountryFlagIcon currency={toCurrency} size={28} />
+            </button>
+          ) : (
+            <div className="flex-1 flex items-center justify-end gap-2.5 min-w-0 text-right">
+              <div className="min-w-0">
+                <span className="text-[11px] font-medium text-[#8B95A1] block leading-tight">
+                  {t('currency.to.label')}
+                </span>
+                <span className="text-sm font-bold text-[#191F28] truncate block">
+                  {toCurrency} ({getCurrencySymbol(toCurrency)})
+                </span>
+              </div>
+              <CountryFlagIcon currency={toCurrency} size={28} />
             </div>
-            <CountryFlagIcon currency={toCurrency} size={28} />
-          </div>
+          )}
         </div>
 
         {/* Input Amount Card */}
@@ -443,6 +487,20 @@ export default function CurrencyView() {
           </div>
         </div>
       </div>
+      {/* Country Picker Modal ("여행 정보 수정") */}
+      <CountryPickerModal
+        isOpen={isCountryPickerOpen}
+        countries={COUNTRIES}
+        selectedCode={country.code}
+        onConfirm={(nextCountry) => {
+          if (nextCountry.code !== country.code) {
+            setCountry(nextCountry);
+            showToast(`${nextCountry.name}(으)로 여행 설정을 변경했어요`, 'success');
+          }
+          setIsCountryPickerOpen(false);
+        }}
+        onClose={() => setIsCountryPickerOpen(false)}
+      />
     </div>
   );
 }
