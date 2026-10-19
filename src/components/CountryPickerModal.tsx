@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Check, Plane, Search, X } from 'lucide-react';
 import { Country } from '@/types/travel';
 import CountryFlagIcon from './CountryFlagIcon';
@@ -51,50 +51,36 @@ export default function CountryPickerModal({
   const modalRef = useRef<HTMLDivElement>(null);
   const selectedButtonRef = useRef<HTMLButtonElement>(null);
 
-  // Smooth slide-up / slide-down animation states
-  const [prevOpen, setPrevOpen] = useState<boolean>(isOpen);
-  const [shouldRender, setShouldRender] = useState<boolean>(isOpen);
-  const [isVisible, setIsVisible] = useState<boolean>(false);
+  const [isClosing, setIsClosing] = useState<boolean>(false);
   const [draftCountryCode, setDraftCountryCode] = useState<string>(selectedCode);
   const [searchQuery, setSearchQuery] = useState<string>('');
 
+  const [prevOpen, setPrevOpen] = useState<boolean>(isOpen);
   if (prevOpen !== isOpen) {
     setPrevOpen(isOpen);
     if (isOpen) {
-      setShouldRender(true);
       setDraftCountryCode(selectedCode);
       setSearchQuery('');
+      setIsClosing(false);
     }
   }
 
-  // Handle open / close transitions smoothly
-  useEffect(() => {
-    let timer: NodeJS.Timeout;
-    if (isOpen) {
-      const frame = requestAnimationFrame(() => {
-        setIsVisible(true);
-      });
-      return () => cancelAnimationFrame(frame);
-    } else {
-      const frame = requestAnimationFrame(() => {
-        setIsVisible(false);
-      });
-      timer = setTimeout(() => {
-        setShouldRender(false);
-      }, 320);
-      return () => {
-        cancelAnimationFrame(frame);
-        clearTimeout(timer);
-      };
-    }
-  }, [isOpen]);
-
-  const handleDismiss = () => {
-    onClose();
-  };
+  const handleDismiss = useCallback(() => {
+    if (isClosing) return;
+    setIsClosing(true);
+    setTimeout(() => {
+      onClose();
+      setIsClosing(false);
+    }, 250);
+  }, [isClosing, onClose]);
 
   const handleConfirm = (country: Country) => {
-    onConfirm(country);
+    if (isClosing) return;
+    setIsClosing(true);
+    setTimeout(() => {
+      onConfirm(country);
+      setIsClosing(false);
+    }, 250);
   };
 
   // Filter countries by Korean name, country code (US, KR, etc.), or common aliases
@@ -114,7 +100,7 @@ export default function CountryPickerModal({
 
   // Lock body scroll and handle Escape key
   useEffect(() => {
-    if (!shouldRender) return;
+    if (!isOpen && !isClosing) return;
 
     const originalOverflow = document.body.style.overflow;
     document.body.style.overflow = 'hidden';
@@ -122,7 +108,7 @@ export default function CountryPickerModal({
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
         e.preventDefault();
-        onClose();
+        handleDismiss();
       }
     };
 
@@ -135,16 +121,16 @@ export default function CountryPickerModal({
       } else if (modalRef.current) {
         modalRef.current.focus();
       }
-    }, 100);
+    }, 60);
 
     return () => {
       document.body.style.overflow = originalOverflow;
       window.removeEventListener('keydown', handleKeyDown);
       clearTimeout(timer);
     };
-  }, [shouldRender, onClose]);
+  }, [isOpen, isClosing, handleDismiss]);
 
-  if (!shouldRender) return null;
+  if (!isOpen && !isClosing) return null;
 
   const draftCountry =
     countries.find((c) => c.code === draftCountryCode) ||
@@ -153,15 +139,13 @@ export default function CountryPickerModal({
 
   return (
     <div
-      className={`fixed inset-0 z-50 flex flex-col justify-end items-center sm:p-4 transition-all duration-300 ${
-        isVisible ? 'pointer-events-auto' : 'pointer-events-none'
-      }`}
+      className="fixed inset-0 z-50 flex flex-col justify-end items-center sm:p-4"
       role="presentation"
     >
       {/* Dimmed Backdrop Overlay (Click to dismiss smoothly) */}
       <div
-        className={`fixed inset-0 bg-black/50 backdrop-blur-xs transition-opacity duration-300 ease-out ${
-          isVisible ? 'opacity-100' : 'opacity-0'
+        className={`fixed inset-0 bg-black/50 backdrop-blur-xs ${
+          isClosing ? 'backdrop-fade-out' : 'backdrop-fade-in'
         }`}
         onClick={handleDismiss}
         aria-hidden="true"
@@ -175,8 +159,8 @@ export default function CountryPickerModal({
         aria-labelledby="country-picker-title"
         aria-describedby="country-picker-desc"
         tabIndex={-1}
-        className={`relative z-10 bg-[#FFFFFF] w-full sm:max-w-md h-[88dvh] max-h-[88dvh] sm:h-[820px] sm:max-h-[90vh] rounded-t-[32px] sm:rounded-3xl sm:border sm:border-[#E5E8EB] flex flex-col justify-between overflow-hidden shadow-2xl outline-none transition-transform duration-300 ease-out transform ${
-          isVisible ? 'translate-y-0' : 'translate-y-full'
+        className={`relative z-10 bg-[#FFFFFF] w-full sm:max-w-md h-[88dvh] max-h-[88dvh] sm:h-[820px] sm:max-h-[90vh] rounded-t-[32px] sm:rounded-3xl sm:border sm:border-[#E5E8EB] flex flex-col justify-between overflow-hidden shadow-2xl outline-none ${
+          isClosing ? 'sheet-slide-down' : 'sheet-slide-up'
         }`}
       >
         {/* Top Header Region (Hero) */}

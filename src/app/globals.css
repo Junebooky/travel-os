@@ -155,12 +155,73 @@ body {
   will-change: transform;
 }
 
+/* Bottom sheet modal slide up/down and backdrop fade animations */
+@keyframes sheetSlideUp {
+  0% {
+    transform: translateY(100%);
+  }
+  100% {
+    transform: translateY(0);
+  }
+}
+
+@keyframes sheetSlideDown {
+  0% {
+    transform: translateY(0);
+  }
+  100% {
+    transform: translateY(100%);
+  }
+}
+
+@keyframes backdropFadeIn {
+  0% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+@keyframes backdropFadeOut {
+  0% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+.sheet-slide-up {
+  animation: sheetSlideUp 0.32s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  will-change: transform;
+}
+
+.sheet-slide-down {
+  animation: sheetSlideDown 0.25s cubic-bezier(0.7, 0, 0.84, 0) forwards;
+  will-change: transform;
+}
+
+.backdrop-fade-in {
+  animation: backdropFadeIn 0.3s ease-out forwards;
+  will-change: opacity;
+}
+
+.backdrop-fade-out {
+  animation: backdropFadeOut 0.25s ease-in forwards;
+  will-change: opacity;
+}
+
 /* Strictly enforce reduced motion preference */
 @media (prefers-reduced-motion: reduce) {
   .welcome-float,
   .welcome-float-delayed,
   .welcome-float-slow,
-  .capybara-roam {
+  .capybara-roam,
+  .sheet-slide-up,
+  .sheet-slide-down,
+  .backdrop-fade-in,
+  .backdrop-fade-out {
     animation: none !important;
     transform: none !important;
     transition: none !important;

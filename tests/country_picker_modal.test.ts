@@ -51,7 +51,10 @@ describe('Country Picker Modal Contract (Issue #15 & PR #11)', () => {
     assert.ok(content.includes('settings.country_picker.confirm'), 'Must have primary confirmation CTA');
     assert.ok(content.includes('min-h-[52px]'), 'Buttons must have minimum 52px height');
     assert.ok(content.includes('rounded-t-') || content.includes('rounded-t['), 'Must have rounded top corners');
-    assert.ok(content.includes('translate-y-'), 'Must support slide transform animation');
+    assert.ok(
+      content.includes('sheet-slide-') || content.includes('translate-y-'),
+      'Must support slide transform animation'
+    );
   });
 
   it('CP-05: SettingsView replaces inline modal with CountryPickerModal', () => {
