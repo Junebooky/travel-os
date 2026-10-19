@@ -96,7 +96,7 @@ export default function AnimatedWelcome({ onNavigate }: AnimatedWelcomeProps) {
           width={200}
           height={200}
           priority
-          className="object-contain w-48 sm:w-52 h-auto"
+          className="object-contain w-42 sm:w-48 h-auto"
         />
       </div>
 
@@ -137,7 +137,7 @@ export default function AnimatedWelcome({ onNavigate }: AnimatedWelcomeProps) {
 
 
         {/* Sub-headline */}
-        <p className="translate-y-[70px] sm:translate-y-[80px] text-base sm:text-lg font-bold text-white/95 leading-relaxed mt-4 drop-shadow-2xs text-center" >
+        <p className="translate-y-[40px] sm:translate-y-[60px] text-base sm:text-lg font-bold text-white/95 leading-relaxed mt-4 drop-shadow-2xs text-center" >
           나라만 고르면<br />
           바로 시작할 수 있어요.
         </p>

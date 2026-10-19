@@ -51,18 +51,51 @@ export default function CountryPickerModal({
   const modalRef = useRef<HTMLDivElement>(null);
   const selectedButtonRef = useRef<HTMLButtonElement>(null);
 
-  // P0 Batch A: Local draft selection state initialized to selectedCode upon open
+  // Smooth slide-up / slide-down animation states
   const [prevOpen, setPrevOpen] = useState<boolean>(isOpen);
+  const [shouldRender, setShouldRender] = useState<boolean>(isOpen);
+  const [isVisible, setIsVisible] = useState<boolean>(false);
   const [draftCountryCode, setDraftCountryCode] = useState<string>(selectedCode);
   const [searchQuery, setSearchQuery] = useState<string>('');
 
   if (prevOpen !== isOpen) {
     setPrevOpen(isOpen);
     if (isOpen) {
+      setShouldRender(true);
       setDraftCountryCode(selectedCode);
       setSearchQuery('');
     }
   }
+
+  // Handle open / close transitions smoothly
+  useEffect(() => {
+    let timer: NodeJS.Timeout;
+    if (isOpen) {
+      const frame = requestAnimationFrame(() => {
+        setIsVisible(true);
+      });
+      return () => cancelAnimationFrame(frame);
+    } else {
+      const frame = requestAnimationFrame(() => {
+        setIsVisible(false);
+      });
+      timer = setTimeout(() => {
+        setShouldRender(false);
+      }, 320);
+      return () => {
+        cancelAnimationFrame(frame);
+        clearTimeout(timer);
+      };
+    }
+  }, [isOpen]);
+
+  const handleDismiss = () => {
+    onClose();
+  };
+
+  const handleConfirm = (country: Country) => {
+    onConfirm(country);
+  };
 
   // Filter countries by Korean name, country code (US, KR, etc.), or common aliases
   const filteredCountries = useMemo(() => {
@@ -81,7 +114,7 @@ export default function CountryPickerModal({
 
   // Lock body scroll and handle Escape key
   useEffect(() => {
-    if (!isOpen) return;
+    if (!shouldRender) return;
 
     const originalOverflow = document.body.style.overflow;
     document.body.style.overflow = 'hidden';
@@ -102,16 +135,16 @@ export default function CountryPickerModal({
       } else if (modalRef.current) {
         modalRef.current.focus();
       }
-    }, 50);
+    }, 100);
 
     return () => {
       document.body.style.overflow = originalOverflow;
       window.removeEventListener('keydown', handleKeyDown);
       clearTimeout(timer);
     };
-  }, [isOpen, onClose]);
+  }, [shouldRender, onClose]);
 
-  if (!isOpen) return null;
+  if (!shouldRender) return null;
 
   const draftCountry =
     countries.find((c) => c.code === draftCountryCode) ||
@@ -120,9 +153,21 @@ export default function CountryPickerModal({
 
   return (
     <div
-      className="fixed inset-0 z-50 bg-[#FFFFFF] sm:bg-black/40 sm:backdrop-blur-xs flex items-center justify-center p-0 sm:p-4 animate-in fade-in duration-200"
+      className={`fixed inset-0 z-50 flex flex-col justify-end items-center sm:p-4 transition-all duration-300 ${
+        isVisible ? 'pointer-events-auto' : 'pointer-events-none'
+      }`}
       role="presentation"
     >
+      {/* Dimmed Backdrop Overlay (Click to dismiss smoothly) */}
+      <div
+        className={`fixed inset-0 bg-black/50 backdrop-blur-xs transition-opacity duration-300 ease-out ${
+          isVisible ? 'opacity-100' : 'opacity-0'
+        }`}
+        onClick={handleDismiss}
+        aria-hidden="true"
+      />
+
+      {/* Bottom Sheet Modal Container with rounded top and top spacing */}
       <div
         ref={modalRef}
         role="dialog"
@@ -130,7 +175,9 @@ export default function CountryPickerModal({
         aria-labelledby="country-picker-title"
         aria-describedby="country-picker-desc"
         tabIndex={-1}
-        className="bg-[#FFFFFF] w-full h-[100dvh] sm:h-[844px] sm:max-h-[92vh] sm:max-w-md sm:rounded-3xl sm:border sm:border-[#E5E8EB] flex flex-col justify-between overflow-hidden shadow-2xl relative outline-none"
+        className={`relative z-10 bg-[#FFFFFF] w-full sm:max-w-md h-[88dvh] max-h-[88dvh] sm:h-[820px] sm:max-h-[90vh] rounded-t-[32px] sm:rounded-3xl sm:border sm:border-[#E5E8EB] flex flex-col justify-between overflow-hidden shadow-2xl outline-none transition-transform duration-300 ease-out transform ${
+          isVisible ? 'translate-y-0' : 'translate-y-full'
+        }`}
       >
         {/* Top Header Region (Hero) */}
         <div className="shrink-0 px-6 pt-3 pb-3 relative overflow-hidden select-none border-b border-[#E5E8EB]/50">
@@ -268,8 +315,8 @@ export default function CountryPickerModal({
           {/* Primary Confirm CTA */}
           <button
             type="button"
-            onClick={() => onConfirm(draftCountry)}
-            className="w-full min-h-[52px] py-3.5 px-4 rounded-2xl bg-[#087F8C] hover:bg-[#066B77] text-white font-bold text-base shadow-sm active:scale-[0.99] transition-all flex items-center justify-center"
+            onClick={() => handleConfirm(draftCountry)}
+            className="w-full min-h-[52px] py-3.5 px-4 rounded-2xl bg-[#087F8C] hover:bg-[#066B77] text-white font-bold text-base shadow-sm active:scale-[0.99] transition-all flex items-center justify-center cursor-pointer"
           >
             {t('settings.country_picker.confirm')}
           </button>
@@ -277,8 +324,8 @@ export default function CountryPickerModal({
           {/* Secondary Close / Discard CTA */}
           <button
             type="button"
-            onClick={onClose}
-            className="w-full min-h-[52px] py-3.5 px-4 rounded-2xl bg-[#FFFFFF] hover:bg-[#F8FAFC] text-[#4E5968] hover:text-[#191F28] font-bold text-base border border-[#E5E8EB] transition-all active:scale-[0.99] flex items-center justify-center shadow-xs"
+            onClick={handleDismiss}
+            className="w-full min-h-[52px] py-3.5 px-4 rounded-2xl bg-[#FFFFFF] hover:bg-[#F8FAFC] text-[#4E5968] hover:text-[#191F28] font-bold text-base border border-[#E5E8EB] transition-all active:scale-[0.99] flex items-center justify-center shadow-xs cursor-pointer"
           >
             {t('common.action.close') || '닫기'}
           </button>
