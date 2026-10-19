@@ -200,10 +200,10 @@ export default function CameraMenuModal({ isOpen, onClose, initialPlace }: Camer
       memo: `메뉴 촬영 인식: ${item.originalName} (${item.translatedName})${isDemo ? ' [데모 예시]' : ''}`,
       rateUsed: hasValidRate && conversion
         ? {
-            rate: conversion.rate,
-            provider: conversion.provider,
-            date: conversion.date,
-          }
+          rate: conversion.rate,
+          provider: conversion.provider,
+          date: conversion.date,
+        }
         : undefined,
     });
 
@@ -513,7 +513,7 @@ export default function CameraMenuModal({ isOpen, onClose, initialPlace }: Camer
                       )}
                       {item.estimatedKrw !== null ? (
                         <span className="text-xs text-[#4E5968]">
-                          (약 {formatCurrency(item.estimatedKrw, 'KRW')})
+                          ({formatCurrency(item.estimatedKrw, 'KRW')})
                         </span>
                       ) : (
                         <span className="text-[11px] text-amber-600 font-medium">
@@ -578,7 +578,7 @@ export default function CameraMenuModal({ isOpen, onClose, initialPlace }: Camer
                     </p>
                     {reviewingItem.estimatedKrw !== null ? (
                       <p className="text-xs text-[#4E5968]">
-                        약 {formatCurrency(reviewingItem.estimatedKrw, 'KRW')}
+                        {formatCurrency(reviewingItem.estimatedKrw, 'KRW')}
                       </p>
                     ) : (
                       <p className="text-[11px] text-amber-600 font-medium">

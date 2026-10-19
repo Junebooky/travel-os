@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import Image from 'next/image';
 import { useTravel } from '@/context/TravelContext';
 import { t, formatCurrency, formatAmountNumber, formatDate } from '@/lib/i18n';
 import { ExchangeRateData } from '@/types/travel';
@@ -237,10 +238,10 @@ export default function CurrencyView() {
       fromCurrency === 'JPY' || fromCurrency === 'TWD'
         ? [100, 500, 1000, 2000, 5000, 10000, 20000]
         : fromCurrency === 'USD' || fromCurrency === 'EUR' || fromCurrency === 'GBP'
-        ? [5, 10, 20, 50, 100, 200, 500]
-        : fromCurrency === 'VND'
-        ? [20000, 50000, 100000, 200000, 500000, 1000000]
-        : [1000, 5000, 10000, 30000, 50000, 100000];
+          ? [5, 10, 20, 50, 100, 200, 500]
+          : fromCurrency === 'VND'
+            ? [20000, 50000, 100000, 200000, 500000, 1000000]
+            : [1000, 5000, 10000, 30000, 50000, 100000];
 
     return bases.map((base) => ({
       base,
@@ -402,30 +403,29 @@ export default function CurrencyView() {
           </div>
         ) : (
           <div className="bg-[#FFFFFF] border border-[#E5E8EB] rounded-2xl p-4 shadow-xs space-y-3">
-            <div className="flex items-center justify-between text-xs font-semibold text-[#4E5968]">
-              <span>{t('currency.title')}</span>
-              <button
-                onClick={() => fetchRates(true)}
-                disabled={isLoading}
-                className="flex items-center gap-1 px-2.5 py-1 rounded-lg bg-[#FFFFFF] hover:bg-[#F8FAFC] text-[11px] text-[#4E5968] hover:text-[#191F28] border border-[#E5E8EB] transition-all active:scale-95 disabled:opacity-50"
-              >
-                <RefreshCw className={`w-3 h-3 ${isLoading ? 'animate-spin' : ''}`} />
-                <span>{t('currency.rate.retry')}</span>
-              </button>
-            </div>
+            <h3 className="sr-only">{t('currency.title')}</h3>
 
-            {/* Main Converted Typography */}
-            <div className="py-1">
-              <div className="text-3xl font-extrabold text-[#191F28] tracking-tight">
-                {t('currency.result.summary', {
-                  convertedAmount: formatCurrency(convertedAmount, toCurrency),
-                })}
+            {/* Main Converted Display with Capybara Mascot (Matches Reference 1:1) */}
+            <div className="flex items-center justify-between min-h-[96px] py-0.5">
+              <div className="flex-1 min-w-0 pr-2">
+                <div className="text-[13px] font-medium text-[#8B95A1] mb-1.5 leading-normal">
+                  실시간 환율로 계산한 금액
+                </div>
+                <div className="text-3xl sm:text-[34px] font-extrabold text-[#087F8C] tracking-tight leading-tight truncate">
+                  {t('currency.result.summary', {
+                    convertedAmount: formatCurrency(convertedAmount, toCurrency),
+                  })}
+                </div>
               </div>
-              <div className="text-xs text-[#8B95A1] mt-1">
-                {t('currency.result.equivalence', {
-                  baseAmount: formatCurrency(inputAmount, fromCurrency),
-                  quoteAmount: formatCurrency(convertedAmount, toCurrency),
-                })}
+              <div className="shrink-0 -my-2 select-none pointer-events-none">
+                <Image
+                  src="/assets/capybara/capy_exchange.svg"
+                  alt="환율 계산기 카피바라"
+                  width={100}
+                  height={100}
+                  priority
+                  className="w-[100px] h-[100px] object-contain drop-shadow-xs"
+                />
               </div>
             </div>
 
@@ -451,6 +451,14 @@ export default function CurrencyView() {
                     ? `${rateData.rateDate.replace(/-/g, '.')} 기준`
                     : `${formatDate(new Date()).replace(/-/g, '.')} 기준`}
                 </span>
+                <button
+                  onClick={() => fetchRates(true)}
+                  disabled={isLoading}
+                  className="flex items-center gap-1 px-2 py-0.5 rounded-lg bg-[#FFFFFF] hover:bg-[#F8FAFC] text-[11px] text-[#4E5968] hover:text-[#191F28] border border-[#E5E8EB] transition-all active:scale-95 disabled:opacity-50"
+                >
+                  <RefreshCw className={`w-3 h-3 ${isLoading ? 'animate-spin' : ''}`} />
+                  <span>{t('currency.rate.retry')}</span>
+                </button>
               </div>
             </div>
 
