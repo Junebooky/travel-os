@@ -93,7 +93,7 @@ export default function AnimatedWelcome({ onNavigate }: AnimatedWelcomeProps) {
         <Image
           src="/assets/welcome_capybara.png"
           alt="Travel OS Mascot"
-          width={185}
+          width={200}
           height={135}
           priority
           className="object-contain w-44 sm:w-48 h-auto"
@@ -125,10 +125,16 @@ export default function AnimatedWelcome({ onNavigate }: AnimatedWelcomeProps) {
         </div>
 
         {/* Main Headline */}
-        <h1 className="text-[38px] sm:text-[45px] font-black text-white leading-[1.22] tracking-tight drop-shadow-xs mt-8 text-center">
-          여행 준비,<br />
-          여기서 끝내요.
+
+        <h1 className="text-[50px] sm:text-[46px] font-['Pretendard_Variable'] font-black leading-[1.12] tracking-[-0.045em] drop-shadow-[0_2px_2px_rgba(0,0,0,0.12)] mt-8 text-center">
+          <span className="block text-white">
+            여행 준비,
+          </span>
+          <span className="block text-[#C8FFE8]">
+            여기서 끝내요.
+          </span>
         </h1>
+
 
         {/* Sub-headline */}
         <p className="text-base sm:text-lg font-bold text-white/95 leading-relaxed mt-4 drop-shadow-2xs text-center">
