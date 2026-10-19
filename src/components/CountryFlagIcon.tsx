@@ -7,8 +7,11 @@ export interface CountryFlagIconProps {
   lang?: string;
   currency?: string;
   size?: number;
+  width?: number;
+  height?: number;
   className?: string;
   ariaLabel?: string;
+  shape?: 'circle' | 'rounded';
 }
 
 export function resolveFlagKey({
@@ -95,27 +98,37 @@ export default function CountryFlagIcon({
   lang,
   currency,
   size = 28,
+  width,
+  height,
   className = '',
   ariaLabel,
+  shape = 'circle',
 }: CountryFlagIconProps) {
   const flagKey = resolveFlagKey({ countryCode, lang, currency });
   const rawId = useId();
   const safeId = rawId.replace(/[^a-zA-Z0-9-_]/g, '');
   const clipId = `flag-clip-${flagKey}-${safeId}`;
+  const w = width ?? size;
+  const h = height ?? size;
 
   return (
     <svg
-      width={size}
-      height={size}
+      width={w}
+      height={h}
       viewBox="0 0 32 32"
-      className={`rounded-full overflow-hidden shrink-0 border border-[#E5E8EB] shadow-xs select-none ${className}`}
+      preserveAspectRatio={shape === 'rounded' ? 'none' : 'xMidYMid meet'}
+      className={`${shape === 'rounded' ? 'rounded-md' : 'rounded-full'} overflow-hidden shrink-0 border border-[#E5E8EB] shadow-xs select-none ${className}`}
       role="img"
       aria-label={ariaLabel || `${flagKey} 국기`}
       aria-hidden={ariaLabel ? undefined : 'true'}
     >
       <defs>
         <clipPath id={clipId}>
-          <circle cx="16" cy="16" r="16" />
+          {shape === 'rounded' ? (
+            <rect x="0" y="0" width="32" height="32" rx="4.5" ry="4.5" />
+          ) : (
+            <circle cx="16" cy="16" r="16" />
+          )}
         </clipPath>
       </defs>
 

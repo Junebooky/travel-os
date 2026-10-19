@@ -2,16 +2,11 @@
 
 import React, { useState } from 'react';
 import Image from 'next/image';
+import { ArrowRight } from 'lucide-react';
 import { useTravel } from '@/context/TravelContext';
 import { SELECTABLE_COUNTRIES } from '@/data/countries';
 import CountryPickerModal from '@/components/CountryPickerModal';
-import {
-  Smile,
-  Wallet,
-  Compass,
-  Camera,
-  Info,
-} from 'lucide-react';
+import CountryFlagIcon from '@/components/CountryFlagIcon';
 
 interface AnimatedWelcomeProps {
   onNavigate: (tab: 'map' | 'translate' | 'currency' | 'wallet' | 'settings') => void;
@@ -48,81 +43,51 @@ function IsometricCube({
   );
 }
 
-const COUNTRY_CITY_MAP: Record<string, { city: string; englishName: string; heroAmount: string }> = {
-  JP: { city: 'Tokyo', englishName: 'Japan', heroAmount: '¥2,000' },
-  TH: { city: 'Bangkok', englishName: 'Thailand', heroAmount: '฿500' },
-  US: { city: 'New York', englishName: 'USA', heroAmount: '$100' },
-  VN: { city: 'Da Nang', englishName: 'Vietnam', heroAmount: '₫200,000' },
-  TW: { city: 'Taipei', englishName: 'Taiwan', heroAmount: 'NT$1,000' },
-  FR: { city: 'Paris', englishName: 'France', heroAmount: '€50' },
-  GB: { city: 'London', englishName: 'UK', heroAmount: '£50' },
-  KR: { city: 'Seoul', englishName: 'Korea', heroAmount: '₩50,000' },
-};
-
 export default function AnimatedWelcome({ onNavigate }: AnimatedWelcomeProps) {
-  const { country, setCountry, savedPlaces } = useTravel();
+  const { country, setCountry } = useTravel();
   const [isCountryPickerOpen, setIsCountryPickerOpen] = useState(false);
 
-  // Match the 2nd reference layout: Japan (Tokyo), JPY ⇄ KRW, ¥2,000
-  const countryConfig = (country?.code && COUNTRY_CITY_MAP[country.code]) || COUNTRY_CITY_MAP.JP;
-  const destinationLabel = `${countryConfig.englishName} (${countryConfig.city})`;
-  const currencyWalletLabel = `${country?.defaultCurrency || 'JPY'} ⇄ KRW · Wallet`;
-  const heroAmount = countryConfig.heroAmount;
-  const savedPlacesCount = savedPlaces && savedPlaces.length > 0 ? savedPlaces.length : 3;
+  const currentCountryName = country?.name || '미국';
+  const currentCountryCode = country?.code || 'US';
 
   return (
     <div
       role="region"
       aria-label="Travel OS Welcome"
-      className="relative min-h-[100dvh] w-full max-w-md mx-auto bg-gradient-to-b from-[#14C9DD] via-[#13C2D6] to-[#0FB6CA] text-white flex flex-col justify-between overflow-hidden select-none px-6 pt-[max(1.25rem,env(safe-area-inset-top))] pb-[max(1.5rem,env(safe-area-inset-bottom))]"
+      className="relative min-h-[100dvh] w-full max-w-md mx-auto bg-gradient-to-b from-[#09CAE0] via-[#02BBD7] to-[#01ABCA] text-white flex flex-col justify-between overflow-hidden select-none px-6 pt-[max(1.5rem,env(safe-area-inset-top))] pb-[max(1.75rem,env(safe-area-inset-bottom))]"
     >
-      {/* Background Floating Isometric 3D Cubes */}
+      {/* Background Floating Isometric 3D Cubes & Ambient Particles */}
       <div className="absolute inset-0 pointer-events-none overflow-hidden" aria-hidden="true">
-        {/* Top-Right Cube (below SKIP) */}
+        {/* Top-Right Cube */}
         <IsometricCube
           size={56}
           opacity={0.5}
-          className="welcome-float absolute right-6 top-20 drop-shadow-xs"
+          className="welcome-float absolute right-7 top-14 drop-shadow-xs"
         />
 
         {/* Mid-Left Cube */}
         <IsometricCube
-          size={44}
-          opacity={0.45}
-          className="welcome-float-delayed absolute -left-3 top-[38%] drop-shadow-xs"
-        />
-
-        {/* Mid-Right Cube */}
-        <IsometricCube
-          size={52}
-          opacity={0.4}
-          className="welcome-float-slow absolute -right-3 top-[44%] drop-shadow-xs"
-        />
-
-        {/* Bottom-Left Cube */}
-        <IsometricCube
           size={46}
-          opacity={0.35}
-          className="welcome-float absolute left-3 bottom-24 drop-shadow-xs"
+          opacity={0.45}
+          className="welcome-float-delayed absolute -left-3 top-[42%] drop-shadow-xs"
         />
 
         {/* Bottom-Right Cube */}
         <IsometricCube
-          size={50}
-          opacity={0.35}
-          className="welcome-float-delayed absolute right-4 bottom-16 drop-shadow-xs"
+          size={52}
+          opacity={0.4}
+          className="welcome-float-slow absolute -right-3 bottom-[32%] drop-shadow-xs"
         />
 
         {/* Ambient Glowing Dust Particles */}
-        <div className="absolute left-20 top-[34%] w-2 h-2 rounded-full bg-white/45 blur-[0.5px]" />
-        <div className="absolute right-24 top-[36%] w-1.5 h-1.5 rounded-full bg-white/50 blur-[0.5px]" />
-        <div className="absolute left-16 bottom-[38%] w-2 h-2 rounded-full bg-white/35 blur-[0.5px]" />
-        <div className="absolute right-12 bottom-[24%] w-2.5 h-2.5 rounded-full bg-white/40 blur-[0.5px]" />
+        <div className="absolute left-[24%] top-[25%] w-1.5 h-1.5 rounded-full bg-white/55 blur-[0.3px]" />
+        <div className="absolute right-[12%] top-[38%] w-2 h-2 rounded-full bg-white/60 blur-[0.4px]" />
+        <div className="absolute left-[10%] bottom-[38%] w-2 h-2 rounded-full bg-white/45 blur-[0.4px]" />
       </div>
 
       {/* Mascot: Sleeping Capybara on Cyan Cube (Top-Left) */}
       <div
-        className="welcome-float-slow absolute top-[max(3rem,env(safe-area-inset-top))] left-0 z-10 pointer-events-none select-none drop-shadow-md"
+        className="welcome-float-slow absolute top-1 -left-2 z-10 pointer-events-none select-none drop-shadow-md"
         aria-hidden="true"
       >
         <Image
@@ -136,95 +101,100 @@ export default function AnimatedWelcome({ onNavigate }: AnimatedWelcomeProps) {
       </div>
 
       {/* Middle Hero Section */}
-      <section className="relative z-10 flex flex-col items-center justify-center text-center my-auto pt-16 pb-4">
-        {/* All-in-one assistant ⓘ */}
-        <div className="flex items-center justify-center gap-1.5 text-xs sm:text-sm font-semibold text-white/95 mb-1 tracking-tight">
-          <span>All-in-one assistant</span>
-          <Info className="w-3.5 h-3.5 opacity-90" aria-hidden="true" />
+      <section className="relative z-10 flex flex-col items-center justify-center text-center my-auto pt-24 pb-4">
+        {/* TRAVEL OS Logo with smile accent under OS */}
+        <div className="flex items-center gap-1.5 text-2xl sm:text-[28px] font-black text-white tracking-wide drop-shadow-xs">
+          <span>TRAVEL</span>
+          <span className="relative">
+            OS
+            <svg
+              className="absolute -bottom-2.5 left-1/2 -translate-x-1/2 w-8 h-2.5 text-white"
+              viewBox="0 0 32 10"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+              aria-hidden="true"
+            >
+              <path
+                d="M3 2C9 8 23 8 29 2"
+                stroke="currentColor"
+                strokeWidth="3"
+                strokeLinecap="round"
+              />
+            </svg>
+          </span>
         </div>
 
-        {/* Big Bold Hero Number */}
-        <div className="text-[52px] sm:text-[60px] font-black leading-none text-white tracking-tight drop-shadow-sm my-1 font-sans">
-          {heroAmount}
-        </div>
+        {/* Main Headline */}
+        <h1 className="text-[38px] sm:text-[45px] font-black text-white leading-[1.22] tracking-tight drop-shadow-xs mt-8 text-center">
+          여행 준비,<br />
+          여기서 끝내요.
+        </h1>
 
-        {/* Configure your trip */}
-        <p className="text-sm sm:text-base font-bold text-white tracking-tight mt-1">
-          Configure your trip
+        {/* Sub-headline */}
+        <p className="text-base sm:text-lg font-bold text-white/95 leading-relaxed mt-4 drop-shadow-2xs text-center">
+          나라만 고르면<br />
+          바로 시작할 수 있어요.
         </p>
       </section>
 
-      {/* Stacked 4 Capsule Pill Cards */}
-      <div className="relative z-10 w-full space-y-3 mb-6">
-        {/* Card 1: Japan (Tokyo) */}
+      {/* Bottom Interactive Section */}
+      <div className="relative z-10 w-full pb-2">
+        {/* Section label: 여행할 나라 */}
+        <div className="w-full pl-2 mb-2">
+          <span className="text-sm font-bold text-white tracking-tight">
+            여행할 나라
+          </span>
+        </div>
+
+        {/* Country Selection Card */}
         <button
           type="button"
           onClick={() => setIsCountryPickerOpen(true)}
-          className="w-full min-h-[54px] px-5 py-3.5 rounded-[22px] bg-[#0A9CB0]/65 hover:bg-[#0A9CB0]/80 active:scale-[0.98] backdrop-blur-md border border-white/20 text-white flex items-center justify-between shadow-xs transition-all cursor-pointer group"
-          aria-label={`Select destination: ${destinationLabel}`}
+          className="w-full rounded-[28px] bg-[#9DECF7]/90 hover:bg-[#A8EFF9] active:scale-[0.99] border border-white/60 p-3 sm:p-3.5 shadow-sm flex items-center justify-between transition-all cursor-pointer backdrop-blur-xs group"
+          aria-label={`여행할 나라: ${currentCountryName}, 변경하기`}
         >
-          <span className="text-sm font-bold tracking-tight">
-            {destinationLabel}
-          </span>
-          <Smile className="w-5 h-5 opacity-90 group-hover:scale-110 transition-transform" aria-hidden="true" />
+          {/* Flag & Country Name */}
+          <div className="flex items-center gap-3.5 min-w-0">
+            <div className="w-14 h-11 bg-white rounded-2xl shadow-xs border border-white/90 flex items-center justify-center p-1 shrink-0 overflow-hidden">
+              <CountryFlagIcon
+                countryCode={currentCountryCode}
+                width={42}
+                height={28}
+                shape="rounded"
+              />
+            </div>
+            <span className="text-xl font-extrabold text-[#0B3A42] tracking-tight truncate">
+              {currentCountryName}
+            </span>
+          </div>
+
+          {/* 변경 Pill Button */}
+          <div className="px-5 py-2.5 rounded-full bg-[#B5F4E1] group-hover:bg-[#A3EED7] text-[#0B726B] font-extrabold text-sm shadow-xs transition-colors shrink-0">
+            변경
+          </div>
         </button>
 
-        {/* Card 2: JPY ⇄ KRW · Wallet */}
-        <button
-          type="button"
-          onClick={() => onNavigate('currency')}
-          className="w-full min-h-[54px] px-5 py-3.5 rounded-[22px] bg-[#0A9CB0]/65 hover:bg-[#0A9CB0]/80 active:scale-[0.98] backdrop-blur-md border border-white/20 text-white flex items-center justify-between shadow-xs transition-all cursor-pointer group"
-          aria-label={`Open currency exchange & wallet: ${currencyWalletLabel}`}
-        >
-          <span className="text-sm font-bold tracking-tight">
-            {currencyWalletLabel}
-          </span>
-          <Wallet className="w-5 h-5 opacity-90 group-hover:scale-110 transition-transform" aria-hidden="true" />
-        </button>
-
-        {/* Card 3: Map & 3 Saved Places */}
+        {/* Primary CTA Button: 여행 시작하기 */}
         <button
           type="button"
           onClick={() => onNavigate('map')}
-          className="w-full min-h-[54px] px-5 py-3.5 rounded-[22px] bg-white/25 hover:bg-white/35 active:scale-[0.98] backdrop-blur-md border border-white/30 text-white flex items-center justify-between shadow-xs transition-all cursor-pointer group"
-          aria-label={`Open map & ${savedPlacesCount} saved places`}
+          className="w-full min-h-[64px] rounded-[28px] bg-gradient-to-r from-[#0C857D] via-[#097D75] to-[#056E67] hover:brightness-105 active:scale-[0.99] shadow-lg flex items-center justify-center relative px-6 cursor-pointer mt-3.5 transition-all group"
+          aria-label="여행 시작하기"
         >
-          <span className="text-sm font-bold tracking-tight">
-            Map & {savedPlacesCount} Saved Places
+          <span className="text-xl font-black text-white tracking-tight">
+            여행 시작하기
           </span>
-          <Compass className="w-5 h-5 opacity-90 group-hover:scale-110 transition-transform" aria-hidden="true" />
-        </button>
-
-        {/* Card 4: Translate · AI Menu Cam */}
-        <button
-          type="button"
-          onClick={() => onNavigate('translate')}
-          className="w-full min-h-[54px] px-5 py-3.5 rounded-[22px] bg-white/25 hover:bg-white/35 active:scale-[0.98] backdrop-blur-md border border-white/30 text-white flex items-center justify-between shadow-xs transition-all cursor-pointer group"
-          aria-label="Open translator & AI menu camera"
-        >
-          <span className="text-sm font-bold tracking-tight">
-            Translate · AI Menu Cam
-          </span>
-          <Camera className="w-5 h-5 opacity-90 group-hover:scale-110 transition-transform" aria-hidden="true" />
+          <div className="absolute right-3.5 w-11 h-11 rounded-full bg-[#035952] flex items-center justify-center text-white shadow-inner group-hover:translate-x-0.5 transition-transform">
+            <ArrowRight className="w-5 h-5 stroke-[2.5]" aria-hidden="true" />
+          </div>
         </button>
       </div>
-
-      {/* Bottom CTA: OPEN TRAVEL OS */}
-      <footer className="relative z-10 w-full text-center pb-2">
-        <button
-          type="button"
-          onClick={() => onNavigate('map')}
-          className="min-h-[44px] px-6 py-2.5 text-xs sm:text-sm font-black tracking-[0.25em] text-white hover:text-white/80 active:scale-95 transition-all uppercase cursor-pointer outline-none focus-visible:ring-2 focus-visible:ring-white rounded-lg"
-        >
-          OPEN TRAVEL OS
-        </button>
-      </footer>
 
       {/* Dynamic Country Selector Modal */}
       <CountryPickerModal
         isOpen={isCountryPickerOpen}
         countries={SELECTABLE_COUNTRIES}
-        selectedCode={country?.code || 'JP'}
+        selectedCode={currentCountryCode}
         onConfirm={(selected) => {
           setCountry(selected);
           setIsCountryPickerOpen(false);

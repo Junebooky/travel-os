@@ -9,7 +9,7 @@ const COMPONENTS_DIR = path.join(SRC_DIR, 'components');
 const GLOBALS_CSS = path.join(SRC_DIR, 'app', 'globals.css');
 
 test('Animated Welcome & Mint Rebrand Contract Suite', async (t) => {
-  await t.test('WMR-01: AnimatedWelcome component exists and matches 2nd reference design specs', () => {
+  await t.test('WMR-01: AnimatedWelcome component exists and matches Korean reference design specs', () => {
     const welcomePath = path.join(COMPONENTS_DIR, 'AnimatedWelcome.tsx');
     assert.ok(fs.existsSync(welcomePath), 'AnimatedWelcome.tsx must exist');
 
@@ -18,22 +18,24 @@ test('Animated Welcome & Mint Rebrand Contract Suite', async (t) => {
     // Mascot capybara
     assert.ok(content.includes('welcome_capybara.png'), 'References capybara mascot asset');
 
-    // Top action
-    assert.ok(content.includes('SKIP'), 'Contains top right SKIP action');
+    // Branding: TRAVEL OS with smile curve
+    assert.ok(content.includes('TRAVEL'), 'Contains TRAVEL brand text');
+    assert.ok(content.includes('OS'), 'Contains OS brand text');
 
-    // Headline and subhead
-    assert.ok(content.includes('All-in-one assistant'), 'Contains All-in-one assistant');
-    assert.ok(content.includes('Configure your trip'), 'Contains Configure your trip');
-    assert.ok(content.includes('¥2,000'), 'Contains ¥2,000 hero currency display');
+    // Korean Headline and subhead
+    assert.ok(content.includes('여행 준비'), 'Contains 여행 준비 headline');
+    assert.ok(content.includes('여기서 끝내요'), 'Contains 여기서 끝내요 headline');
+    assert.ok(content.includes('나라만 고르면'), 'Contains 나라만 고르면 subhead');
+    assert.ok(content.includes('바로 시작할 수 있어요'), 'Contains 바로 시작할 수 있어요 subhead');
 
-    // 4 Stacked Capsule Cards
-    assert.ok(content.includes('Japan'), 'Contains destination card');
-    assert.ok(content.includes('Wallet'), 'Contains currency wallet card');
-    assert.ok(content.includes('Saved Places'), 'Contains map & saved places card');
-    assert.ok(content.includes('Translate · AI Menu Cam'), 'Contains translate & AI menu cam card');
+    // Country selection card
+    assert.ok(content.includes('여행할 나라'), 'Contains 여행할 나라 label');
+    assert.ok(content.includes('CountryFlagIcon'), 'Renders CountryFlagIcon');
+    assert.ok(content.includes('변경'), 'Contains 변경 button');
+    assert.ok(content.includes('CountryPickerModal'), 'Wires CountryPickerModal');
 
-    // Bottom CTA
-    assert.ok(content.includes('OPEN TRAVEL OS'), 'Contains OPEN TRAVEL OS bottom CTA');
+    // Primary bottom CTA
+    assert.ok(content.includes('여행 시작하기'), 'Contains 여행 시작하기 CTA');
 
     // Floating 3D isometric cubes
     assert.ok(content.includes('IsometricCube'), 'Renders 3D isometric cubes');
