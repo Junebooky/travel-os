@@ -322,7 +322,7 @@ export default function TranslateView() {
       {activePlace && (
         <div className="sticky top-0 z-30 bg-[#FFFFFF] border-b border-[#E5E8EB] px-4 py-2.5 flex items-center justify-between shadow-xs">
           <div className="flex items-center gap-2 min-w-0 pr-2">
-            <MapPin className="w-4 h-4 text-[#1B64DA] shrink-0" />
+            <MapPin className="w-4 h-4 text-[#087F8C] shrink-0" />
             <span className="text-xs font-semibold text-[#191F28] truncate">
               {activePlace.name} · {t('place.detail.quick_phrases')}
             </span>
@@ -348,7 +348,7 @@ export default function TranslateView() {
               setSelectedSide('source');
               setIsCountryPickerOpen(true);
             }}
-            className="flex-1 flex items-center gap-2.5 min-w-0 text-left p-1.5 -m-1.5 rounded-xl hover:bg-[#F8FAFC] active:scale-[0.98] transition-all group cursor-pointer outline-none focus-visible:ring-2 focus-visible:ring-[#1B64DA]"
+            className="flex-1 flex items-center gap-2.5 min-w-0 text-left p-1.5 -m-1.5 rounded-xl hover:bg-[#F8FAFC] active:scale-[0.98] transition-all group cursor-pointer outline-none focus-visible:ring-2 focus-visible:ring-[#087F8C]"
             aria-label="원문 언어 변경"
           >
             <CountryFlagIcon
@@ -370,7 +370,7 @@ export default function TranslateView() {
           {/* Swap Button (min-h-[44px] min-w-[44px] pure white button) */}
           <button
             onClick={handleSwapLanguages}
-            className="w-11 h-11 min-w-[44px] min-h-[44px] rounded-full bg-[#FFFFFF] hover:bg-[#F8FAFC] text-[#1B64DA] border border-[#E5E8EB] active:scale-90 transition-all shadow-xs flex items-center justify-center shrink-0 mx-1"
+            className="w-11 h-11 min-w-[44px] min-h-[44px] rounded-full bg-[#FFFFFF] hover:bg-[#F8FAFC] text-[#087F8C] border border-[#E5E8EB] active:scale-90 transition-all shadow-xs flex items-center justify-center shrink-0 mx-1"
             aria-label={t('translate.language.swap')}
           >
             <ArrowRightLeft className="w-4 h-4" />
@@ -383,7 +383,7 @@ export default function TranslateView() {
               setSelectedSide('target');
               setIsCountryPickerOpen(true);
             }}
-            className="flex-1 flex items-center justify-end gap-2.5 min-w-0 text-right p-1.5 -m-1.5 rounded-xl hover:bg-[#F8FAFC] active:scale-[0.98] transition-all group cursor-pointer outline-none focus-visible:ring-2 focus-visible:ring-[#1B64DA]"
+            className="flex-1 flex items-center justify-end gap-2.5 min-w-0 text-right p-1.5 -m-1.5 rounded-xl hover:bg-[#F8FAFC] active:scale-[0.98] transition-all group cursor-pointer outline-none focus-visible:ring-2 focus-visible:ring-[#087F8C]"
             aria-label="번역 언어 변경"
           >
             <div className="min-w-0 flex-1">
@@ -404,7 +404,7 @@ export default function TranslateView() {
         </div>
 
         {/* Input Text Box */}
-        <div className="relative bg-[#FFFFFF] border border-[#E5E8EB] rounded-2xl p-4 shadow-xs focus-within:ring-2 focus-within:ring-[#1B64DA]">
+        <div className="relative bg-[#FFFFFF] border border-[#E5E8EB] rounded-2xl p-4 shadow-xs focus-within:ring-2 focus-within:ring-[#087F8C]">
           <div className="flex items-center justify-between mb-1.5">
             <span className="text-[11px] font-medium text-[#8B95A1]">
               {t('translate.input.label')}
@@ -432,7 +432,7 @@ export default function TranslateView() {
             <button
               onClick={() => handleTranslate(inputText)}
               disabled={isLoading || !inputText.trim()}
-              className="w-full py-3 rounded-xl bg-[#1B64DA] hover:bg-[#1652B5] text-white font-bold text-sm shadow-xs flex items-center justify-center gap-1.5 active:scale-95 disabled:opacity-50 transition-all"
+              className="w-full py-3 rounded-xl bg-[#087F8C] hover:bg-[#066B77] text-white font-bold text-sm shadow-xs flex items-center justify-center gap-1.5 active:scale-95 disabled:opacity-50 transition-all"
             >
               <Send className="w-4 h-4" />
               <span>{isLoading ? t('translate.processing') : t('translate.action')}</span>
@@ -478,7 +478,7 @@ export default function TranslateView() {
                       className="w-full text-left p-2.5 rounded-xl bg-[#FFFFFF] hover:bg-[#F8FAFC] border border-[#E5E8EB] text-xs transition-all text-[#191F28]"
                     >
                       <div className="font-semibold text-[#191F28]">{alt.korean}</div>
-                      <div className="text-[11px] text-[#1B64DA]">{alt.translation}</div>
+                      <div className="text-[11px] text-[#087F8C]">{alt.translation}</div>
                     </button>
                   ))}
                 </div>
@@ -492,7 +492,7 @@ export default function TranslateView() {
           <div className="bg-[#FFFFFF] border border-[#E5E8EB] rounded-2xl p-4 shadow-xs space-y-3 relative overflow-hidden">
             <div className="flex items-center justify-between text-xs text-[#4E5968] font-semibold">
               <span className="flex items-center gap-1.5">
-                <Check className="w-3.5 h-3.5 text-[#1B64DA]" />
+                <Check className="w-3.5 h-3.5 text-[#087F8C]" />
                 {targetLang === 'ko' ? '한국어 번역 결과' : `${country.name}어 번역 결과`}
               </span>
               <button
@@ -523,7 +523,7 @@ export default function TranslateView() {
                 onClick={() => handleSpeakText(translatedText, targetLang)}
                 className="flex-1 py-2.5 px-3 rounded-xl bg-[#FFFFFF] hover:bg-[#F8FAFC] text-[#191F28] font-semibold text-xs flex items-center justify-center gap-1.5 border border-[#E5E8EB] transition-all active:scale-95 shadow-xs"
               >
-                <Volume2 className="w-3.5 h-3.5 text-[#1B64DA]" />
+                <Volume2 className="w-3.5 h-3.5 text-[#087F8C]" />
                 <span>{t('translate.result.listen')}</span>
               </button>
 
@@ -549,7 +549,7 @@ export default function TranslateView() {
               onClick={() => setIsVoiceModalOpen(true)}
               className="p-3 bg-[#FFFFFF] hover:bg-[#F8FAFC] border border-[#E5E8EB] rounded-xl flex items-center space-x-2.5 text-left transition-all active:scale-95 shadow-xs"
             >
-              <div className="w-8 h-8 rounded-lg bg-[#FFFFFF] text-[#1B64DA] flex items-center justify-center shrink-0 border border-[#E5E8EB]">
+              <div className="w-8 h-8 rounded-lg bg-[#FFFFFF] text-[#087F8C] flex items-center justify-center shrink-0 border border-[#E5E8EB]">
                 <Mic className="w-4 h-4" />
               </div>
               <div className="min-w-0">
@@ -565,7 +565,7 @@ export default function TranslateView() {
               onClick={() => setIsCameraModalOpen(true)}
               className="p-3 bg-[#FFFFFF] hover:bg-[#F8FAFC] border border-[#E5E8EB] rounded-xl flex items-center space-x-2.5 text-left transition-all active:scale-95 shadow-xs"
             >
-              <div className="w-8 h-8 rounded-lg bg-[#FFFFFF] text-[#1B64DA] flex items-center justify-center shrink-0 border border-[#E5E8EB]">
+              <div className="w-8 h-8 rounded-lg bg-[#FFFFFF] text-[#087F8C] flex items-center justify-center shrink-0 border border-[#E5E8EB]">
                 <Camera className="w-4 h-4" />
               </div>
               <div className="min-w-0">
@@ -581,7 +581,7 @@ export default function TranslateView() {
         {/* Situational Category Filter Tabs */}
         <div>
           <div className="text-xs font-semibold text-[#8B95A1] mb-2 flex items-center gap-1.5">
-            <Sparkles className="w-3.5 h-3.5 text-[#1B64DA]" />
+            <Sparkles className="w-3.5 h-3.5 text-[#087F8C]" />
             <span>{t('place.phrases.list_title')}</span>
           </div>
           <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar py-0.5 -mx-4 px-4">
@@ -616,13 +616,13 @@ export default function TranslateView() {
                 onClick={() => handleSelectPhrase(phrase)}
                 className={`w-full text-left p-3.5 rounded-xl border text-xs transition-all ${
                   isSelected
-                    ? 'bg-[#FFFFFF] border-[#1B64DA] ring-1 ring-[#1B64DA] text-[#191F28] shadow-sm'
+                    ? 'bg-[#FFFFFF] border-[#087F8C] ring-1 ring-[#087F8C] text-[#191F28] shadow-sm'
                     : 'bg-[#FFFFFF] border-[#E5E8EB] text-[#4E5968] hover:text-[#191F28] hover:border-[#8B95A1]'
                 }`}
               >
                 <div className="font-semibold text-[#191F28] mb-0.5">{phrase.korean}</div>
                 {phrase.targetTranslations[targetLang] && (
-                  <div className="text-[11px] text-[#1B64DA] font-medium truncate">
+                  <div className="text-[11px] text-[#087F8C] font-medium truncate">
                     {phrase.targetTranslations[targetLang]}
                   </div>
                 )}
@@ -641,7 +641,7 @@ export default function TranslateView() {
               onClick={() => setIsFlipped(!isFlipped)}
               className="flex items-center gap-2 px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 font-medium text-sm border border-slate-700 transition-all"
             >
-              <RotateCw className="w-4 h-4 text-blue-400" />
+              <RotateCw className="w-4 h-4 text-[#13C2D6]" />
               <span>화면 뒤집기 (180°)</span>
             </button>
 
@@ -677,7 +677,7 @@ export default function TranslateView() {
           <div className="flex justify-center">
             <button
               onClick={() => handleSpeakText(translatedText, targetLang)}
-              className="px-6 py-3.5 rounded-2xl bg-blue-600 hover:bg-blue-500 text-white font-bold text-sm shadow-xl shadow-blue-600/40 flex items-center gap-2 active:scale-95 transition-all"
+              className="px-6 py-3.5 rounded-2xl bg-[#087F8C] hover:bg-[#066B77] text-white font-bold text-sm shadow-md flex items-center gap-2 active:scale-95 transition-all"
             >
               <Volume2 className="w-5 h-5" />
               <span>{t('translate.result.listen')}</span>

@@ -3,6 +3,7 @@
 import React, { useSyncExternalStore } from 'react';
 import { useTravel } from '@/context/TravelContext';
 import Onboarding from '@/components/Onboarding';
+import AnimatedWelcome from '@/components/AnimatedWelcome';
 import MapView from '@/components/MapView';
 import TranslateView from '@/components/TranslateView';
 import CurrencyView from '@/components/CurrencyView';
@@ -16,7 +17,7 @@ import { t } from '@/lib/i18n';
 const emptySubscribe = () => () => {};
 
 export default function TravelApp() {
-  const { onboardingCompleted, activeTab, isOnline } = useTravel();
+  const { onboardingCompleted, activeTab, setActiveTab, activePlace, isOnline } = useTravel();
   const isMounted = useSyncExternalStore(
     emptySubscribe,
     () => true,
@@ -25,6 +26,12 @@ export default function TravelApp() {
 
   const [hasVisitedMap, setHasVisitedMap] = React.useState<boolean>(activeTab === 'map');
   const [prevTab, setPrevTab] = React.useState<string>(activeTab);
+  const [welcomeDismissed, setWelcomeDismissed] = React.useState<boolean>(() => {
+    if (typeof window !== 'undefined') {
+      if (window.location.search && window.location.search.length > 1) return true;
+    }
+    return Boolean(activePlace);
+  });
 
   if (activeTab !== prevTab) {
     setPrevTab(activeTab);
@@ -36,7 +43,7 @@ export default function TravelApp() {
   if (!isMounted) {
     return (
       <div className="relative min-h-[100dvh] w-full max-w-md mx-auto bg-[#FFFFFF] text-[#191F28] shadow-2xl flex flex-col items-center justify-center">
-        <div className="w-12 h-12 rounded-2xl bg-[#1B64DA] flex items-center justify-center shadow-lg shadow-blue-500/20 animate-pulse">
+        <div className="w-12 h-12 rounded-2xl bg-[#087F8C] flex items-center justify-center shadow-lg animate-pulse">
           <Compass className="w-6 h-6 text-white" />
         </div>
       </div>
@@ -56,9 +63,19 @@ export default function TravelApp() {
       {/* Global Toast Container */}
       <ToastContainer />
 
-      {/* Content Rendering based on Onboarding state */}
+      {/* Content Rendering based on Onboarding & Welcome state */}
       {!onboardingCompleted ? (
         <Onboarding />
+      ) : !welcomeDismissed ? (
+        <AnimatedWelcome
+          onNavigate={(tab) => {
+            setActiveTab(tab);
+            setWelcomeDismissed(true);
+            if (tab === 'map') {
+              setHasVisitedMap(true);
+            }
+          }}
+        />
       ) : (
         <>
           <main className="flex-1 overflow-y-auto relative">
@@ -78,7 +95,9 @@ export default function TravelApp() {
             {activeTab === 'translate' && <TranslateView />}
             {activeTab === 'currency' && <CurrencyView />}
             {activeTab === 'wallet' && <WalletView />}
-            {activeTab === 'settings' && <SettingsView />}
+            {activeTab === 'settings' && (
+              <SettingsView onOpenWelcome={() => setWelcomeDismissed(false)} />
+            )}
           </main>
 
           {/* Bottom Persistent Navigation Bar */}

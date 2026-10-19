@@ -15,6 +15,7 @@ import {
   AlertTriangle,
   Download,
   Check,
+  Compass,
 } from 'lucide-react';
 
 function subscribeStandalone(callback: () => void) {
@@ -54,7 +55,11 @@ function getIsIOSSnapshot(): boolean {
   return /iphone|ipad|ipod/.test(ua) && !(window as unknown as { MSStream?: unknown }).MSStream;
 }
 
-export default function SettingsView() {
+interface SettingsViewProps {
+  onOpenWelcome?: () => void;
+}
+
+export default function SettingsView({ onOpenWelcome }: SettingsViewProps = {}) {
   const {
     country,
     setCountry,
@@ -114,12 +119,12 @@ export default function SettingsView() {
           <button
             type="button"
             onClick={() => setIsCountryPickerOpen(true)}
-            className="px-3.5 py-1.5 sm:px-4 sm:py-2 rounded-full bg-[#FFFFFF] hover:bg-[#F8FAFC] text-[#1B64DA] font-bold text-xs sm:text-sm border border-[#E5E8EB] shadow-sm flex items-center gap-1.5 transition-all active:scale-95"
+            className="px-3.5 py-1.5 sm:px-4 sm:py-2 rounded-full bg-[#FFFFFF] hover:bg-[#F8FAFC] text-[#087F8C] font-bold text-xs sm:text-sm border border-[#E5E8EB] shadow-sm flex items-center gap-1.5 transition-all active:scale-95"
             aria-label={t('settings.country_picker.modify')}
           >
-            <Settings className="w-3.5 h-3.5 text-[#1B64DA]" />
+            <Settings className="w-3.5 h-3.5 text-[#087F8C]" />
             <span>{t('settings.country_picker.modify')}</span>
-            <ChevronRight className="w-3.5 h-3.5 text-[#1B64DA]" />
+            <ChevronRight className="w-3.5 h-3.5 text-[#087F8C]" />
           </button>
         </div>
 
@@ -202,15 +207,15 @@ export default function SettingsView() {
         {/* Right Action */}
         <div className="shrink-0">
           {isStandalone ? (
-            <span className="px-3 py-1 rounded-full text-xs font-bold text-[#1B64DA] bg-[#FFFFFF] border border-[#E5E8EB] flex items-center gap-1 shadow-xs">
-              <Check className="w-3 h-3 text-[#1B64DA]" />
+            <span className="px-3 py-1 rounded-full text-xs font-bold text-[#087F8C] bg-[#FFFFFF] border border-[#E5E8EB] flex items-center gap-1 shadow-xs">
+              <Check className="w-3 h-3 text-[#087F8C]" />
               <span>설치됨</span>
             </span>
           ) : canInstall ? (
             <button
               type="button"
               onClick={handleInstallClick}
-              className="px-3.5 py-2 rounded-xl bg-[#1B64DA] hover:bg-[#1554B8] text-white text-xs font-bold transition-all shadow-xs active:scale-95 flex items-center gap-1"
+              className="px-3.5 py-2 rounded-xl bg-[#087F8C] hover:bg-[#066B77] text-white text-xs font-bold transition-all shadow-xs active:scale-95 flex items-center gap-1 cursor-pointer"
             >
               <Download className="w-3.5 h-3.5" />
               <span>{t('pwa.install.action')}</span>
@@ -218,6 +223,37 @@ export default function SettingsView() {
           ) : null}
         </div>
       </div>
+
+      {/* Welcome Screen Re-visit Option */}
+      {onOpenWelcome && (
+        <div
+          role="button"
+          tabIndex={0}
+          onClick={onOpenWelcome}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+              e.preventDefault();
+              onOpenWelcome();
+            }
+          }}
+          className="bg-[#FFFFFF] border border-[#E5E8EB] rounded-2xl p-4 shadow-sm flex items-center justify-between cursor-pointer hover:border-[#8B95A1]/40 transition-all active:scale-[0.99]"
+        >
+          <div className="flex items-center gap-3.5 min-w-0 pr-2">
+            <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-[#13C2D6]/20 to-[#087F8C]/15 border border-[#E5E8EB] flex items-center justify-center text-[#087F8C] shadow-xs shrink-0">
+              <Compass className="w-6 h-6 stroke-[2]" />
+            </div>
+            <div className="min-w-0">
+              <div className="font-bold text-base text-[#191F28]">
+                시작 화면 다시 보기
+              </div>
+              <p className="text-xs text-[#4E5968] mt-0.5 leading-relaxed">
+                Travel OS 시작 화면과 주요 기능 바로가기를 확인해요.
+              </p>
+            </div>
+          </div>
+          <ChevronRight className="w-5 h-5 text-[#8B95A1] shrink-0" />
+        </div>
+      )}
 
       {/* 4. Travel OS (App Info & Privacy) */}
       <div className="bg-[#FFFFFF] border border-[#E5E8EB] rounded-2xl p-4 shadow-sm space-y-2">

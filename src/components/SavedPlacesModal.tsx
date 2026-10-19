@@ -42,7 +42,7 @@ export default function SavedPlacesModal({ isOpen, onClose }: { isOpen: boolean;
         {/* Header */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <Bookmark className="w-5 h-5 text-[#1B64DA]" />
+            <Bookmark className="w-5 h-5 text-[#087F8C]" />
             <h2 className="text-lg font-bold text-[#191F28] tracking-tight">
               {t('saved.title')} ({savedPlaces.length})
             </h2>
@@ -90,7 +90,7 @@ export default function SavedPlacesModal({ isOpen, onClose }: { isOpen: boolean;
                   returnToMapWithPlace(null);
                   onClose();
                 }}
-                className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-[#1B64DA] hover:bg-[#1554B8] text-white font-semibold text-xs shadow-sm transition-all active:scale-95"
+                className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-[#087F8C] hover:bg-[#066B77] text-white font-semibold text-xs shadow-sm transition-all active:scale-95"
               >
                 <Compass className="w-3.5 h-3.5" />
                 <span>{t('saved.empty.cta')}</span>
@@ -104,7 +104,7 @@ export default function SavedPlacesModal({ isOpen, onClose }: { isOpen: boolean;
               >
                 <div className="flex items-start justify-between gap-2">
                   <div className="min-w-0">
-                    <span className="text-[10px] font-semibold text-[#1B64DA] uppercase tracking-wider block mb-0.5">
+                    <span className="text-[10px] font-semibold text-[#087F8C] uppercase tracking-wider block mb-0.5">
                       {place.categoryName || place.category}
                     </span>
                     <h4 className="text-sm font-bold text-[#191F28] truncate">{place.name}</h4>
@@ -122,7 +122,7 @@ export default function SavedPlacesModal({ isOpen, onClose }: { isOpen: boolean;
                 <div className="flex items-center gap-2 pt-1 border-t border-[#E5E8EB]">
                   <button
                     onClick={() => handleOpenOnMap(place)}
-                    className="flex-1 py-1.5 px-2.5 rounded-lg bg-[#1B64DA] hover:bg-[#1554B8] text-white text-xs font-semibold flex items-center justify-center gap-1 active:scale-95 transition-all shadow-sm"
+                    className="flex-1 py-1.5 px-2.5 rounded-lg bg-[#087F8C] hover:bg-[#066B77] text-white text-xs font-semibold flex items-center justify-center gap-1 active:scale-95 transition-all shadow-sm"
                   >
                     <MapPin className="w-3.5 h-3.5" />
                     <span>{t('saved.action.open')}</span>

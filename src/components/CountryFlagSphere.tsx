@@ -142,7 +142,7 @@ export default function CountryFlagSphere({
         // Neutral globe fallback
         return (
           <>
-            <rect x="-36" y="-36" width="72" height="72" fill="#1B64DA" />
+            <rect x="-36" y="-36" width="72" height="72" fill="#087F8C" />
             <circle cx="0" cy="0" r="24" fill="none" stroke="#FFFFFF" strokeWidth="3" opacity="0.6" />
             <ellipse cx="0" cy="0" rx="14" ry="24" fill="none" stroke="#FFFFFF" strokeWidth="2.5" opacity="0.6" />
             <line x1="-24" y1="0" x2="24" y2="0" stroke="#FFFFFF" strokeWidth="2.5" opacity="0.6" />

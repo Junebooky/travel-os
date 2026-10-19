@@ -8,7 +8,10 @@
   --muted: #4E5968;
   --subtle: #8B95A1;
   --border: #E5E8EB;
-  --primary-blue: #1B64DA;
+  --os-brand: #087F8C;
+  --os-brand-hover: #066B77;
+  --os-welcome-scene: #13C2D6;
+  --primary-brand: #087F8C;
 }
 
 @theme inline {
@@ -33,4 +36,49 @@ body {
 .no-scrollbar {
   -ms-overflow-style: none;  /* IE and Edge */
   scrollbar-width: none;  /* Firefox */
+}
+
+/* Progressive Enhancement: Welcome Floating Animations */
+@keyframes floatSlow {
+  0%, 100% {
+    transform: translateY(0px) rotate(0deg);
+  }
+  50% {
+    transform: translateY(-6px) rotate(2deg);
+  }
+}
+
+@keyframes floatSlowReverse {
+  0%, 100% {
+    transform: translateY(0px) rotate(0deg);
+  }
+  50% {
+    transform: translateY(-5px) rotate(-2deg);
+  }
+}
+
+.welcome-float {
+  animation: floatSlow 6s ease-in-out infinite;
+  will-change: transform;
+}
+
+.welcome-float-delayed {
+  animation: floatSlowReverse 5.5s ease-in-out infinite -2s;
+  will-change: transform;
+}
+
+.welcome-float-slow {
+  animation: floatSlow 7s ease-in-out infinite -3.5s;
+  will-change: transform;
+}
+
+/* Strictly enforce reduced motion preference */
+@media (prefers-reduced-motion: reduce) {
+  .welcome-float,
+  .welcome-float-delayed,
+  .welcome-float-slow {
+    animation: none !important;
+    transform: none !important;
+    transition: none !important;
+  }
 }

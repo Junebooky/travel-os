@@ -539,7 +539,7 @@ export default function MapView({ isTabActive = true }: MapViewProps = {}) {
                     }}
                   />
                   <div className="absolute bottom-20 left-4 pointer-events-none select-none opacity-90 flex items-center gap-1.5 bg-white/90 backdrop-blur-xs px-2.5 py-1 rounded-md shadow-xs border border-[#CBD5E1]">
-                    <span className="w-2 h-2 rounded-full bg-[#1B64DA] animate-pulse" />
+                    <span className="w-2 h-2 rounded-full bg-[#087F8C] animate-pulse" />
                     <span className="text-[11px] text-[#334155] font-semibold tracking-tight">
                       지도 미리보기 (미승인 시뮬레이션)
                     </span>
@@ -600,7 +600,7 @@ export default function MapView({ isTabActive = true }: MapViewProps = {}) {
                   <div
                     className={`px-2 py-0.5 rounded-full text-[10px] font-bold shadow-md whitespace-nowrap mb-1 transition-all ${
                       isSelected
-                        ? 'bg-[#1B64DA] text-white shadow-[#1B64DA]/30'
+                        ? 'bg-[#087F8C] text-white shadow-[#087F8C]/30'
                         : 'bg-[#FFFFFF] text-[#191F28] border border-[#E5E8EB]'
                     }`}
                   >
@@ -609,7 +609,7 @@ export default function MapView({ isTabActive = true }: MapViewProps = {}) {
                   <div
                     className={`w-7 h-7 rounded-full flex items-center justify-center shadow-lg transition-all ${
                       isSelected
-                        ? 'bg-[#1B64DA] text-white ring-4 ring-[#1B64DA]/25'
+                        ? 'bg-[#087F8C] text-white ring-4 ring-[#087F8C]/25'
                         : 'bg-[#FFFFFF] text-[#4E5968] border border-[#E5E8EB]'
                     }`}
                   >
@@ -626,14 +626,14 @@ export default function MapView({ isTabActive = true }: MapViewProps = {}) {
       <div className="absolute top-0 left-0 right-0 z-30 p-3 pt-4 space-y-2 max-w-md mx-auto pointer-events-auto">
         {/* Search Bar */}
         <div className="relative shadow-md">
-          <div className="relative flex items-center bg-[#FFFFFF] border border-[#E5E8EB] rounded-2xl overflow-hidden focus-within:ring-2 focus-within:ring-[#1B64DA]">
+          <div className="relative flex items-center bg-[#FFFFFF] border border-[#E5E8EB] rounded-2xl overflow-hidden focus-within:ring-2 focus-within:ring-[#087F8C]">
             <button
               type="button"
               onClick={() => fetchPlaces(searchQuery, selectedCategory, mapCenter, { recenterOnResult: true })}
-              className="pl-3.5 pr-2 text-[#8B95A1] hover:text-[#1B64DA] transition-colors"
+              className="pl-3.5 pr-2 text-[#8B95A1] hover:text-[#087F8C] transition-colors"
               aria-label="어디로 가볼까요?"
             >
-              <Search className={`w-4 h-4 ${isSearchingPlaces ? 'animate-pulse text-[#1B64DA]' : ''}`} />
+              <Search className={`w-4 h-4 ${isSearchingPlaces ? 'animate-pulse text-[#087F8C]' : ''}`} />
             </button>
             <input
               type="text"
@@ -668,7 +668,7 @@ export default function MapView({ isTabActive = true }: MapViewProps = {}) {
                 type="button"
                 onClick={() => fetchPlaces(searchQuery, selectedCategory, mapCenter, { recenterOnResult: true })}
                 disabled={isSearchingPlaces || !searchQuery.trim()}
-                className="min-h-[36px] px-3 py-1 bg-[#1B64DA] hover:bg-[#1652B5] disabled:opacity-40 text-white text-xs font-semibold rounded-lg shadow-sm transition-all active:scale-95"
+                className="min-h-[36px] px-3 py-1 bg-[#087F8C] hover:bg-[#066B77] disabled:opacity-40 text-white text-xs font-semibold rounded-lg shadow-sm transition-all active:scale-95"
               >
                 찾아보기
               </button>
@@ -693,7 +693,7 @@ export default function MapView({ isTabActive = true }: MapViewProps = {}) {
                 }}
                 className={`min-h-[36px] px-3 py-1.5 rounded-xl text-xs font-medium whitespace-nowrap transition-all border shrink-0 active:scale-95 shadow-sm ${
                   activePlace?.id === place.id
-                    ? 'bg-[#1B64DA] text-white border-[#1B64DA]'
+                    ? 'bg-[#087F8C] text-white border-[#087F8C]'
                     : 'bg-[#FFFFFF] text-[#4E5968] border-[#E5E8EB] hover:bg-[#F8FAFC]'
                 }`}
               >
@@ -738,7 +738,7 @@ export default function MapView({ isTabActive = true }: MapViewProps = {}) {
             role="status"
             className="flex items-start sm:items-center gap-2 px-3 py-2 rounded-xl bg-[#FFFFFF] border border-[#E5E8EB] shadow-sm text-xs text-[#4E5968]"
           >
-            <span className="px-1.5 py-0.5 rounded font-bold bg-[#E8F3FF] text-[#1B64DA] border border-[#B9D9FE] shrink-0 text-[11px]">
+            <span className="px-1.5 py-0.5 rounded font-bold bg-[#FFFFFF] text-[#087F8C] border border-[#E5E8EB] shrink-0 text-[11px]">
               지도 미리보기
             </span>
             <span className="text-[#4E5968] text-xs leading-relaxed break-keep">
@@ -760,9 +760,9 @@ export default function MapView({ isTabActive = true }: MapViewProps = {}) {
         ) : (
           <div
             role="status"
-            className="flex items-start sm:items-center gap-2 px-3 py-2 rounded-xl bg-[#FFFFFF] border border-[#E5E8EB] shadow-sm text-xs text-[#1B64DA]"
+            className="flex items-start sm:items-center gap-2 px-3 py-2 rounded-xl bg-[#FFFFFF] border border-[#E5E8EB] shadow-sm text-xs text-[#087F8C]"
           >
-            <span className="px-1.5 py-0.5 rounded font-bold bg-[#FFFFFF] text-[#1B64DA] border border-[#E5E8EB] shrink-0 text-[11px]">
+            <span className="px-1.5 py-0.5 rounded font-bold bg-[#FFFFFF] text-[#087F8C] border border-[#E5E8EB] shrink-0 text-[11px]">
               주변 스팟
             </span>
             <span className="text-[#4E5968] text-xs leading-relaxed">
@@ -785,7 +785,7 @@ export default function MapView({ isTabActive = true }: MapViewProps = {}) {
         {/* Map Provider Evaluator Switch (OSM <-> Google) */}
         <button
           onClick={() => setMapProvider((prev) => (prev === 'google' ? 'osm' : 'google'))}
-          className="min-w-[44px] h-[32px] px-2 flex items-center justify-center rounded-xl bg-[#FFFFFF] border border-[#E5E8EB] text-[#4E5968] hover:text-[#1B64DA] hover:bg-[#F8FAFC] transition-all shadow-md active:scale-95 text-[11px] font-semibold"
+          className="min-w-[44px] h-[32px] px-2 flex items-center justify-center rounded-xl bg-[#FFFFFF] border border-[#E5E8EB] text-[#4E5968] hover:text-[#087F8C] hover:bg-[#F8FAFC] transition-all shadow-md active:scale-95 text-[11px] font-semibold"
           aria-label={`현재 지도: ${mapProvider === 'google' ? 'Google 지도' : 'OSM'}. 클릭하여 지도 바꾸기`}
           title="지도 바꾸기 (OSM / Google 지도)"
         >
@@ -811,7 +811,7 @@ export default function MapView({ isTabActive = true }: MapViewProps = {}) {
 
         <button
           onClick={handleResetLocation}
-          className="min-w-[44px] min-h-[44px] flex items-center justify-center rounded-xl bg-[#FFFFFF] border border-[#E5E8EB] text-[#1B64DA] hover:text-[#1652B5] hover:bg-[#F8FAFC] transition-all shadow-md active:scale-95"
+          className="min-w-[44px] min-h-[44px] flex items-center justify-center rounded-xl bg-[#FFFFFF] border border-[#E5E8EB] text-[#087F8C] hover:text-[#066B77] hover:bg-[#F8FAFC] transition-all shadow-md active:scale-95"
           aria-label={t('map.location.action')}
         >
           <NavigationIcon className="w-4 h-4" />
@@ -880,7 +880,7 @@ export default function MapView({ isTabActive = true }: MapViewProps = {}) {
               setSearchQuery('');
               setSelectedCategory('all');
             }}
-            className="text-xs font-medium text-[#1B64DA] hover:underline py-1"
+            className="text-xs font-medium text-[#087F8C] hover:underline py-1"
           >
             {t('map.search.empty_action')}
           </button>
@@ -955,7 +955,7 @@ export default function MapView({ isTabActive = true }: MapViewProps = {}) {
               <button
                 type="button"
                 onClick={() => openDirections(activePlace)}
-                className="min-h-[44px] py-2.5 px-3 rounded-xl bg-[#1B64DA] hover:bg-[#1652B5] text-white font-semibold text-xs flex items-center justify-center gap-1.5 shadow-sm active:scale-95 transition-all"
+                className="min-h-[44px] py-2.5 px-3 rounded-xl bg-[#087F8C] hover:bg-[#066B77] text-white font-semibold text-xs flex items-center justify-center gap-1.5 shadow-sm active:scale-95 transition-all"
               >
                 <ExternalLink className="w-4 h-4" />
                 <span>{t('place.detail.directions')}</span>
@@ -968,7 +968,7 @@ export default function MapView({ isTabActive = true }: MapViewProps = {}) {
                 }}
                 className="min-h-[44px] py-2.5 px-3 rounded-xl bg-[#FFFFFF] hover:bg-[#F8FAFC] text-[#191F28] font-semibold text-xs flex items-center justify-center gap-1.5 border border-[#E5E8EB] active:scale-95 transition-all"
               >
-                <Languages className="w-4 h-4 text-[#1B64DA]" />
+                <Languages className="w-4 h-4 text-[#087F8C]" />
                 <span>{t('place.detail.quick_translate')}</span>
               </button>
             </div>
@@ -978,7 +978,7 @@ export default function MapView({ isTabActive = true }: MapViewProps = {}) {
               <button
                 type="button"
                 onClick={() => setIsSheetExpanded(true)}
-                className="w-full py-1.5 flex items-center justify-center gap-1 text-[11px] font-medium text-[#1B64DA] hover:underline transition-colors border-t border-[#E5E8EB] mt-1"
+                className="w-full py-1.5 flex items-center justify-center gap-1 text-[11px] font-medium text-[#087F8C] hover:underline transition-colors border-t border-[#E5E8EB] mt-1"
                 aria-expanded="false"
               >
                 <span>상세 정보 및 추가 도구 (시간·환율·저장·메뉴)</span>
@@ -1015,7 +1015,7 @@ export default function MapView({ isTabActive = true }: MapViewProps = {}) {
                       onClick={() => setIsCameraModalOpen(true)}
                       className="w-full min-h-[44px] py-2.5 px-3 rounded-xl bg-[#FFFFFF] border border-[#E5E8EB] hover:bg-[#F8FAFC] text-[#191F28] font-semibold text-xs flex items-center justify-center gap-1.5 shadow-sm active:scale-95 transition-all"
                     >
-                      <Camera className="w-4 h-4 text-[#1B64DA]" />
+                      <Camera className="w-4 h-4 text-[#087F8C]" />
                       <span>{t('camera.title')} (메뉴 촬영/번역)</span>
                     </button>
 
@@ -1027,7 +1027,7 @@ export default function MapView({ isTabActive = true }: MapViewProps = {}) {
                         }}
                         className="flex-1 min-h-[44px] py-2 px-2.5 rounded-lg bg-[#FFFFFF] hover:bg-[#F8FAFC] text-[#191F28] text-xs font-medium flex items-center justify-center gap-1.5 border border-[#E5E8EB] transition-all active:scale-95"
                       >
-                        <Coins className="w-3.5 h-3.5 text-[#1B64DA]" />
+                        <Coins className="w-3.5 h-3.5 text-[#087F8C]" />
                         <span>{t('place.detail.quick_currency')}</span>
                       </button>
 
@@ -1079,7 +1079,7 @@ export default function MapView({ isTabActive = true }: MapViewProps = {}) {
                         }}
                         className="flex-1 min-h-[44px] py-2 px-2.5 rounded-lg bg-[#FFFFFF] hover:bg-[#F8FAFC] text-[#191F28] text-xs font-medium flex items-center justify-center gap-1.5 border border-[#E5E8EB] transition-all active:scale-95"
                       >
-                        <Coins className="w-3.5 h-3.5 text-[#1B64DA]" />
+                        <Coins className="w-3.5 h-3.5 text-[#087F8C]" />
                         <span>{t('place.detail.quick_currency')}</span>
                       </button>
 
@@ -1126,7 +1126,7 @@ export default function MapView({ isTabActive = true }: MapViewProps = {}) {
                       onClick={() => setIsCameraModalOpen(true)}
                       className="w-full min-h-[44px] py-2.5 px-3 rounded-xl bg-[#FFFFFF] border border-[#E5E8EB] hover:bg-[#F8FAFC] text-[#191F28] font-semibold text-xs flex items-center justify-center gap-1.5 shadow-sm active:scale-95 transition-all"
                     >
-                      <Camera className="w-4 h-4 text-[#1B64DA]" />
+                      <Camera className="w-4 h-4 text-[#087F8C]" />
                       <span>{t('camera.title')} (메뉴/안내판 번역)</span>
                     </button>
                   </>

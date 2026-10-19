@@ -160,7 +160,7 @@ export default function WalletView() {
             }}
             className="py-2 px-3.5 bg-[#FFFFFF] hover:bg-[#F8FAFC] text-[#191F28] border border-[#E5E8EB] rounded-xl text-xs font-bold flex items-center gap-1 shadow-sm active:scale-95 transition-all"
           >
-            <Plus className="w-4 h-4 text-[#1B64DA]" />
+            <Plus className="w-4 h-4 text-[#087F8C]" />
             {t('wallet.action.add')}
           </button>
         </div>
@@ -170,7 +170,7 @@ export default function WalletView() {
       {activePlace && (
         <div className="flex items-center justify-between p-3 bg-[#FFFFFF] border border-[#E5E8EB] rounded-xl text-xs shadow-sm">
           <div className="flex items-center space-x-2 truncate">
-            <MapPin className="w-3.5 h-3.5 text-[#1B64DA] shrink-0" />
+            <MapPin className="w-3.5 h-3.5 text-[#087F8C] shrink-0" />
             <span className="text-[#4E5968] truncate font-medium">
               {activePlace.name}에서 방문 중
             </span>
@@ -179,7 +179,7 @@ export default function WalletView() {
             type="button"
             onClick={() => returnToMapWithPlace(activePlace)}
             aria-label={t('wallet.a11y.return_map')}
-            className="text-[11px] text-[#1B64DA] hover:underline font-semibold shrink-0 ml-2"
+            className="text-[11px] text-[#087F8C] hover:underline font-semibold shrink-0 ml-2"
           >
             {t('flow.return_map')}
           </button>
@@ -190,7 +190,7 @@ export default function WalletView() {
       <div className="p-4 bg-[#FFFFFF] border border-[#E5E8EB] rounded-2xl shadow-sm space-y-3">
         <div className="flex items-center justify-between text-xs text-[#8B95A1]">
           <span className="flex items-center gap-1 font-medium text-[#4E5968]">
-            <TrendingDown className="w-3.5 h-3.5 text-[#1B64DA]" />
+            <TrendingDown className="w-3.5 h-3.5 text-[#087F8C]" />
             {t('wallet.summary.total_krw')}
           </span>
           <span className="text-[#8B95A1] font-mono">
@@ -215,7 +215,7 @@ export default function WalletView() {
             <button
               type="button"
               onClick={() => refreshRates()}
-              className="text-[#1B64DA] hover:underline font-semibold ml-2 shrink-0"
+              className="text-[#087F8C] hover:underline font-semibold ml-2 shrink-0"
             >
               {t('common.action.refresh')}
             </button>
@@ -242,7 +242,7 @@ export default function WalletView() {
       {expenses.length === 0 && (
         <div className="p-8 text-center bg-[#FFFFFF] border border-[#E5E8EB] rounded-2xl flex flex-col items-center justify-center space-y-2 shadow-sm">
           <div className="w-12 h-12 rounded-full bg-[#FFFFFF] border border-[#E5E8EB] flex items-center justify-center text-[#8B95A1] mb-1 shadow-xs">
-            <Wallet className="w-6 h-6 text-[#1B64DA]" />
+            <Wallet className="w-6 h-6 text-[#087F8C]" />
           </div>
           <h3 className="text-sm font-bold text-[#191F28]">{t('wallet.empty.title')}</h3>
           <p className="text-xs text-[#8B95A1] max-w-xs">{t('wallet.empty.body')}</p>
@@ -269,7 +269,7 @@ export default function WalletView() {
                   {item.paymentMethod && item.paymentMethod !== 'unknown' && (
                     <span className="text-[10px] px-1.5 py-0.2 rounded bg-[#FFFFFF] text-[#4E5968] flex items-center gap-0.5 font-medium border border-[#E5E8EB]">
                       {item.paymentMethod === 'card' ? (
-                        <CreditCard className="w-2.5 h-2.5 text-[#1B64DA]" />
+                        <CreditCard className="w-2.5 h-2.5 text-[#087F8C]" />
                       ) : (
                         <Banknote className="w-2.5 h-2.5 text-[#4E5968]" />
                       )}
@@ -357,7 +357,7 @@ export default function WalletView() {
                     placeholder="0"
                     value={amountInput}
                     onChange={(e) => setAmountInput(e.target.value)}
-                    className="flex-1 bg-[#FFFFFF] border border-[#E5E8EB] rounded-xl px-3.5 py-3 text-2xl font-bold text-[#191F28] focus:outline-none focus:ring-2 focus:ring-[#1B64DA]"
+                    className="flex-1 bg-[#FFFFFF] border border-[#E5E8EB] rounded-xl px-3.5 py-3 text-2xl font-bold text-[#191F28] focus:outline-none focus:ring-2 focus:ring-[#087F8C]"
                   />
                   <select
                     value={currencyInput}
@@ -423,7 +423,7 @@ export default function WalletView() {
                     placeholder="상호명 또는 장소 입력"
                     value={placeNameInput}
                     onChange={(e) => setPlaceNameInput(e.target.value)}
-                    className="w-full bg-[#FFFFFF] border border-[#E5E8EB] rounded-xl px-3.5 py-2.5 text-xs text-[#191F28] focus:outline-none focus:ring-2 focus:ring-[#1B64DA] pl-8"
+                    className="w-full bg-[#FFFFFF] border border-[#E5E8EB] rounded-xl px-3.5 py-2.5 text-xs text-[#191F28] focus:outline-none focus:ring-2 focus:ring-[#087F8C] pl-8"
                   />
                   <MapPin className="w-3.5 h-3.5 text-[#8B95A1] absolute left-2.5 top-3" />
                 </div>
@@ -458,7 +458,7 @@ export default function WalletView() {
                   placeholder={t('wallet.form.memo_placeholder')}
                   value={memoInput}
                   onChange={(e) => setMemoInput(e.target.value)}
-                  className="w-full bg-[#FFFFFF] border border-[#E5E8EB] rounded-xl px-3.5 py-2.5 text-xs text-[#191F28] focus:outline-none focus:ring-2 focus:ring-[#1B64DA]"
+                  className="w-full bg-[#FFFFFF] border border-[#E5E8EB] rounded-xl px-3.5 py-2.5 text-xs text-[#191F28] focus:outline-none focus:ring-2 focus:ring-[#087F8C]"
                 />
               </div>
 
@@ -467,7 +467,7 @@ export default function WalletView() {
                 <button
                   type="submit"
                   disabled={!amountInput || parseFloat(amountInput) <= 0}
-                  className="w-full min-h-[52px] py-3.5 bg-[#1B64DA] hover:bg-[#1652B5] disabled:opacity-40 text-white rounded-xl text-sm font-bold shadow-sm active:scale-95 transition-all"
+                  className="w-full min-h-[52px] py-3.5 bg-[#087F8C] hover:bg-[#066B77] disabled:opacity-40 text-white rounded-xl text-sm font-bold shadow-sm active:scale-95 transition-all"
                 >
                   {amountInput && parseFloat(amountInput) > 0
                     ? t('wallet.form.submit_amount', {

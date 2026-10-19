@@ -36,12 +36,12 @@ export default function Navigation() {
               role="tab"
               aria-selected={isActive}
               aria-label={t(tab.labelKey)}
-              className={`flex-1 min-h-[48px] py-1 px-0.5 flex flex-col items-center justify-center relative transition-all rounded-xl active:scale-95 ${isActive ? 'text-[#1B64DA]' : 'text-[#4E5968]'
+              className={`flex-1 min-h-[48px] py-1 px-0.5 flex flex-col items-center justify-center relative transition-all rounded-xl active:scale-95 ${isActive ? 'text-[#087F8C]' : 'text-[#4E5968]'
                 }`}
             >
               <div
                 className={`relative flex items-center justify-center transition-all duration-200 ${isActive
-                  ? 'scale-110 drop-shadow-[0_2px_6px_rgba(27,100,218,0.22)]'
+                  ? 'scale-110 drop-shadow-[0_2px_6px_rgba(8,127,140,0.22)]'
                   : 'opacity-70 grayscale-[15%] hover:opacity-100'
                   }`}
               >
@@ -55,7 +55,7 @@ export default function Navigation() {
                 />
               </div>
               <span
-                className={`text-[10px] sm:text-[11px] tracking-tight mt-0.5 whitespace-nowrap overflow-hidden text-ellipsis max-w-full ${isActive ? 'text-[#1B64DA] font-bold' : 'text-[#4E5968] font-medium'
+                className={`text-[10px] sm:text-[11px] tracking-tight mt-0.5 whitespace-nowrap overflow-hidden text-ellipsis max-w-full ${isActive ? 'text-[#087F8C] font-bold' : 'text-[#4E5968] font-medium'
                   }`}
               >
                 {t(tab.labelKey)}

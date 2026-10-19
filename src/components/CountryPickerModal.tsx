@@ -153,10 +153,10 @@ export default function CountryPickerModal({
 
           {/* Brand Badge */}
           <div className="flex items-center gap-2 mb-2 relative z-10">
-            <span className="text-xs font-extrabold tracking-[0.25em] text-[#1B64DA]">
+            <span className="text-xs font-extrabold tracking-[0.25em] text-[#087F8C]">
               TRAVEL OS
             </span>
-            <Plane className="w-3.5 h-3.5 text-[#1B64DA] rotate-12" aria-hidden="true" />
+            <Plane className="w-3.5 h-3.5 text-[#087F8C] rotate-12" aria-hidden="true" />
           </div>
 
           {/* Titles */}
@@ -175,7 +175,7 @@ export default function CountryPickerModal({
 
           {/* Search Bar UI */}
           <div className="mt-3 relative z-10">
-            <div className="relative flex items-center p-3 rounded-xl bg-[#FFFFFF] border border-[#E5E8EB] shadow-xs focus-within:border-[#1B64DA] focus-within:ring-2 focus-within:ring-[#1B64DA]/10 transition-all">
+            <div className="relative flex items-center p-3 rounded-xl bg-[#FFFFFF] border border-[#E5E8EB] shadow-xs focus-within:border-[#087F8C] focus-within:ring-2 focus-within:ring-[#087F8C]/10 transition-all">
               <Search className="w-4 h-4 text-[#8B95A1] shrink-0 mr-2" />
               <input
                 type="text"
@@ -211,7 +211,7 @@ export default function CountryPickerModal({
               <button
                 type="button"
                 onClick={() => setSearchQuery('')}
-                className="mt-2 px-3 py-1.5 text-xs font-semibold text-[#1B64DA] bg-[#FFFFFF] hover:bg-[#F8FAFC] border border-[#E5E8EB] rounded-lg transition-colors cursor-pointer"
+                className="mt-2 px-3 py-1.5 text-xs font-semibold text-[#087F8C] bg-[#FFFFFF] hover:bg-[#F8FAFC] border border-[#E5E8EB] rounded-lg transition-colors cursor-pointer"
               >
                 검색어 지우기
               </button>
@@ -232,15 +232,15 @@ export default function CountryPickerModal({
                     aria-pressed={isSelected}
                     aria-label={`${c.name}${isSelected ? ', 선택 대기' : ''}`}
                     onClick={() => setDraftCountryCode(c.code)}
-                    className={`relative flex flex-col items-center justify-between p-3 rounded-[20px] transition-all active:scale-[0.96] min-h-[128px] sm:min-h-[134px] bg-[#FFFFFF] outline-none focus-visible:ring-2 focus-visible:ring-[#1B64DA] ${isSelected
-                      ? 'border-2 border-[#1B64DA] shadow-xs'
+                    className={`relative flex flex-col items-center justify-between p-3 rounded-[20px] transition-all active:scale-[0.96] min-h-[128px] sm:min-h-[134px] bg-[#FFFFFF] outline-none focus-visible:ring-2 focus-visible:ring-[#087F8C] ${isSelected
+                      ? 'border-2 border-[#087F8C] shadow-xs'
                       : 'border border-[#E5E8EB] hover:border-[#8B95A1]/50 hover:bg-[#F8FAFC]'
                       }`}
                   >
-                    {/* Selected Solid Blue Badge with White Checkmark */}
+                    {/* Selected Solid Mint Badge with White Checkmark */}
                     {isSelected && (
                       <div
-                        className="absolute top-2 right-2 w-7 h-7 rounded-full bg-[#1B64DA] flex items-center justify-center text-white shadow-xs"
+                        className="absolute top-2 right-2 w-7 h-7 rounded-full bg-[#087F8C] flex items-center justify-center text-white shadow-xs"
                         aria-hidden="true"
                       >
                         <Check className="w-4 h-4 stroke-[3]" />
@@ -269,7 +269,7 @@ export default function CountryPickerModal({
           <button
             type="button"
             onClick={() => onConfirm(draftCountry)}
-            className="w-full min-h-[52px] py-3.5 px-4 rounded-2xl bg-[#1B64DA] hover:bg-[#1554B8] text-white font-bold text-base shadow-sm active:scale-[0.99] transition-all flex items-center justify-center"
+            className="w-full min-h-[52px] py-3.5 px-4 rounded-2xl bg-[#087F8C] hover:bg-[#066B77] text-white font-bold text-base shadow-sm active:scale-[0.99] transition-all flex items-center justify-center"
           >
             {t('settings.country_picker.confirm')}
           </button>

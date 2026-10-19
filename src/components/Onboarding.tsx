@@ -86,12 +86,12 @@ export default function Onboarding() {
       <div className="relative z-10 pt-2">
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-lg bg-[#1B64DA] flex items-center justify-center shadow-md shadow-blue-500/20">
+            <div className="w-8 h-8 rounded-lg bg-[#087F8C] flex items-center justify-center shadow-sm">
               <Compass className="w-5 h-5 text-white" />
             </div>
             <span className="font-bold text-base tracking-tight text-[#191F28]">Travel OS</span>
           </div>
-          <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-[#FFFFFF] text-[#1B64DA] border border-[#E5E8EB] shadow-sm">
+          <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-[#FFFFFF] text-[#087F8C] border border-[#E5E8EB] shadow-sm">
             {t('onboarding.progress.label', { currentStep: step, totalSteps })}
           </span>
         </div>
@@ -99,7 +99,7 @@ export default function Onboarding() {
         {/* Progress Bar */}
         <div className="w-full bg-[#E5E8EB] h-1.5 rounded-full overflow-hidden mb-6">
           <div
-            className="bg-[#1B64DA] h-full transition-all duration-300 ease-out"
+            className="bg-[#087F8C] h-full transition-all duration-300 ease-out"
             style={{ width: `${(step / totalSteps) * 100}%` }}
           />
         </div>
@@ -126,7 +126,7 @@ export default function Onboarding() {
                 value={countrySearch}
                 onChange={(e) => setCountrySearch(e.target.value)}
                 placeholder={t('onboarding.country.search')}
-                className="w-full bg-[#FFFFFF] border border-[#E5E8EB] rounded-xl px-4 py-3 text-sm text-[#191F28] placeholder-[#8B95A1] focus:outline-none focus:ring-2 focus:ring-[#1B64DA]/30 shadow-sm transition-all"
+                className="w-full bg-[#FFFFFF] border border-[#E5E8EB] rounded-xl px-4 py-3 text-sm text-[#191F28] placeholder-[#8B95A1] focus:outline-none focus:ring-2 focus:ring-[#087F8C]/30 shadow-sm transition-all"
               />
               {countrySearch && (
                 <button
@@ -153,7 +153,7 @@ export default function Onboarding() {
                       onClick={() => handleCountrySelect(c)}
                       className={`w-full flex items-center justify-between p-3.5 rounded-xl border text-left transition-all ${
                         isSelected
-                          ? 'bg-[#FFFFFF] border-[#1B64DA] shadow-sm ring-1 ring-[#1B64DA]'
+                          ? 'bg-[#FFFFFF] border-[#087F8C] shadow-sm ring-1 ring-[#087F8C]'
                           : 'bg-[#FFFFFF] border-[#E5E8EB] hover:border-[#8B95A1]/40'
                       }`}
                     >
@@ -170,7 +170,7 @@ export default function Onboarding() {
                         </div>
                       </div>
                       {isSelected && (
-                        <div className="w-5 h-5 rounded-full bg-[#1B64DA] flex items-center justify-center text-white">
+                        <div className="w-5 h-5 rounded-full bg-[#087F8C] flex items-center justify-center text-white">
                           <Check className="w-3.5 h-3.5" />
                         </div>
                       )}
@@ -189,8 +189,8 @@ export default function Onboarding() {
               <h2 className="text-2xl font-bold tracking-tight text-[#191F28] mb-1.5">
                 {t('onboarding.language.title')}
               </h2>
-              <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#FFFFFF] text-[#1B64DA] text-xs border border-[#E5E8EB] mt-1 shadow-sm font-medium">
-                <Globe className="w-3.5 h-3.5 text-[#1B64DA] shrink-0" />
+              <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#FFFFFF] text-[#087F8C] text-xs border border-[#E5E8EB] mt-1 shadow-sm font-medium">
+                <Globe className="w-3.5 h-3.5 text-[#087F8C] shrink-0" />
                 <span>{t('onboarding.language.auto_note')}</span>
               </div>
             </div>
@@ -203,7 +203,7 @@ export default function Onboarding() {
                   </span>
                   <span className="text-sm font-semibold text-[#191F28]">한국어 (Korean)</span>
                 </div>
-                <span className="text-xs text-[#1B64DA] bg-[#FFFFFF] px-2 py-0.5 rounded border border-[#E5E8EB] font-medium">
+                <span className="text-xs text-[#087F8C] bg-[#FFFFFF] px-2 py-0.5 rounded border border-[#E5E8EB] font-medium">
                   기본
                 </span>
               </div>
@@ -221,7 +221,7 @@ export default function Onboarding() {
                         onClick={() => setTargetLang(lang.code)}
                         className={`w-full flex items-center justify-between p-3.5 rounded-xl border text-left transition-all ${
                           isSelected
-                            ? 'bg-[#FFFFFF] border-[#1B64DA] shadow-sm ring-1 ring-[#1B64DA]'
+                            ? 'bg-[#FFFFFF] border-[#087F8C] shadow-sm ring-1 ring-[#087F8C]'
                             : 'bg-[#FFFFFF] border-[#E5E8EB] hover:border-[#8B95A1]/40'
                         }`}
                       >
@@ -230,7 +230,7 @@ export default function Onboarding() {
                           <div className="text-xs text-[#4E5968]">{lang.nativeName}</div>
                         </div>
                         {isSelected && (
-                          <div className="w-5 h-5 rounded-full bg-[#1B64DA] flex items-center justify-center text-white">
+                          <div className="w-5 h-5 rounded-full bg-[#087F8C] flex items-center justify-center text-white">
                             <Check className="w-3.5 h-3.5" />
                           </div>
                         )}
@@ -263,7 +263,7 @@ export default function Onboarding() {
                   </span>
                   <span className="text-sm font-semibold text-[#191F28]">대한민국 원 (KRW, ₩)</span>
                 </div>
-                <span className="text-xs text-[#1B64DA] bg-[#FFFFFF] px-2 py-0.5 rounded border border-[#E5E8EB] font-medium">
+                <span className="text-xs text-[#087F8C] bg-[#FFFFFF] px-2 py-0.5 rounded border border-[#E5E8EB] font-medium">
                   기본
                 </span>
               </div>
@@ -281,7 +281,7 @@ export default function Onboarding() {
                         onClick={() => setLocalCurrency(curr.code)}
                         className={`w-full flex items-center justify-between p-3.5 rounded-xl border text-left transition-all ${
                           isSelected
-                            ? 'bg-[#FFFFFF] border-[#1B64DA] shadow-sm ring-1 ring-[#1B64DA]'
+                            ? 'bg-[#FFFFFF] border-[#087F8C] shadow-sm ring-1 ring-[#087F8C]'
                             : 'bg-[#FFFFFF] border-[#E5E8EB] hover:border-[#8B95A1]/40'
                         }`}
                       >
@@ -295,7 +295,7 @@ export default function Onboarding() {
                           </div>
                         </div>
                         {isSelected && (
-                          <div className="w-5 h-5 rounded-full bg-[#1B64DA] flex items-center justify-center text-white">
+                          <div className="w-5 h-5 rounded-full bg-[#087F8C] flex items-center justify-center text-white">
                             <Check className="w-3.5 h-3.5" />
                           </div>
                         )}
@@ -311,7 +311,7 @@ export default function Onboarding() {
         {/* STEP 4: 위치 권한 안내 */}
         {step === 4 && (
           <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-200 text-center py-6">
-            <div className="w-20 h-20 rounded-full bg-[#1B64DA]/10 border border-[#1B64DA]/20 flex items-center justify-center mx-auto text-[#1B64DA]">
+            <div className="w-20 h-20 rounded-full bg-[#087F8C]/10 border border-[#087F8C]/20 flex items-center justify-center mx-auto text-[#087F8C]">
               <MapPin className="w-10 h-10 animate-bounce duration-1000" />
             </div>
 
@@ -338,7 +338,7 @@ export default function Onboarding() {
             <div className="pt-4 space-y-3">
               <button
                 onClick={handleRequestLocation}
-                className="w-full bg-[#1B64DA] hover:bg-[#1554B8] text-white font-semibold py-3.5 px-4 rounded-xl shadow-md shadow-blue-500/20 transition-all flex items-center justify-center gap-2 active:scale-[0.98]"
+                className="w-full bg-[#087F8C] hover:bg-[#066B77] text-white font-semibold py-3.5 px-4 rounded-xl shadow-sm transition-all flex items-center justify-center gap-2 active:scale-[0.98]"
               >
                 <MapPin className="w-4 h-4" />
                 <span>{t('onboarding.location.allow')}</span>
@@ -372,7 +372,7 @@ export default function Onboarding() {
 
           <button
             onClick={handleNext}
-            className="flex-1 py-3 px-4 rounded-xl bg-[#1B64DA] hover:bg-[#1554B8] text-white font-semibold shadow-md shadow-blue-500/20 transition-all flex items-center justify-center gap-2 active:scale-[0.98]"
+            className="flex-1 py-3 px-4 rounded-xl bg-[#087F8C] hover:bg-[#066B77] text-white font-semibold shadow-sm transition-all flex items-center justify-center gap-2 active:scale-[0.98]"
           >
             <span>{t('onboarding.next')}</span>
             <ArrowRight className="w-4 h-4" />

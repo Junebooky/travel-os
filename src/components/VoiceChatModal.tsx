@@ -368,7 +368,7 @@ export default function VoiceChatModal({ isOpen, onClose }: VoiceChatModalProps)
         {/* Header */}
         <div className="flex items-center justify-between px-4 py-3 border-b border-[#E5E8EB] bg-[#FFFFFF]">
           <div className="flex items-center space-x-2">
-            <div className="w-8 h-8 rounded-full bg-[#1B64DA]/10 text-[#1B64DA] flex items-center justify-center">
+            <div className="w-8 h-8 rounded-full bg-[#087F8C]/10 text-[#087F8C] flex items-center justify-center">
               <Mic className="w-4 h-4" />
             </div>
             <div>
@@ -411,7 +411,7 @@ export default function VoiceChatModal({ isOpen, onClose }: VoiceChatModalProps)
             aria-pressed={activeSpeaker === 'me'}
             className={`flex-1 min-h-[44px] py-1.5 px-3 rounded-lg font-medium text-center flex items-center justify-center transition-all ${
               activeSpeaker === 'me'
-                ? 'bg-[#FFFFFF] text-[#1B64DA] shadow-sm border border-[#E5E8EB] font-bold'
+                ? 'bg-[#FFFFFF] text-[#087F8C] shadow-sm border border-[#E5E8EB] font-bold'
                 : 'text-[#4E5968] hover:text-[#191F28]'
             }`}
           >
@@ -438,7 +438,7 @@ export default function VoiceChatModal({ isOpen, onClose }: VoiceChatModalProps)
         <div ref={chatScrollRef} className="flex-1 overflow-y-auto p-4 space-y-3 bg-[#FFFFFF]">
           {messages.length === 0 && !isListening && (
             <div className="h-full flex flex-col items-center justify-center text-center p-6 text-[#8B95A1] space-y-2">
-              <div className="w-12 h-12 rounded-full bg-[#FFFFFF] border border-[#E5E8EB] flex items-center justify-center text-[#1B64DA] mb-1">
+              <div className="w-12 h-12 rounded-full bg-[#FFFFFF] border border-[#E5E8EB] flex items-center justify-center text-[#087F8C] mb-1">
                 <Mic className="w-6 h-6" />
               </div>
               <p className="text-sm font-semibold text-[#191F28]">{t('voice.empty.title')}</p>
@@ -460,7 +460,7 @@ export default function VoiceChatModal({ isOpen, onClose }: VoiceChatModalProps)
                 <div
                   className={`p-3 rounded-2xl max-w-[85%] space-y-1.5 shadow-sm ${
                     isMe
-                      ? 'bg-[#1B64DA] text-white rounded-tr-none'
+                      ? 'bg-[#087F8C] text-white rounded-tr-none'
                       : 'bg-[#FFFFFF] text-[#191F28] rounded-tl-none border border-[#E5E8EB]'
                   }`}
                 >
@@ -524,7 +524,7 @@ export default function VoiceChatModal({ isOpen, onClose }: VoiceChatModalProps)
                       <button
                         type="button"
                         onClick={() => handlePlayTTS(msg.translatedText, isMe ? targetLang : 'ko')}
-                        className={`p-1 rounded-full shrink-0 transition-all ${isMe ? 'bg-white/10 hover:bg-white/20 text-white' : 'bg-[#FFFFFF] hover:bg-[#F8FAFC] text-[#1B64DA] border border-[#E5E8EB]'}`}
+                        className={`p-1 rounded-full shrink-0 transition-all ${isMe ? 'bg-white/10 hover:bg-white/20 text-white' : 'bg-[#FFFFFF] hover:bg-[#F8FAFC] text-[#087F8C] border border-[#E5E8EB]'}`}
                         title={t('translate.result.listen')}
                       >
                         <Volume2 className="w-3.5 h-3.5" />
@@ -539,7 +539,7 @@ export default function VoiceChatModal({ isOpen, onClose }: VoiceChatModalProps)
           {/* Recognizing interim feedback */}
           {isListening && (
             <div className={`flex flex-col ${activeSpeaker === 'me' ? 'items-end' : 'items-start'} space-y-1`}>
-              <div className="p-3 rounded-2xl max-w-[85%] bg-[#1B64DA]/10 border border-[#1B64DA]/30 text-[#1B64DA] animate-pulse text-xs font-medium">
+              <div className="p-3 rounded-2xl max-w-[85%] bg-[#087F8C]/10 border border-[#087F8C]/30 text-[#087F8C] animate-pulse text-xs font-medium">
                 {interimText || t('voice.mic.listen')}
               </div>
             </div>
@@ -547,7 +547,7 @@ export default function VoiceChatModal({ isOpen, onClose }: VoiceChatModalProps)
 
           {isTranslating && (
             <div className="flex items-center justify-center p-2 text-xs text-[#8B95A1]">
-              <span className="animate-spin inline-block mr-1.5 text-[#1B64DA]">⚡</span>
+              <span className="animate-spin inline-block mr-1.5 text-[#087F8C]">⚡</span>
               {t('voice.status.translating')}
             </div>
           )}
@@ -571,14 +571,14 @@ export default function VoiceChatModal({ isOpen, onClose }: VoiceChatModalProps)
               className={`w-16 h-16 rounded-full flex items-center justify-center shadow-lg transition-all transform active:scale-95 ${
                 isListening
                   ? 'bg-rose-600 hover:bg-rose-500 text-white animate-pulse ring-4 ring-rose-200'
-                  : 'bg-[#1B64DA] hover:bg-[#1554B8] text-white ring-4 ring-[#1B64DA]/10 shadow-blue-500/20'
+                  : 'bg-[#087F8C] hover:bg-[#066B77] text-white ring-4 ring-[#087F8C]/10 shadow-sm'
               }`}
               aria-label={isListening ? t('voice.mic.stop') : t('voice.mic.tap_to_speak')}
             >
               {isListening ? <MicOff className="w-7 h-7" /> : <Mic className="w-7 h-7" />}
             </button>
             {isSpeaking && (
-              <span className="absolute right-8 text-[11px] text-[#1B64DA] animate-bounce flex items-center gap-1 font-medium">
+              <span className="absolute right-8 text-[11px] text-[#087F8C] animate-bounce flex items-center gap-1 font-medium">
                 <Volume2 className="w-3.5 h-3.5" />
                 {t('voice.status.speaking')}
               </span>
@@ -604,12 +604,12 @@ export default function VoiceChatModal({ isOpen, onClose }: VoiceChatModalProps)
               onChange={(e) => setManualText(e.target.value)}
               placeholder={`${activeSpeaker === 'me' ? '한국어' : targetLang.toUpperCase()} ${t('voice.action.type_instead')}`}
               aria-label={t('voice.status.input_required')}
-              className="flex-1 bg-[#FFFFFF] border border-[#E5E8EB] rounded-xl px-3 py-2 text-xs text-[#191F28] placeholder-[#8B95A1] focus:outline-none focus:ring-1 focus:ring-[#1B64DA]"
+              className="flex-1 bg-[#FFFFFF] border border-[#E5E8EB] rounded-xl px-3 py-2 text-xs text-[#191F28] placeholder-[#8B95A1] focus:outline-none focus:ring-1 focus:ring-[#087F8C]"
             />
             <button
               type="submit"
               disabled={!manualText.trim() || isTranslating}
-              className="px-3 py-2 bg-[#1B64DA] hover:bg-[#1554B8] disabled:opacity-40 text-white rounded-xl text-xs font-medium flex items-center gap-1 transition-colors shadow-sm"
+              className="px-3 py-2 bg-[#087F8C] hover:bg-[#066B77] disabled:opacity-40 text-white rounded-xl text-xs font-medium flex items-center gap-1 transition-colors shadow-sm"
             >
               <Send className="w-3.5 h-3.5" />
             </button>
