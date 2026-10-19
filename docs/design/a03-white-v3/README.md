@@ -1,224 +1,63 @@
-# Travel OS · CURRENT DESIGN — One Blue + Neutral · A03 implementation handoff
+# Travel OS · CURRENT A03 DESIGN SOURCE · Mint Welcome + 5-tab App
 
-> **발신 A03 (디자인·UX Writing) → 수신 A02 (개발), A01 (오너)**  
-> **상태:** `DESIGN_REPLACED / MONOCHROME_THEME_NOT_APPLIED / DEVICE_QA_NOT_TESTED`  
-> **기준 코드:** Track B [PR #11](https://github.com/Junebooky/travel-os/pull/11) HEAD `277e9b97b0a8848db99318b76c8c4a4e17ec47a3` (owner screenshot local checkout SHA not independently checked) (당시 open/unmerged).  
-> **의미:** 아래 이미지는 **디자인 목적의 SVG 목업**이며 실제 실행 화면/QA 스크린샷이 아닙니다. 이미지 속 금액·장소·환율 기준일은 시각 설명을 위한 **가상 예시**입니다.
+> **LATEST OWNER DECISION · 2026-10-19 (KST)**  
+> **Option A:** introduce a **separate animated Welcome/Travel Home screen**, retain original **5-tab app**, and **rebrand interactive app chrome from blue to mint**.  
+> **THIS README REPLACES PRIOR ONE-BLUE THEMING DIRECTIONS.** Old GitHub comments/commits are historical proof, not current implementation instructions.  
+> **A03 DESIGN SPEC COMMITTED / A02 REAL CODE + CI PENDING / A04 QA PAUSED_BY_OWNER**.
 
-## ✅ CURRENT 2026-10-18 · Settings redesign v4 / confirm country before switching
+## 1. First read (single source of truth)
 
-**Owner's supplied two reference images and owner-provided PNG assets define the Settings layout.** New images must **NOT** be AI-generated. [**A02 current implementation/asset plan**](./A02-COUNTRY-PICKER-IMPLEMENTATION.md) is the primary contract.
+1. **[A03 Welcome + Mint rebrand master implementation spec](./A03-WELCOME-MINT-V1.md)** — new entry stage, prototype-inspired floating decor, IA/state, tokens, contrast, exact A02 files and tests.
+2. **[A02 existing Settings v4/country-confirm/owner image plan](./A02-COUNTRY-PICKER-IMPLEMENTATION.md)** — still current for Settings logic and owner's actual travel banner/icon assets. **Do not revert already-implemented country draft-confirm behavior.**
+3. **[A02 prior four white/flag/provider functional requirements](./A02-IMPLEMENTATION-PROMPT.md)** — prior requests remain in effect *except* superseded blue colors. Source language/FX selectors show correct national flags, all UI surfaces stay white, and no visible “제공: open.er-api” label subject to data-license obligations.
+4. **[Nine legacy app-screen/state reference SVGs, now recolored to mint](./white-ui-v3-overview.svg)**. These show screen flow and brand **accent** only; **08-settings.svg is older than the owner's two Settings references**. Do not implement its older layout instead of the newest Settings v4 plan. The *new Welcome* is specified text-first and awaiting actual animation/code; there is **no fake rendered Welcome asset** to confuse with an implementation screenshot.
 
-**1. Country selection UX — now a two-step decision.** [09-country-picker.svg](./images/09-country-picker.svg) has been **updated at the original filename** with a blue `여기로 여행갈까요?` button **above** secondary `닫기`; the [nine-state overview](./white-ui-v3-overview.svg) is synced. Card tap only changes a **temporary draft selection**. Only Confirm invokes `setCountry` and closes; Close/Escape drops the draft. **Old A03 guidance of 'country tap immediately commits and auto-closes' is SUPERSEDED.**
+**Design branch:** `design/a03-white-ui-v3-visual-handoff-20261018` · [Draft PR #18](https://github.com/Junebooky/travel-os/pull/18).  
+**Development branch:** `feat/track-b-phase2-extensions` · [A02 PR #11](https://github.com/Junebooky/travel-os/pull/11). Current draft PR is **design files only**; never treat it as evidence that localhost has changed. Owner must authorize merging `main`/public deployment.
 
-**2. Settings parent page — redesign to owner's first reference.** White airy header `설정` → **16:9 scenic hero card** using existing `public/assets/setting_tab/travel_setting.png` (**FOUND; 1920×1080**) → Saved Places card → App Install card → Saved Data/Delete card → Travel OS information card → 5-tab bottom GNB. Hero renders **`country.flag`, `country.name`, `country.code` as DOM text** so switching country updates in real time; no Thailand content is baked into the banner.
+## 2. CURRENT brand foundation
 
-**3. Hero top-right button — precise second-reference placement.** Floating WHITE pill `⚙ 여행 정보 수정 ›` near hero's **top-right inset**, never under/beside the country name as the small existing button. It opens Country Picker but does not change travel settings. Preserve 16:9 aspect, text-safe placement, accessible 44px+ target.
-
-**4. Owner artwork mapping, do not invent substitutes:**
-- `/assets/setting_tab/travel_setting.png` → **hero background** (present under `public/assets/setting_tab/`).
-- `/assets/setting_tab/saved_setting.png` → Saved Places icon (**not found in current remote dev branch**).
-- `/assets/setting_tab/download_setting.png` → App Install icon (**not found in current remote dev branch**).
-- `/assets/setting_tab/travel_os.png` → Travel OS icon (**not found in current remote dev branch**; duplicated mention in owner's message refers to same file).
-
-Missing owner-made icons must be copied/committed at the exact public paths before marking `ASSETS_APPLIED`. A02 can make the working UI with existing semantic fallback icons while noting `ASSET_PENDING`; do not generate replacements. Keep actual functionality and truthfulness of PWA install, saved-place count, data deletion confirmation and privacy notice.
-
-**5. Current design source precedence:** The older [08-settings.svg](./images/08-settings.svg) is **SUPERSEDED for the Settings parent layout** until updated with owner's actual artwork. It is **not** A02's implementation template. The user's **first settings screenshot + second 16:9 hero/button reference + this plan** take precedence. `09-country-picker.svg` and its confirm footer are current. No duplicate `v5-final` files.
-
-**Status:** A03 `SPEC_UPDATED`, A02 `CODE_PENDING`. Actual implementation is in [PR #11](https://github.com/Junebooky/travel-os/pull/11), not this Draft design PR.
-
----
-## 2026-10-18 오너 최종 개정 — **PURE WHITE + FLAG SELECTORS + NO VISIBLE PROVIDER LABEL**
-
-**이 색상 섹션은 이전 토큰 설명보다 우선하는 적용 계약이며 최신 8개 SVG에 반영됨.**
-
-1. **모든 앱 UI 배경·표면은 `#FFFFFF`.** 이전 회색 표면 색상(`rgb(242,244,246)`)을 **화면·필드·보조 버튼·안내/오류 카드에서 모두 사용 금지**. 카드/입력/제어는 흰색 면 위에 **필요한 경우 `border border-[#E5E8EB]`**와 간격·타이포로 구분. 브랜드 블루는 기존대로 **`#1B64DA` 한 색**(옅은 파랑 음영 금지). 텍스트 `#191F28` / `#4E5968`.
-2. **번역 언어 선택 바:** 현재 원본 사용자 레퍼런스처럼 `bg-[#FFFFFF] border border-[#E5E8EB] rounded-2xl p-3.5 flex items-center justify-between shadow-sm`. 왼쪽 `[원형 한국 국기] 원문 언어·한국어 ▾`, 가운데 `⇄` 스왑(최소 44px 히트 영역), 오른쪽 `[원형 태국 국기] 번역 언어·태국어 (TH) ▾`. 언어코드·선택한 여행 국가에 따라 **국기와 실제 라벨 함께 동기화**. 고정 한국어/태국어 하드코딩 금지. 같은 언어끼리 스왑할 때 잘못된 번역 결과 노출 금지. [실제 수정 이미지](./images/02-translate.svg).
-3. **환율 기준/환산 통화 선택 바:** **같은 컴포넌트 구조**에 `[해당 통화 국기] THB (฿) ⇄ [한국 국기] KRW (₩)`. 실제 코드의 `fromCurrency / toCurrency`에 연동하고 스왑 시 라벨·국기·기호·계산 방향 모두 바뀌어야 한다. 예: `KRW→THB`면 반대로 표시. [실제 수정 이미지](./images/03-rate.svg).
-4. **국기 표시는 콘텐츠 예외:** 국기 자체의 빨강/파랑 등 공식 색은 **국가 정체성 정보**이므로 브랜드 팔레트 규칙의 예외. UI 버튼/면/경고/배지에는 임의 색 금지. 국기는 로컬 inline SVG/라이선스 확인된 에셋을 `24~32px` 원형 마스크로 공통 사용. `aria-hidden` 처리하고 **텍스트 언어/통화 이름을 항상 함께 노출**. `ko→KR, th→TH, ja→JP, vi→VN, en→US/GB(선택 국가 반영), fr→FR`; 통화는 `KRW→KR, THB→TH, JPY→JP, VND→VN, USD→US, GBP→GB, EUR→EU` 등 실제 매핑. 국가가 불분명하면 잘못된 국기를 임의 표시하지 말고 지구 아이콘 + 통화/언어 코드로 폴백.
-5. **`제공 : open.er-api` / `제공: open.er-api` 등 제공처 이름을 사용자에게 표시하지 않음 — 전체 UI 공통.** `CurrencyView`의 `t('currency.result.source',...)`를 렌더링하지 않고 환율 **실제 기준일·지난 캐시 여부·재시도 CTA**는 계속 보여준다. `price.rate.provider`, `wallet.rate.snapshot_provider`, `price.currency_rate_info` 등 **다른 화면의 제공처 텍스트 출력도 검색해 숨긴다**. 공급자 이름을 바꾸거나 fake date를 만들지 않는다. **내부 rate provider 필드·source/date 검증·스냅샷 데이터·API 구현·라이선스상 필수 귀속 표기는 보존**. 만약 데이터 라이선스가 사용자 출처 고지를 의무화한다면 오너에게 알리고, API 공급자 명칭을 숨긴 상태로 배포하지 않는다.
-6. **검증:** 번역 양쪽 국기/코드 2방향 스왑, THB↔KRW·JPY↔KRW 등 환율 양쪽 국기와 기호, 320/375/430px 줄바꿈·44px 터치, 모든 화면에 회색 표면 색상 `rgb(242,244,246)` 사용하지 않기, `제공 *: *open.er-api` UI 렌더 결과 0건(내부 로그/데이터 메타데이터는 별도).
-
-**업데이트 이력:** 기존 **8개 SVG를 동일 경로로 전체 교체**, 전체 overview 갱신, 불필요한 버전별 구 파일 신규 생성 없음. 실제 개발 코드 반영은 A02 PR #11의 새 SHA와 캡처로만 판정.
-
----
-## ⚠ A02 필독 — 오너 실화면 대비 구현 프롬프트
-
-**오너가 제시한 실제 localhost 화면은 아직 본 디자인과 다릅니다.** 다크 배경·보라·노랑·초록 UI가 남아 있고, 번역 언어와 결과의 정합성 및 지출 결제 수단 기본값도 점검이 필요합니다.
-
-➡️ **[A02_IMPLEMENTATION_PROMPT — 실제 화면 6종 Before/After + 소스 코드 위치 + 구현 프롬프트 + 완료 체크](./A02-IMPLEMENTATION-PROMPT.md)**
-
-**현재 단일 시각 정본:** 아래 8개 SVG + 전체 스토리보드(실제 스크린샷 아님). A02는 위 프롬프트와 SVG를 읽고 **PR #11의 실제 React/Tailwind 코드**를 수정합니다. 디자인 PR #18 문서 갱신만으로 UI 구현 완료 처리하면 안 됩니다.
-
----
-
-## 0. [오너 운영 규칙] 디자인 변경 시 GitHub **현재본 교체·구본 제거** — 반드시 준수
-
-**오너 지시(2026-10-18):** 디자인은 지속 변경 가능. **바뀐 페이지는 즉시 GitHub에 업데이트하고 이전 버전의 이미지/파일은 최신 파일 목록에서 삭제**한다. 본 문서는 **A03의 현재 디자인 단일 정본(SINGLE_SOURCE_OF_TRUTH)**이다.
-
-1. **기존 파일 경로 그대로 overwrite:** 페이지 변경 시 아래 고정 경로의 SVG를 `fetch_file` → 해당 blob SHA 사용한 `update_file`로 **내용 전체 교체**한다. `01-map-old.svg`, `01-map-v4.svg`, `final-final.svg`처럼 구형·중복 파일을 쌓지 않는다. 기존 경로를 유지해야 #15/PR #11의 링크가 계속 최신 시안으로 연결된다.
-2. **연결 파일 같은 변경 묶음 처리:** 한 페이지라도 바뀌면 **해당 개별 SVG + `white-ui-v3-overview.svg`(8면 스토리보드) + 본 `README.md`의 시안 상태/카피/Before·After/수용 기준**을 같은 작업 턴에서 동기화한다. 구형 설명이 남지 않도록 README 변경 사항을 먼저 확인한다.
-3. **안 쓰는 디자인은 HEAD에서 실제 삭제:** 사라진 페이지/대체된 이미지가 있다면 GitHub `delete_file`로 그 자산을 **현재 디자인 브랜치의 최신 트리에서 제거**한다. README/스토리보드 링크 및 #15/PR #11 참조도 최신 파일로 수정한다. **교체물이 정상 업로드되기 전에 유일한 현행 파일을 먼저 삭제하지 않는다.**
-4. **A02 즉시 직접 인계:** 이미지 갱신 커밋의 전체 SHA, 바뀐 화면 ID, 달라진 UI/상태/카피 키, A02에서 건드릴 컴포넌트, 완료 판정을 #15와 PR #11에 `[A03 → A02]`로 게시한다. #13의 A03 체크도 갱신한다. **GitHub 댓글이 다른 대화 런타임을 자동 실행하진 않으므로** A02는 매 작업 전에 본 문서/PR #18을 읽어야 한다.
-5. **검증 후 완료 판정:** `fetch_file`로 갱신 경로/올바른 SVG 및 현재 이미지 개수, `get_pr_info`/changed filenames로 PR #18 상태 확인. SVG 변경은 **DESIGN_UPDATED**, A02 개발 변경은 **CODE_APPLIED**, CI/브라우저/실기기 검증은 **별도**로 구별한다.
-6. **삭제의 정확한 의미:** 오래된 **이미지·불필요한 시안 파일은 최신 브랜치에서 제거**한다. Git 커밋 기록/오너 의사결정 및 이전 이슈 코멘트는 과거 증거로 남을 수 있고, 기록 전체를 파괴적으로 지우지는 않는다. 이전 버전 댓글에는 **SUPERSEDED / 현재 정본 링크**를 표시해 혼동을 막는다.
-
-**현재 화면 파일 경로(항상 해당 파일의 최신 내용):**
-
-| ID | 현재 편집 대상 | 변경 시 함께 확인할 코드 |
+| Role | Token | Use |
 |---|---|---|
-| MAP | `images/01-map.svg` | `MapView.tsx`, `Navigation.tsx` |
-| TRANSLATE | `images/02-translate.svg` | `TranslateView.tsx` |
-| RATE | `images/03-rate.svg` | `CurrencyView.tsx` |
-| CAMERA_CAPTURE | `images/04-camera-capture.svg` | `CameraMenuModal.tsx` |
-| CAMERA_RESULT | `images/05-camera-result.svg` | `CameraMenuModal.tsx` |
-| WALLET | `images/06-wallet.svg` | `WalletView.tsx` |
-| EXPENSE | `images/07-expense.svg` | `WalletView.tsx`, `TravelContext.tsx` |
+| **Accessible brand mint** | **`#087F8C`** | all real buttons, active bottom-nav label/icon, map selection pin, selected country border/check, selected chip, accessible focus indicators |
+| **Bright mint visual** | **`#13C2D6`** | Welcome hero/illustrative background and floating decorative art ONLY; not a white-text small CTA |
+| Screen/card surface | `#FFFFFF` | existing owner-approved all-white theme; no former `#F2F4F6` fills |
+| Main text | `#191F28` | labels/titles |
+| Supporting text | `#4E5968` | subtitles, helper/error text |
+| Necessary stroke | `#E5E8EB` | distinguish white-on-white controls, not excessive card framing |
 
-**변경 현황 · 2026-10-18 KST:** 오너의 **단일 브랜드 블루·무채색만** 규칙에 따라 기존 화면 01~07 SVG를 **동일 경로에서 전부 덮어썼고**, 기존 스토리보드도 교체했습니다. 누락된 핵심 탭 **08 설정**을 추가해 현재 **8개 개별 SVG + 1개 overview**가 정본입니다. v2/이전 v3의 연한 블루, 황색·주황색 등 구형 색상은 현재 파일에서 제거했으며, 불필요한 별도 중복 파일은 없습니다. 과거 커밋의 디자인은 기록만 남습니다.
+### Accessibility and history
+- Contrasts with white text: `#087F8C` ≈ **4.75:1**, `#13C2D6` ≈ **2.16:1**. Use the accessible mint for text-bearing CTA/selection. Use dark `#191F28` on decorative bright mint area, or a real high-contrast white panel.
+- Past brand **`#1B64DA` is SUPERSEDED** for interactive chrome. Past hover shades `#1554B8`, `#1652B5` and `shadow-blue-*` likewise need A02 replacement. We **do not** tint UI cards with pale mint (mint opacity/10), add random orange/pink/green UI brand accents, or recolor real **country flags/OSM maps/owner photographs/clay art**.
+- No extra source of truth: future changes to this design should overwrite affected SVGs **at the same paths**, this README, master mint spec, storyboard, and direct A02 implementation message. Remove obsolete stand-alone designs from current branch HEAD rather than accumulate `final-final` assets; preserve Git historical commits.
 
-**개발과 구분:** A02는 이미 PR #11 SHA `277e9b97b0a8848db99318b76c8c4a4e17ec47a3`에서 P0 저장 진실성·OCR 지출 확인·핀 접근성 등 일부를 수정하고 [CI #39046026882](https://github.com/Junebooky/travel-os/actions/runs/39046026882)를 통과했다고 #15에 보고. 이는 **화이트 테마 전체 적용 완료와 다르며**, A03 시안 교체 여부와도 별도이다. A03는 A02 새 SHA에 맞춰 중복 개발 지시를 제거하며, 업데이트된 디자인만 정본으로 유지한다.
+## 3. Current individual app UI references
 
----
-
-## A. 먼저 이미지로 전체 맥락 확인
-
-![현재 단일 브랜드 블루 UI 8개 화면 스토리보드](./white-ui-v3-overview.svg)
-
-| 번호 | 화면 이미지 | 개발 위치 | 반드시 동작해야 하는 것 |
-|---|---|---|---|
-| 01 | [지도 홈](./images/01-map.svg) | `src/components/MapView.tsx`, `Navigation.tsx` | 선택 장소 → 길찾기/상황별 번역. 시트 peek/expanded/지도 맥락·safe-area 보존 |
-| 02 | [번역](./images/02-translate.svg) | `src/components/TranslateView.tsx` | **← 지도 복귀**는 독립 버튼. 장소명은 보조 텍스트. 실패 원문을 번역 성공처럼 표시 금지 |
-| 03 | [환율](./images/03-rate.svg) | `src/components/CurrencyView.tsx` | 신뢰 가능한 캐시에서만 환산, 실제 기준일·stale 인라인 (공급자 라벨 출력 금지), 재시도는 인접 |
-| 04 | [메뉴 사진 촬영 단계](./images/04-camera-capture.svg) | `src/components/CameraMenuModal.tsx` | 촬영·앨범 선택에 집중. 사진 서버/외부 AI 전송 사실은 업로드 **전에** 고지 |
-| 05 | [사진 분석 결과 단계](./images/05-camera-result.svg) | `CameraMenuModal.tsx` | 원문/번역/가격 검토 후 **지출 내용 확인하기**. 실패 후 같은 사진 재분석 |
-| 06 | [여행 지갑](./images/06-wallet.svg) | `src/components/WalletView.tsx` | 상단 `+ 기록`; 금액→날짜별 내역 연속. 미환산 N건은 요약에 바로 가시화 |
-| 07 | [지출 입력](./images/07-expense.svg) | `WalletView.tsx`, `src/context/TravelContext.tsx` | OCR 후보/수동 금액 수정 → 최종 버튼 → **기기 저장 확인** 후에만 합계 반영 |
-| 08 | **설정 — 오너 이미지 기준, 옛 SVG는 SUPERSEDED** | `SettingsView.tsx` | 16:9 오너 PNG 히어로·우측 상단 수정 버튼·오너 제공 3개 카드 아이콘; [A02 current plan](./A02-COUNTRY-PICKER-IMPLEMENTATION.md) |
-| 09 | **[국가 선택 모달](./images/09-country-picker.svg)** | `CountryPickerModal.tsx` + `SettingsView.tsx` | **카드 선택은 draft만**, `여기로 여행갈까요?` 확정 후 변경·닫기, `닫기` 취소 |
-
-개발자가 이 문서/이미지를 복사해 실행 가능한 앱으로 오해하지 않도록 **화면 스타일 명세와 실제 수용 동작을 분리**했습니다.
-
-## B. 오너 확정: **브랜드 블루 단 1색, 나머지 무채색** (CURRENT)
-
-**2026-10-18 오너의 최신 수정:** 브랜드 컬러를 연하게 희석해 별도 틴트/표면으로 사용하지 않으며, 주황·노랑·초록·빨강·보라 등 엉뚱한 보조 브랜드색을 도입하지 않는다. 이전 v2/v3에 있던 `#3182F6`(추가 블루), `#E8F3FF`(파스텔 블루 카드), `#7B561D`(갈색/주황 경고), 녹색 지도 일러스트는 **더 이상 최신 이미지/구현 목표가 아니다**.
-
-| 의미 토큰 | 최종 색상 | 적용 방식 |
+| ID | Existing screen/state SVG (accent already switched to mint) | A02 code owner/notes |
 |---|---|---|
-| `--os-page` | `#FFFFFF` | 화면 전체 바탕, 보조 버튼 포함 모든 기본 표면 |
-| `--os-surface` | `#FFFFFF` | 헤더, 카드, 하단 5탭 |
-| `--os-text` | `#191F28` | 제목, 지출 금액, 버튼 보조 강조 |
-| `--os-text-secondary` | `#4E5968` | 장소, 날짜, 환율 출처, 오류/주의 안내 |
-| `--os-text-muted` | `#6B7684`, `#8B95A1` | 비강조 정보/비선택 아이콘(대비 확인) |
-| `--os-brand` | **`#1B64DA` 단 1색** | 주 CTA 배경, 현재 선택된 하단 탭, 지도 선택 핀 및 필수 focus ring |
-| `--os-divider` | `#E5E8EB` | 구획 경계가 꼭 필요할 때만 |
-| **지도 시안 중립 영역** | `#E9ECEF`, `#E0E4E7`, `#D1D6DA` | 시안 속 예시 지도 일러스트에만 사용 |
+| 01 | [Map](./images/01-map.svg) | `MapView.tsx` / real location and map tile colors retained |
+| 02 | [Translate](./images/02-translate.svg) | `TranslateView.tsx` / country flags + true translation direction; photo/voice privacy |
+| 03 | [Currency](./images/03-rate.svg) | `CurrencyView.tsx` / currency flags, verified rate/date/provider stored internally, no fabricated FX |
+| 04 | [Camera capture](./images/04-camera-capture.svg) | `CameraMenuModal.tsx` / pre-send photo disclosure |
+| 05 | [Camera result](./images/05-camera-result.svg) | `CameraMenuModal.tsx` / OCR result not automatically actual expense |
+| 06 | [Wallet](./images/06-wallet.svg) | `WalletView.tsx` / valid expenses only, partial total disclosure |
+| 07 | [Expense input](./images/07-expense.svg) | `WalletView.tsx` / keyboard-friendly sticky CTA and persistence failure truth |
+| 08 | [Old Settings composition, COLOR ONLY current](./images/08-settings.svg) | **NOT approved layout**; use [Settings v4 owner asset plan](./A02-COUNTRY-PICKER-IMPLEMENTATION.md) for actual settings layout |
+| 09 | [Country chooser](./images/09-country-picker.svg) | `CountryPickerModal.tsx` / draft choice, `여기로 여행갈까요?` confirms, `닫기` cancels |
 
-### 사용 금지
-- 블루에 불투명도를 줘서 `blue/10`, `blue/20`, `rgba(brand, .1)`, `#E8F3FF` 같은 배경이나 서브 브랜드 컬러 생성 **금지**.
-- 경고를 표현한다고 주황·앰버·빨강을 임의 추가 **금지**. 메시지 문구, 텍스트 강약, 정보/경고 아이콘, 그룹 간격으로 구분. 위험 작업(삭제)은 **명확한 대화상자와 '삭제' 레이블**로 구별한다.
-- 여러 메인 블루(예: `#3182F6`와 `#1B64DA`) 혼용 금지. hover/pressed 시에도 다른 푸른 색조로 바꾸지 말고 대비·명도·규모/레이어 변화를 비색상 방식으로 설계(권장: 눌림/outline/투명도 아닌 크기/그림자 등; WCAG 포커스 유지).
-- 실제 OSM 지도 타일에 **컬러 금지 규칙을 기계적으로 적용해 정보를 파괴하지 않는다.** 시안 속 지도 일러스트는 회색이지만 실제 지도는 도로/공원/물길 판독 가능성과 원본 타일 저작권 고지를 유지한다. 앱 UI 크롬/컴포넌트에만 팔레트 제한.
-- 카메라 프라이버시·유효하지 않은 환율·지갑 부분 합계의 **필수 사실 고지 숨김 금지**. 색 없는 오류/경고도 사용자가 구별 가능해야 함.
+**Plus new Welcome (distinct stage, not 6th tab):** [spec and motion storyboard in text](./A03-WELCOME-MINT-V1.md). The older `white-ui-v3-overview.svg` title/path is retained solely to keep existing GitHub links stable, **but its latest file contents have been mint-recolored**.
 
-### UI 원칙
-- 전체 화면과 카드는 모두 `#FFFFFF`. 두 흰색 면은 여백과 필요한 경우 `#E5E8EB` 1px 선으로 구분하며, 포커스·오류 식별 경계는 유지.
-- 브랜드 블루는 주행동에만 강하게, 주변은 대부분 검은 텍스트/회색·화이트. 두 번째 버튼은 **회색 배경 + 진한 검정 텍스트**(희석 블루 배경·서브 블루 텍스트 없음).
-- 디자인의 상단 독립 ←/타이틀/장소명, 하단 5탭 일관된 채움형 아이콘은 유지. 카드 radius 16~20px, 간격 8/12/16/24px, 터치 영역 44px 이상, 본문 14~16px, 중요 고지 14px 이상.
-- 320/375/430px·200% 확대·safe area·키보드 대응. 상태는 색상 단독 신호 불가. 중요한 본문 최소 대비 4.5:1과 실제 화면 실측 요구.
-- 이전 다크 코드와 옅은 회색 배경은 이미 단계적으로 교체 중이며, 최신 A02 HEAD에 대해 차이를 재확인합니다. 최신 밝은 UI/브랜드 단색은 **TO_BE**이고 A02 새 렌더링 검증 전 `IMPLEMENTED`라고 주장하지 않는다.
+## 4. Product truth is non-negotiable
 
-## C. 스크린별 실구현 행동 계약
+- Existing flow: first-run onboarding → new optional/entry Welcome → `지도` / `번역` / `환율` / `지갑` / `설정`. No double country chooser; app should not interrupt deep-linked/restored tasks with Welcome.
+- Do **not** lift the user-supplied prototype's hardcoded 24-country rates, fake map pins/reviews, mock speech or immediate camera wallet additions. Reuse *only* the motion/visual inspiration with our existing production services.
+- **Country picker is already implemented with a draft→confirm flow on latest A02 source**. Do not rebuild as an old auto-closing list. Existing 16:9 owner hero `/assets/setting_tab/travel_setting.png` and real runtime country name/flag must stay; preserve data-reset confirmation, PWA install truth and saved places.
+- Preserve previous white UI requests: country flags in language+FX selector, `#FFFFFF` surfaces, no visible source-provider label where lawful, verified historical rate/source date stored in data. Keep old i18n dictionary keys unless implementation actually needs additional strings.
+- Modal/disclosure/keyboard/accessibility: 44–48px targets, 320/375/430px, 200% font, `prefers-reduced-motion`, focus, safe-area, offline/permission partial failures. No fake success toast or invented dates.
+- A02 shall report **actual code full SHA/CI and screenshot/video evidence** for all 5 tabs + Welcome after implementation; A03 status remains DESIGN_ONLY until then.
 
-### C-01. 지도
-**현 구현 재사용:** peek/expanded sheet, 두 가지 첫 CTA(길찾기/장소 번역), 저장/가격/메뉴 사진, 선택 핀 상태, 유효 데모 라벨, 확대축소/내 위치. 중복 구현 금지.  
-**변경:** 카드/검색/하단 탭 라이트 토큰; 핀 접근 가능한 `button`/키보드; `returnToMapWithPlace` 사용 맥락에 따라 **원래 지도 중심·줌·선택** 복귀 vs 저장 장소 지정 이동 의도 분리(#17 D-P0-01).  
-**수용:** 320·375·430px, safe-area/모바일 키보드/시트 겹침 없음, Tab/Enter/Space로 핀 선택, 검색 오류/0건 분기.
+## 5. Ownership and governance
 
-### C-02. 번역
-**변경:** 상단 `←` 44px 독립 버튼 + 제목 아래 `선택한 장소` 정보. 번역 결과 큰 텍스트.  
-**유지:** 실제 API/검증된 로컬 문구가 번역에 성공하기 전 TTS/성공 표시 금지. 실패 시 원문 유지, 재시도 버튼. 장소 없을 때 가짜 컨텍스트 붙이지 않음.
-
-### C-03. 환율
-**의도:** '부분 실패'는 **이미 검증된 캐시가 있을 때** 가능한 폴백이지, **임의 기본 환율을 만드는 기능이 아닙니다.**
-- 정상 응답 & 유효 데이터 → 예상 KRW + 실제 제공처·기준일.
-- API 실패 & **검증된 7일 이내 캐시** → 지난 환율로 계산한 금액 + 기준일·공급자·'지난 환율' + 카드 내부 인라인 재시도.
-- 캐시 없음/7일 초과/메타데이터 무효 → **예상 금액 미산정**(0원·1:1·추정 기본환율 금지) + '환율 확인이 필요해요' + 바로 옆 재시도.
-- **이미 존재:** `getValidatedCachedRates` 7일 유효성, `isStale`, `currency.rate.stale_body`, `currency.result.as_of` 재사용; `currency.result.source` UI 렌더 금지.
-- **기존 이슈:** #17 D-P1-01('이전에 받은 환율'과 실제 캐시 없음)과 중복 수정 금지.
-
-### C-04. 카메라 → C-05. 결과
-```text
-CAPTURE_EMPTY
-  → 촬영/갤러리 선택(고지 선행)
-  → PRIVACY_TRANSMIT_NOTICE / 분석 동의(실제 처리 흐름에 맞게)
-  → UPLOADING/ANALYZING
-  ├→ REAL_RESULT : 원문·번역·가격 후보, 실제 사진 출처 표기
-  ├→ OCR_ERROR   : 같은 이미지 유지·사진 다시 분석 / 다른 사진 선택
-  └→ DEMO_RESULT : 샘플 데이터 명시, 실제 사진 결과나 지출로 오인 금지
-REAL_RESULT → REVIEW_ACTUAL_EXPENSE → SAVE → WALLET
-```
-- **금지:** 이미지를 선택한 즉시 고지 없이 제3자 전송, 촬영 전 결과 프리뷰, 분석 실패한 실사진을 임의 샘플 성공 결과로 대체, 메뉴 가격의 지갑 즉시 합산.
-- **카피:** `camera.privacy.notice`의 정확한 서버·외부 분석 고지 삭제 금지. 옆에 효익 문장 `camera.privacy.benefit`을 새로 둘 수 있음. 미검증 보존 기간/일시적 분석 보장 금지.
-- **모바일:** 촬영 가능 시 화면 하단 폭 전체 Primary ‘메뉴판 촬영’; 앨범은 Secondary. 촬영 미지원 기기에서는 앨범이 Primary가 됨. 안내 텍스트는 촬영 버튼 **앞에서** 읽을 수 있어야 함.
-
-### C-06. 여행 지갑 → C-07. 지출 입력
-**현재 코드 위험:** `CameraMenuModal.tsx`의 OCR 결과 `addExpense` 직접 호출, `paymentMethod:'card'` 하드코딩. `TravelContext.safeSetItem`의 저장 오류 무시와 **무조건 성공 토스트**. #17 D-P0-03과 결합해 해결.
-```text
-[수동 기록] ───────┐
-                   ├→ [금액/통화 수정 + 결제 수단(선택) + 날짜/장소(선택)]
-[OCR 가격 후보] ───┘                │
-                         ↓  [1,200엔 지출 기록하기]
-                      중복 감지 / 사용자 선택
-                         ↓  로컬 실제 저장 시도
-              ┌──────────┴────────────┐
-             성공                    실패
-    지갑에 포함/성공 메시지        폼·입력값 유지/재시도
-```
-- 기존 `wallet.form.confirm_actual`의 추가 체크박스 **제거**: 사용자가 최종 CTA를 누르는 행위가 직접 확인. 대신 OCR 결과에서 바로 등록 버튼은 없애고 실제 지출 입력 단계로 이동.
-- 결제수단은 카드/현금 **2칩**으로 간단하게. 카드 자동 선택은 사용자가 미리 선호를 저장한 경우만; 그렇지 않으면 **둘 다 미선택(세 번째 '미선택' 칩은 없음)**. 선택하지 않아도 optional/unknown으로 기록 가능하게 설계. 기존 `ExpenseRecord.paymentMethod` required card/cash → 변경은 **기존 스토리지 기록과 호환**되도록 해야 함.
-- 금액 입력 중 키보드 바로 위에 '**{{amount}}{{currencyName}} 지출 기록하기**' 스티키 CTA; safe-area/virtual keyboard/GNB 겹침 없게. 금액 유효성 검증 후에만 활성.
-- 지출 후: 요약 → 날짜별 목록 → 개별 상세/수정·삭제 확인(전체 삭제와 분리) → 환율 미확인 건은 원래 통화 그대로 보관·원화 합계에서 제외. 수동 기록도 클라우드/카드사 결제 확인이 아닌 **사용자 신고 기록**.
-- **영속성:** 저장 실패 시 성공 토스트/폼 닫기/로컬 합계 업데이트 금지, 사용자가 다시 시도할 수 있게 초안 유지; 저장 성공은 실제 `localStorage`에 기록된 이후만.
-- **추후:** CSV 내보내기(#16 C-03) 및 영수증 전용 OCR(#16 C-04)는 이번 v3 구현 완료라고 주장하지 않음.
-
-### C-08. 설정
-- 기본 설정(국가·언어·통화), 저장한 장소/오프라인 도움말, 개인정보/기기 데이터 관리/초기화를 **각각 독립적인 흰 카드 그룹**에 배치.
-- 위험 조작은 색으로 구분하지 않고 명확한 삭제 명칭·되돌릴 수 없음 설명·별도 확인 모달 사용.
-- 설정은 **다섯 번째 하단 주요 탭**이며 빠진 핵심 페이지를 보완한 새 이미지 `images/08-settings.svg`가 최신 파일이다.
-
-## D. 한국어 카피 최소 델타
-
-A02가 PR #11 SHA `277e9b9`에서 P0 **326키 + Phase2 226키(기존 223 + 신규 3)**를 이미 반영했다. 아래 3키는 **기 구현 키**이며 재추가·중복 개발 금지. `camera.privacy.notice`는 반드시 기존 사실 안내와 함께 유지해야 함.
-
-```json
-{
-  "camera.privacy.benefit": "메뉴판 글자와 가격을 읽어드려요.",
-  "wallet.review.open": "지출 내용 확인하기",
-  "wallet.form.submit_amount": "{{amount}}{{currencyName}} 지출 기록하기"
-}
-```
-
-`currency.result.source`는 기존 키 삭제·계약 훼손 없이 UI 렌더만 중단. 기존 키: `wallet.form.confirm_actual` / `wallet.toast.save_failed` / `wallet.summary.partial` / `currency.rate.stale_body` / `currency.result.as_of` / `camera.action.retry_analysis` / `camera.demo.notice`. 중복 추가 금지. string interpolation 방어(값 없는 placeholder·언어별 통화형 표시) 및 스크린리더 읽기 점검.
-
-## E. A02 작업 배치: PR 변경과 증거 기준
-
-**최신 구현 분리:** #15의 [P0 패치 완료 보고](https://github.com/Junebooky/travel-os/issues/15#issuecomment-6235939179) 기준 SHA `277e9b97b0a8848db99318b76c8c4a4e17ec47a3`에서 저장 실패 처리, OCR 지출 검토, 지도 마커 키보드 조작, 카메라 재분석, 개별 삭제 확인, Phase2 226키 반영 및 Actions #39046026882 SUCCESS를 확인했다. **재구현 지시 금지.** 새 디자인 변경의 미반영/적용 여부는 **전체 단일 블루·무채색 테마 + 설정·기존 화면 시각 정합성**을 최신 코드에서 비교해 따로 보고.
-
-| 우선 | 실제 구현할 것 | 파일 힌트 | A02 완료 증거 |
-|---|---|---|---|
-| **P0-1 신뢰** | #17 D-P0-03 로컬 기록 실패 감지; OCR 1-click→실제 지출 검토, 샘플과 실제 구분, 결제수단 허위 기본값 제거 | `TravelContext.tsx`, `CameraMenuModal.tsx`, `WalletView.tsx`, `types/travel.ts` | 저장소 예외 테스트 / OCR 후보 저장 전 지갑 합계 불변 / 기존 로컬 기록 호환 |
-| **P1-1 테마** | 시맨틱 토큰 적용, 라이트 지도·상단 헤더·하단 nav·테두리 최소화/필드 포커스·아이콘 | `globals.css`, `TravelApp.tsx`, `MapView.tsx`, `Navigation.tsx`, `TranslateView.tsx`, `CurrencyView.tsx`, `SettingsView.tsx` | 320/375/430px 실제 렌더링 캡처, 새 SHA/CI, 키보드·고대비 검사 |
-| **P1-2 촬영/금액** | 카메라 촬영과 분석 결과 단계 분리 + 사전 고지, verified-cache 라벨/인라인 retry, 기록 금액 CTA sticky | `CameraMenuModal.tsx`, `CurrencyView.tsx`, `WalletView.tsx` | 선고지/실OCR 실패/valid-cache·no-cache·expired 시나리오별 수동 증거 |
-| **P1-3 기록 추적** | 오늘/날짜별 그룹, 상세 수정·개별 삭제 확인, 미환산 부분합계 표시 | `WalletView.tsx`, `TravelContext.tsx` | 수정/삭제/취소/불변성/중복 테스트 |
-
-**회귀 필수**: 기존 5탭·지도 중심/줌·장소 선택, 올바른 환율 원천, 번역 STT/TTS 실패, 카메라 개인정보 고지, i18n 계약, 320/375/430 폭·200% 확대·키보드/safe-area, 강제 `localStorage` 실패, 다통화 내역의 부분합계. 외부 API·카메라·마이크 실단말/A04 독립 QA는 따로 `NOT_TESTED` 기록.
-
-**운영:** 오너 승인 없는 `main` 병합/공개 배포/파괴적 변경/새 유료 API 비용 발생 금지. A04 QA `PAUSED_BY_OWNER`. 이 브랜치는 **시각 자산·명세 전용**, 앱 동작 코드를 수정하지 않습니다. A02가 현재 작업 PR로 선택 병합하거나 참고 링크를 붙여 개발하면 됩니다.
-
-## F. 원본 업무 연결
-- [오너 확정 v2 방향 및 지출 기준 #14](https://github.com/Junebooky/travel-os/issues/14#issuecomment-6234831418)
-- [오너 TDS 유사 UX 세부 피드백을 반영한 최신 v3 스펙 #14](https://github.com/Junebooky/travel-os/issues/14#issuecomment-6234947048)
-- [A02 개발 이슈 #15](https://github.com/Junebooky/travel-os/issues/15)
-- [중복 제거 P0/P1 #17](https://github.com/Junebooky/travel-os/issues/17#issuecomment-6234488936)
-- [공동 보드 #13](https://github.com/Junebooky/travel-os/issues/13)
+- **A03:** mint visual plan, UX copy/states, canonical assets/README, gap report and direct A02 handoff.
+- **A02:** React/Tailwind changes in [PR #11](https://github.com/Junebooky/travel-os/pull/11), smoke/regression/unit checks, true screenshot comparison, CI full SHA. Keep Track A PR #4 unmerged.
+- **A01:** owner status/release decision; **A04 independent QA remains PAUSED_BY_OWNER**.
