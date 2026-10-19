@@ -120,19 +120,6 @@ export default function AnimatedWelcome({ onNavigate }: AnimatedWelcomeProps) {
         <div className="absolute right-12 bottom-[24%] w-2.5 h-2.5 rounded-full bg-white/40 blur-[0.5px]" />
       </div>
 
-      {/* Top Bar: Skip Action */}
-      <header className="relative flex items-center justify-between z-20 w-full mb-1">
-        <div className="w-12" />
-        <button
-          type="button"
-          onClick={() => onNavigate('map')}
-          className="min-h-[44px] px-3 py-1.5 flex items-center justify-center text-xs font-black tracking-widest text-white/95 hover:text-white active:scale-95 transition-all uppercase cursor-pointer"
-          aria-label="Skip to Travel OS"
-        >
-          SKIP
-        </button>
-      </header>
-
       {/* Mascot: Sleeping Capybara on Cyan Cube (Top-Left) */}
       <div
         className="welcome-float-slow absolute top-[max(3rem,env(safe-area-inset-top))] left-0 z-10 pointer-events-none select-none drop-shadow-md"
