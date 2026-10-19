@@ -1,5 +1,7 @@
 # CURRENT A03 UX v4 — Settings redesign + explicit country confirmation
 
+> **CURRENT BRAND OVERRIDE · 2026-10-19:** The owner's newer Option A + global mint theme replaces earlier UI blue. Selected country check/border must use **`#087F8C`**, not old `#1B64DA`. The draft-country + `여기로 여행갈까요?` confirm flow and real owner PNG mapping remain unchanged. New Welcome details: [Mint master spec](./A03-WELCOME-MINT-V1.md).
+
 **2026-10-18 KST | OWNER REQUEST / A03 DESIGN & PLAN → A02 EXECUTION / A01 STATUS**  
 **State: DESIGN_PLAN_READY · A02_CODE_PENDING · NO_IMAGE_GENERATION**  
 **Important supersession:** This file **replaces** the earlier behavior recommendation that tapping a country should call `setCountry(c)` and automatically close. **That earlier behavior is rejected by the owner.** Owner's supplied settings-screen reference and travel-hero/button reference take priority over earlier `08-settings.svg` and `09-country-picker.svg` imagery where they conflict; the existing SVGs are legacy visual examples until their contents are synchronized. No new illustration should be generated—use the owner's actual assets.
@@ -17,7 +19,7 @@
 ## 1. P0 — Country picker: 2-step selection and confirmation
 
 ### Desired behavior (owner's exact words)
-Country-card tap should **only preview** selection and never close the screen. Add a large primary button **`여기로 여행갈까요?`** **directly ABOVE `닫기`** in the sticky safe-area footer. The active draft country's blue outline/check changes immediately. Only the primary button commits the destination.
+Country-card tap should **only preview** selection and never close the screen. Add a large primary button **`여기로 여행갈까요?`** **directly ABOVE `닫기`** in the sticky safe-area footer. The active draft country's mint outline/check changes immediately. Only the primary button commits the destination.
 
 ```txt
 Settings
@@ -37,7 +39,7 @@ Settings
 ### State/implementation contract
 - `CountryPickerModal.tsx` **local state** `draftCountryCode`; reset to `selectedCode` every time `isOpen` becomes true. Do not use the currently persisted country as the *draft* after a user taps other options. On an external country change while picker is open, choose safe synchronization / explicit review before overwriting draft.
 - `CountryPickerModalProps`: replace auto-commit `onSelect(country)` semantics with `onConfirm(country)`; `onClose()` cancels. Keep controlled `selectedCode` as committed selection for initial state. The event handler on country card becomes **`setDraftCountryCode(c.code)` only**.
-- Render checked tile `draftCountryCode===c.code` with existing `#1B64DA` border and checkmark; ARIA label of card reflects **currently being previewed**, not saved setting. Use `aria-pressed` or single-select radio semantics consistently.
+- Render checked tile `draftCountryCode===c.code` with existing `#087F8C` border and checkmark; ARIA label of card reflects **currently being previewed**, not saved setting. Use `aria-pressed` or single-select radio semantics consistently.
 - Sticky footer stacked: **Primary full width `여기로 여행갈까요?`**, then **secondary `닫기`** (the bottom-most button), both min height 52px, 12–16px gap and `env(safe-area-inset-bottom)` padding. `닫기` is enabled; PRIMARY not disabled when selected=original, because confirming same country is legitimate (just close without changing).
 - Optional small status immediately above CTA: `선택한 여행지 · {{countryName}} ({{countryCode}})` helps users confirm; keep this UI source from draft state, not app context. Avoid duplicative travel content cards that bury footer at 320px height.
 - If parent `onConfirm` encounters a real persistence failure, do **not** falsely claim successful saving. Current `TravelContext.setCountry` returns void and calls `safeSetItem` without surfacing failures. A02 should assess and, if needed, introduce backward-compatible verified persistence/failure handling, while preserving existing map and language reset semantics. Avoid blocking interface solely on unknown success while displaying an untrue toast.
@@ -53,7 +55,7 @@ Settings
 ### A. Page architecture: top to bottom
 1. **Header:** large `설정` title, small `내 여행과 저장 데이터를 관리하세요` subtitle on **pure-white canvas**. Keep the settings tab selected in 5-tab nav.
 2. **Country hero (dominant first card):** use exactly the actual background **`/assets/setting_tab/travel_setting.png`** from `public/assets/setting_tab/travel_setting.png`. Image MUST retain **16:9 frame** (`aspect-video`, correct `object-fit:cover` within ratio, no stretched portrait clipping). Rounded image + gentle shadow. Overlay **current React `country.flag` / `country.name` / `country.code`** on a text-safe left area; show `여행할 나라` below. **DO NOT bake Thailand, Thai flag, title or country code into the PNG.** Changing destination updates text/flag without image editing.
-3. **Hero action button placement is critical:** one floating/pill **WHITE CTA AT HERO UPPER RIGHT** `⚙ 여행 정보 수정 ›`, using the owner-provided second reference's size/shape/position; this **replaces** the old little `여행 설정 바꾸기` button placed beside country name. Text + icon live React button (not static pixel). Min 44px hit area, background `#FFFFFF`, text/action icon `#1B64DA`, readable over artwork, overlay positioned with inset 12–16px. On narrow 320px, if upper-right button conflicts with left title, reserve an artwork-safe zone or use a compact responsive label—not overlap. This button opens the country picker (does not change country).
+3. **Hero action button placement is critical:** one floating/pill **WHITE CTA AT HERO UPPER RIGHT** `⚙ 여행 정보 수정 ›`, using the owner-provided second reference's size/shape/position; this **replaces** the old little `여행 설정 바꾸기` button placed beside country name. Text + icon live React button (not static pixel). Min 44px hit area, background `#FFFFFF`, text/action icon `#087F8C`, readable over artwork, overlay positioned with inset 12–16px. On narrow 320px, if upper-right button conflicts with left title, reserve an artwork-safe zone or use a compact responsive label—not overlap. This button opens the country picker (does not change country).
 4. **Saved Places:** white rounded horizontal information card: left `/assets/setting_tab/saved_setting.png`, title `저장한 장소`, reactive `{{savedPlaces.length}}개` count, concise helper, right chevron; tapping uses existing `SavedPlacesModal`. Do not hardcode 0.
 5. **App Install:** white rounded card: left `/assets/setting_tab/download_setting.png`, `앱 설치` title and readable explanation, right-side bright brand-blue `앱 설치` button when actual browser install prompt exists. **Keep existing iOS '홈 화면에 추가' instructions, `isStandalone` installed state and unsupported-browser fallbacks**; do not display clickable install action if it cannot work.
 6. **Saved Information / deletion:** separate white card with existing storage/trash icon unless owner supplies a dedicated one, `저장된 정보`, accurate device-local deletion description, explicit `저장된 정보 삭제` action. Preserve existing `isConfirmResetOpen` irreversible-action confirmation. Do not invent deletion/backup claims.
@@ -61,7 +63,7 @@ Settings
 8. **Five-tab GNB:** 지도 / 번역 / 환율 / 지갑 / 설정 unchanged, settings selected, accessible controls.
 
 ### B. Surface and image rules
-- Background pure `#FFFFFF`, brand blue only `#1B64DA`; text primary `#191F28`, secondary `#4E5968`; optional neutral border `#E5E8EB`. No `#F2F4F6` decorative fills or random orange accent buttons. **Owner's existing illustration/flag intrinsic colors are content, not added UI theme colors.**
+- Background pure `#FFFFFF`, brand mint only `#087F8C`; text primary `#191F28`, secondary `#4E5968`; optional neutral border `#E5E8EB`. No `#F2F4F6` decorative fills or random orange accent buttons. **Owner's existing illustration/flag intrinsic colors are content, not added UI theme colors.**
 - Horizontal card icon art use `width:68–88px` with `object-contain`; content text 14–17px and 1.4–1.6 line height. Hero button 13–15px label; on 320px use wrapping/truncation-safe layout. Card radii approx 18–24px, spacing 12–16px, subtle real shadows (not huge dark borders).
 - The hero artwork **is the scene**. Do not add a second generated globe, unrelated country-specific asset, or extra overlay gradient without verifying contrast on all countries. If asset itself includes baked country labels/button, document and avoid duplicate UI layers; the saved country name/flag MUST remain code-driven.
 - Use `next/image` or an equivalent local asset renderer with defined size for layout stability, proper alt for meaningful illustration, `aria-hidden` for purely decorative. If file missing, graceful semantic fallback + report `ASSET_PENDING`, don't block critical settings actions or quietly substitute a newly generated picture.
@@ -92,7 +94,7 @@ Settings
 
 - [ ] Selecting a different country in modal changes **draft highlight only**, not underlying Settings page/target language/currency/map. Multi-tap selection stays open.
 - [ ] Primary `여기로 여행갈까요?` button **above** secondary `닫기`; buttons remain reachable with short heights and system safe area. Confirm one time commits; Cancel/ESC/outside dismissal no change. Reopen shows current committed country selected.
-- [ ] Selected draft label and blue check are visible and screenreader accessible; 8 real countries remain correct; 320/375/430px and 200% text acceptable.
+- [ ] Selected draft label and mint check are visible and screenreader accessible; 8 real countries remain correct; 320/375/430px and 200% text acceptable.
 - [ ] Settings hero is **16:9 actual owner PNG** with dynamic selected flag/name/code, top-right **white** `여행 정보 수정` pill with gear + right chevron; no hardcoded `태국` or `TH` in layout.
 - [ ] All three owner-made supporting PNGs are physically present at the verified `public/assets/setting_tab/` path and used in correct cards **or explicitly marked ASSET_PENDING** until supplied. No silent new illustration generation.
 - [ ] Saved Places count and navigation, App Install actual availability, device data reset confirmation, and Travel OS privacy copy still function. Language/currency/map update only on confirm.
