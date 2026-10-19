@@ -16,7 +16,14 @@ test('Animated Welcome & Mint Rebrand Contract Suite', async (t) => {
     const content = fs.readFileSync(welcomePath, 'utf-8');
 
     // Mascot capybara
-    assert.ok(content.includes('welcome_capybara.png'), 'References capybara mascot asset');
+    assert.ok(
+      content.includes('capybara.svg') || content.includes('welcome_capybara'),
+      'References capybara mascot asset'
+    );
+    assert.ok(
+      fs.existsSync(path.join(ROOT_DIR, 'public', 'assets', 'capybara', 'capybara.svg')),
+      'capybara.svg must exist'
+    );
 
     // Branding: TRAVEL OS with smile curve
     assert.ok(content.includes('TRAVEL'), 'Contains TRAVEL brand text');
