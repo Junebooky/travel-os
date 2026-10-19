@@ -1,8 +1,12 @@
 import koKRStrings from '@/locales/ko-KR.json';
+import phase2Strings from '@/locales/phase2-ko-KR.json';
 
 export type TranslationKey = keyof typeof koKRStrings;
 
-const strings: Record<string, string> = koKRStrings;
+const strings: Record<string, string> = {
+  ...koKRStrings,
+  ...phase2Strings,
+};
 
 /**
  * Format a number to locale string with options

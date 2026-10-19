@@ -30,7 +30,10 @@ export interface Place {
   website?: string;
   distance?: string;
   description?: string;
+  sourceProvider?: MapProvider;
 }
+
+export type MapProvider = 'google' | 'osm';
 
 export interface Country {
   code: string;
@@ -62,7 +65,7 @@ export interface TravelState {
   homeCurrency: string;
   localCurrency: string;
   activePlace: Place | null;
-  activeTab: 'map' | 'translate' | 'currency' | 'settings' | 'saved';
+  activeTab: 'map' | 'translate' | 'currency' | 'wallet' | 'settings' | 'saved';
   mapViewport: {
     center: { lat: number; lng: number };
     zoom: number;
@@ -78,4 +81,45 @@ export interface ExchangeRateData {
   rates: Record<string, number>;
   base: string;
   isStale?: boolean;
+}
+
+// Track B Phase 2 Extension Types
+export interface ChatMessage {
+  id: string;
+  speaker: 'me' | 'partner';
+  originalText: string;
+  translatedText: string;
+  translationStatus?: 'success' | 'failed' | 'translating';
+  timestamp: number;
+  errorMessage?: string;
+}
+
+export interface MenuItemOCR {
+  id: string;
+  originalName: string;
+  translatedName: string;
+  originalPrice: number;
+  currency: string;
+  estimatedKrw: number | null;
+  description?: string;
+  confidence?: number;
+  rateUnverified?: boolean;
+  isDemo?: boolean;
+}
+
+export interface ExpenseRecord {
+  id: string;
+  amount: number;
+  currency: string;
+  amountKrw: number | null;
+  placeName: string;
+  category: PlaceCategory;
+  paymentMethod?: 'cash' | 'card' | 'unknown';
+  timestamp: number;
+  memo?: string;
+  rateUsed?: {
+    rate: number;
+    provider: string;
+    date: string;
+  };
 }

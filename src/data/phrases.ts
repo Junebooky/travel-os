@@ -1,7 +1,7 @@
 import { QuickPhrase } from '@/types/travel';
 
 export const QUICK_PHRASES: QuickPhrase[] = [
-  // --- 음식점 (Food) ---
+  // --- 맛집 (Food) ---
   {
     id: 'food-1',
     category: 'food',
