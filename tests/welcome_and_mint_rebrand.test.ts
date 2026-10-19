@@ -25,6 +25,7 @@ test('Animated Welcome & Mint Rebrand Contract Suite', async (t) => {
     // Korean Headline and subhead
     assert.ok(content.includes('여행 준비'), 'Contains 여행 준비 headline');
     assert.ok(content.includes('여기서 끝내요'), 'Contains 여기서 끝내요 headline');
+    assert.ok(content.includes('Jalnan') || content.includes('Tmon'), 'Headline applies Jalnan / Tmon display font');
     assert.ok(content.includes('나라만 고르면'), 'Contains 나라만 고르면 subhead');
     assert.ok(content.includes('바로 시작할 수 있어요'), 'Contains 바로 시작할 수 있어요 subhead');
 
@@ -46,6 +47,10 @@ test('Animated Welcome & Mint Rebrand Contract Suite', async (t) => {
   await t.test('WMR-02: CSS design tokens and float animations in globals.css', () => {
     assert.ok(fs.existsSync(GLOBALS_CSS), 'globals.css must exist');
     const css = fs.readFileSync(GLOBALS_CSS, 'utf-8');
+
+    // Korean display typography fonts
+    assert.ok(css.includes("font-family: 'Tmon'"), 'globals.css declares @font-face for Tmon');
+    assert.ok(css.includes("font-family: 'Jalnan'"), 'globals.css declares @font-face for Jalnan');
 
     // Mint design tokens
     assert.ok(css.includes('--os-brand: #087F8C;'), 'Contains --os-brand token');

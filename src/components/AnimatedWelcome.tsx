@@ -126,7 +126,7 @@ export default function AnimatedWelcome({ onNavigate }: AnimatedWelcomeProps) {
 
         {/* Main Headline */}
 
-        <h1 className="text-[50px] sm:text-[46px] font-['Pretendard_Variable'] font-black leading-[1.12] tracking-[-0.045em] drop-shadow-[0_2px_2px_rgba(0,0,0,0.12)] mt-8 text-center">
+        <h1 className="text-[50px] sm:text-[46px] font-['Jalnan','Tmon',sans-serif] font-black leading-[1.12] tracking-[-0.045em] drop-shadow-[0_2px_2px_rgba(0,0,0,0.12)] mt-8 text-center">
           <span className="block text-white">
             여행 준비,
           </span>
