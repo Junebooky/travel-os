@@ -9,34 +9,34 @@ const COMPONENTS_DIR = path.join(SRC_DIR, 'components');
 const GLOBALS_CSS = path.join(SRC_DIR, 'app', 'globals.css');
 
 test('Animated Welcome & Mint Rebrand Contract Suite', async (t) => {
-  await t.test('WMR-01: AnimatedWelcome component exists and matches design specs', () => {
+  await t.test('WMR-01: AnimatedWelcome component exists and matches 2nd reference design specs', () => {
     const welcomePath = path.join(COMPONENTS_DIR, 'AnimatedWelcome.tsx');
     assert.ok(fs.existsSync(welcomePath), 'AnimatedWelcome.tsx must exist');
 
     const content = fs.readFileSync(welcomePath, 'utf-8');
 
-    // Dynamic country pill
-    assert.match(content, /country(\.|\?\.)flag/);
-    assert.match(content, /country(\.|\?\.)name/);
+    // Mascot capybara
+    assert.ok(content.includes('welcome_capybara.png'), 'References capybara mascot asset');
+
+    // Top action
+    assert.ok(content.includes('SKIP'), 'Contains top right SKIP action');
 
     // Headline and subhead
-    assert.ok(content.includes('여행, 어디서부터 시작할까요?'), 'Contains exact headline');
-    assert.ok(content.includes('필요한 순간, Travel OS가 함께해요.'), 'Contains exact subhead');
+    assert.ok(content.includes('All-in-one assistant'), 'Contains All-in-one assistant');
+    assert.ok(content.includes('Configure your trip'), 'Contains Configure your trip');
+    assert.ok(content.includes('¥2,000'), 'Contains ¥2,000 hero currency display');
 
-    // Primary CTA
-    assert.ok(content.includes('지도에서 시작하기'), 'Contains primary CTA text');
-    assert.ok(content.includes('#087F8C'), 'Uses solid mint primary color');
+    // 4 Stacked Capsule Cards
+    assert.ok(content.includes('Japan'), 'Contains destination card');
+    assert.ok(content.includes('Wallet'), 'Contains currency wallet card');
+    assert.ok(content.includes('Saved Places'), 'Contains map & saved places card');
+    assert.ok(content.includes('Translate · AI Menu Cam'), 'Contains translate & AI menu cam card');
 
-    // 3 Feature shortcuts
-    assert.ok(content.includes('바로 번역'), 'Contains translation shortcut');
-    assert.ok(content.includes('환율 계산'), 'Contains currency shortcut');
-    assert.ok(content.includes('여행 지갑'), 'Contains wallet shortcut');
+    // Bottom CTA
+    assert.ok(content.includes('OPEN TRAVEL OS'), 'Contains OPEN TRAVEL OS bottom CTA');
 
-    // Skip button
-    assert.ok(content.includes('건너뛰기'), 'Contains skip button text');
-    assert.match(content, /min-h-\[44px\]/, 'Skip button has accessible 44px touch target');
-
-    // Floating decorations
+    // Floating 3D isometric cubes
+    assert.ok(content.includes('IsometricCube'), 'Renders 3D isometric cubes');
     assert.ok(content.includes('welcome-float'), 'Uses welcome-float animation classes');
   });
 

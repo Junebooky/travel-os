@@ -28,6 +28,7 @@ export default function TravelApp() {
   const [prevTab, setPrevTab] = React.useState<string>(activeTab);
   const [welcomeDismissed, setWelcomeDismissed] = React.useState<boolean>(() => {
     if (typeof window !== 'undefined') {
+      if (window.location.search && window.location.search.includes('welcome=1')) return false;
       if (window.location.search && window.location.search.length > 1) return true;
     }
     return Boolean(activePlace);
@@ -50,6 +51,8 @@ export default function TravelApp() {
     );
   }
 
+  const isWelcomeQuery = typeof window !== 'undefined' && Boolean(window.location.search && window.location.search.includes('welcome=1'));
+
   return (
     <div className="relative min-h-[100dvh] w-full max-w-md mx-auto bg-[#FFFFFF] text-[#191F28] shadow-2xl flex flex-col overflow-hidden">
       {/* Offline Status Top Alert */}
@@ -64,7 +67,17 @@ export default function TravelApp() {
       <ToastContainer />
 
       {/* Content Rendering based on Onboarding & Welcome state */}
-      {!onboardingCompleted ? (
+      {isWelcomeQuery ? (
+        <AnimatedWelcome
+          onNavigate={(tab) => {
+            setActiveTab(tab);
+            setWelcomeDismissed(true);
+            if (tab === 'map') {
+              setHasVisitedMap(true);
+            }
+          }}
+        />
+      ) : !onboardingCompleted ? (
         <Onboarding />
       ) : !welcomeDismissed ? (
         <AnimatedWelcome
