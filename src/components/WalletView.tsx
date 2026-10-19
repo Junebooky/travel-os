@@ -107,6 +107,29 @@ const CATEGORY_STYLES: Record<string, CategoryStyle> = {
   },
 };
 
+const getWalletBackgroundImage = (countryCode?: string, countryName?: string): string => {
+  const code = (countryCode || '').toUpperCase();
+  const name = countryName || '';
+
+  if (code === 'JP' || name.includes('일본')) {
+    return '/assets/travel_wallet/background/japan_wallet.png';
+  }
+  if (
+    code === 'CN' ||
+    code === 'HK' ||
+    code === 'MO' ||
+    code === 'TW' ||
+    name.includes('중국') ||
+    name.includes('대만')
+  ) {
+    return '/assets/travel_wallet/background/china_wallet.png';
+  }
+  if (code === 'TH' || name.includes('태국')) {
+    return '/assets/travel_wallet/background/thailand_wallet.png';
+  }
+  return '/assets/travel_wallet/background/thailand_wallet.png';
+};
+
 export default function WalletView() {
   const {
     country,
@@ -132,6 +155,10 @@ export default function WalletView() {
   const [categoryInput, setCategoryInput] = useState<PlaceCategory>('food');
   const [paymentMethodInput, setPaymentMethodInput] = useState<'card' | 'cash' | undefined>(undefined);
   const [memoInput, setMemoInput] = useState<string>('');
+
+  const walletBgImage = useMemo(() => {
+    return getWalletBackgroundImage(country?.code, country?.name);
+  }, [country?.code, country?.name]);
 
   // Total KRW spent and local spent
   const totalKrw = useMemo(() => {
@@ -193,23 +220,6 @@ export default function WalletView() {
     }
   };
 
-  const getCategoryIcon = (cat: PlaceCategory) => {
-    const style = CATEGORY_STYLES[cat] || CATEGORY_STYLES.etc;
-    return (
-      <span
-        className={`w-4 h-4 rounded-full ${style.bgColor} inline-flex items-center justify-center shrink-0`}
-      >
-        <Image
-          src={style.imageSrc}
-          alt={style.alt}
-          width={12}
-          height={12}
-          className="w-3 h-3 object-contain"
-        />
-      </span>
-    );
-  };
-
   return (
     <div className="min-h-screen bg-[#FFFFFF] text-[#191F28] pb-24 flex flex-col max-w-md mx-auto p-4 space-y-4">
       {/* Top Header */}
@@ -229,7 +239,7 @@ export default function WalletView() {
               type="button"
               onClick={() => setIsClearAllOpen(true)}
               aria-label={t('wallet.action.clear_all')}
-              className="p-2 text-[#8B95A1] hover:text-[#191F28] hover:bg-[#FFFFFF] rounded-xl transition-colors"
+              className="w-10 h-10 rounded-full bg-[#FFFFFF] hover:bg-[#F8FAFC] text-[#8B95A1] hover:text-rose-600 border border-[#E5E8EB] flex items-center justify-center shadow-xs active:scale-95 transition-all"
             >
               <Trash2 className="w-4 h-4" />
             </button>
@@ -242,7 +252,7 @@ export default function WalletView() {
               setPaymentMethodInput(undefined);
               setIsAddModalOpen(true);
             }}
-            className="py-2 px-3.5 bg-[#FFFFFF] hover:bg-[#F8FAFC] text-[#191F28] border border-[#E5E8EB] rounded-xl text-xs font-bold flex items-center gap-1 shadow-sm active:scale-95 transition-all"
+            className="py-2.5 px-4 bg-[#FFFFFF] hover:bg-[#F8FAFC] text-[#191F28] border border-[#E5E8EB] rounded-full text-xs sm:text-sm font-bold flex items-center gap-1.5 shadow-xs active:scale-95 transition-all"
           >
             <Plus className="w-4 h-4 text-[#087F8C]" />
             {t('wallet.action.add')}
@@ -270,36 +280,53 @@ export default function WalletView() {
         </div>
       )}
 
-      {/* Summary Card */}
-      <div className="p-4 bg-[#FFFFFF] border border-[#E5E8EB] rounded-2xl shadow-sm space-y-3">
-        <div className="flex items-center justify-between text-xs text-[#8B95A1]">
-          <span className="flex items-center gap-1 font-medium text-[#4E5968]">
-            <TrendingDown className="w-3.5 h-3.5 text-[#087F8C]" />
-            {t('wallet.summary.total_krw')}
-          </span>
-          <span className="text-[#8B95A1] font-mono">
+      {/* Summary Card with Country Dynamic Background */}
+      <div className="relative rounded-[26px] overflow-hidden shadow-md min-h-[210px] sm:min-h-[230px] flex flex-col justify-between p-5 text-white">
+        {/* Dynamic Country Background Image */}
+        <Image
+          src={walletBgImage}
+          alt={`${country.name} 배경`}
+          fill
+          priority
+          className="object-cover object-[75%_center] select-none pointer-events-none"
+        />
+
+        {/* Subtle Gradient Overlays for High Contrast & Legibility */}
+        <div className="absolute inset-0 bg-gradient-to-r from-black/45 via-black/20 to-transparent pointer-events-none" />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/35 via-transparent to-black/10 pointer-events-none" />
+
+        {/* Top Row: Total Label + Count */}
+        <div className="relative z-10 flex items-center justify-between text-white">
+          <div className="flex items-center gap-1.5 text-xs sm:text-sm font-semibold drop-shadow-sm">
+            <TrendingDown className="w-4 h-4 text-white shrink-0" />
+            <span>{t('wallet.summary.total_krw')}</span>
+            <ChevronRight className="w-4 h-4 text-white/80 shrink-0" />
+          </div>
+          <span className="text-xs sm:text-sm font-semibold text-white/95 drop-shadow-sm">
             {t('wallet.summary.count', { count: expenses.length })}
           </span>
         </div>
 
-        <div className="flex items-baseline justify-between">
-          <div className="text-3xl font-extrabold text-[#191F28] tracking-tight">
+        {/* Middle: Total Converted KRW & Local Equivalent */}
+        <div className="relative z-10 my-2">
+          <div className="text-3xl sm:text-[40px] font-black text-white tracking-tight leading-none drop-shadow-md">
             {formatCurrency(totalKrw, 'KRW')}
           </div>
           {totalLocal > 0 && (
-            <div className="text-xs text-[#8B95A1] font-mono">
-              {formatAmountNumber(totalLocal, localCurrency)} {localCurrency}
+            <div className="text-xs sm:text-sm font-medium text-white/95 drop-shadow-sm mt-1.5">
+              약 {formatAmountNumber(totalLocal, localCurrency)} {localCurrency}
             </div>
           )}
         </div>
 
+        {/* Uncalculated rate warning if applicable */}
         {hasUncalculatedExpenses && (
-          <div className="flex items-center justify-between text-[11px] text-[#4E5968] font-medium pt-1 border-t border-[#E5E8EB]">
+          <div className="relative z-10 flex items-center justify-between text-[11px] text-white/95 font-medium pt-1 pb-1">
             <span>* {t('wallet.summary.partial')} {t('wallet.rate.not_available')}</span>
             <button
               type="button"
               onClick={() => refreshRates()}
-              className="text-[#087F8C] hover:underline font-semibold ml-2 shrink-0"
+              className="text-white underline font-semibold ml-2 shrink-0 hover:text-white/80"
             >
               {t('common.action.refresh')}
             </button>
@@ -308,16 +335,25 @@ export default function WalletView() {
 
         {/* Category breakdown bar if expenses exist */}
         {expenses.length > 0 && (
-          <div className="pt-2 border-t border-[#E5E8EB] flex flex-wrap gap-1.5">
-            {Object.entries(categoryTotals).map(([cat, val]) => (
-              <span
-                key={cat}
-                className="text-[10px] px-2.5 py-1 rounded-full bg-[#FFFFFF] text-[#4E5968] font-medium flex items-center gap-1 border border-[#E5E8EB]"
-              >
-                {getCategoryIcon(cat as PlaceCategory)}
-                {formatCurrency(val || 0, 'KRW')}
-              </span>
-            ))}
+          <div className="relative z-10 bg-[#FFFFFF]/90 backdrop-blur-md rounded-2xl p-2 sm:p-2.5 flex items-center gap-2 overflow-x-auto no-scrollbar border border-white/50 shadow-xs mt-1">
+            {Object.entries(categoryTotals).map(([cat, val]) => {
+              const style = CATEGORY_STYLES[cat] || CATEGORY_STYLES.etc;
+              return (
+                <div
+                  key={cat}
+                  className="bg-[#FFFFFF] rounded-full px-3 py-1.5 flex items-center gap-1.5 text-xs sm:text-[13px] font-bold text-[#191F28] shadow-xs border border-[#E5E8EB]/60 shrink-0"
+                >
+                  <Image
+                    src={style.imageSrc}
+                    alt={style.alt}
+                    width={18}
+                    height={18}
+                    className="w-4 h-4 sm:w-[18px] sm:h-[18px] object-contain shrink-0"
+                  />
+                  <span>{formatCurrency(val || 0, 'KRW')}</span>
+                </div>
+              );
+            })}
           </div>
         )}
       </div>
@@ -364,9 +400,9 @@ export default function WalletView() {
                       <Image
                         src={style.imageSrc}
                         alt={style.alt}
-                        width={32}
-                        height={32}
-                        className="w-8 h-8 object-contain"
+                        width={40}
+                        height={40}
+                        className="w-10 h-10 object-contain"
                       />
                     </div>
 
