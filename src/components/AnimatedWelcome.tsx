@@ -85,9 +85,9 @@ export default function AnimatedWelcome({ onNavigate }: AnimatedWelcomeProps) {
         <div className="absolute left-[10%] bottom-[38%] w-2 h-2 rounded-full bg-white/45 blur-[0.4px]" />
       </div>
 
-      {/* Mascot: Sleeping Capybara on Cyan Cube (Top-Left) */}
+      {/* Mascot: Sleeping Capybara on Cyan Cube (Roams smoothly in background) */}
       <div
-        className="welcome-float-slow absolute top-1 -left-2 z-10 pointer-events-none select-none drop-shadow-md"
+        className="capybara-roam absolute top-1 -left-2 z-0 pointer-events-none select-none drop-shadow-md"
         aria-hidden="true"
       >
         <Image

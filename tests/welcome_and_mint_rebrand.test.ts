@@ -37,9 +37,10 @@ test('Animated Welcome & Mint Rebrand Contract Suite', async (t) => {
     // Primary bottom CTA
     assert.ok(content.includes('여행 시작하기'), 'Contains 여행 시작하기 CTA');
 
-    // Floating 3D isometric cubes
+    // Floating 3D isometric cubes and mascot roaming
     assert.ok(content.includes('IsometricCube'), 'Renders 3D isometric cubes');
     assert.ok(content.includes('welcome-float'), 'Uses welcome-float animation classes');
+    assert.ok(content.includes('capybara-roam'), 'Uses capybara-roam animation class for background motion');
   });
 
   await t.test('WMR-02: CSS design tokens and float animations in globals.css', () => {
@@ -51,9 +52,11 @@ test('Animated Welcome & Mint Rebrand Contract Suite', async (t) => {
     assert.ok(css.includes('--os-brand-hover: #066B77;'), 'Contains --os-brand-hover token');
     assert.ok(css.includes('--os-welcome-scene: #13C2D6;'), 'Contains --os-welcome-scene token');
 
-    // GPU-friendly float keyframes
+    // GPU-friendly float and roam keyframes
     assert.ok(css.includes('@keyframes floatSlow'), 'Contains floatSlow keyframes');
     assert.ok(css.includes('.welcome-float'), 'Contains .welcome-float class');
+    assert.ok(css.includes('@keyframes capybaraRoam'), 'Contains capybaraRoam keyframes');
+    assert.ok(css.includes('.capybara-roam'), 'Contains .capybara-roam class');
 
     // Accessibility: prefers-reduced-motion
     assert.ok(css.includes('@media (prefers-reduced-motion: reduce)'), 'Contains prefers-reduced-motion media query');

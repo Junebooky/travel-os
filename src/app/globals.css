@@ -72,11 +72,45 @@ body {
   will-change: transform;
 }
 
+/* Smooth organic roaming trajectory for sleeping mascot in background */
+@keyframes capybaraRoam {
+  0% {
+    transform: translate3d(0px, 0px, 0) rotate(0deg);
+  }
+  16% {
+    transform: translate3d(55px, 24px, 0) rotate(2deg);
+  }
+  32% {
+    transform: translate3d(130px, 10px, 0) rotate(-1.5deg);
+  }
+  48% {
+    transform: translate3d(165px, 60px, 0) rotate(2deg);
+  }
+  65% {
+    transform: translate3d(110px, 115px, 0) rotate(-2deg);
+  }
+  80% {
+    transform: translate3d(30px, 80px, 0) rotate(1.5deg);
+  }
+  92% {
+    transform: translate3d(-10px, 30px, 0) rotate(-1deg);
+  }
+  100% {
+    transform: translate3d(0px, 0px, 0) rotate(0deg);
+  }
+}
+
+.capybara-roam {
+  animation: capybaraRoam 18s cubic-bezier(0.45, 0.05, 0.55, 0.95) infinite;
+  will-change: transform;
+}
+
 /* Strictly enforce reduced motion preference */
 @media (prefers-reduced-motion: reduce) {
   .welcome-float,
   .welcome-float-delayed,
-  .welcome-float-slow {
+  .welcome-float-slow,
+  .capybara-roam {
     animation: none !important;
     transform: none !important;
     transition: none !important;
