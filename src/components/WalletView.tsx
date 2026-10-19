@@ -111,22 +111,139 @@ const getWalletBackgroundImage = (countryCode?: string, countryName?: string): s
   const code = (countryCode || '').toUpperCase();
   const name = countryName || '';
 
+  // 1. Japan
   if (code === 'JP' || name.includes('일본')) {
     return '/assets/travel_wallet/background/japan_wallet.png';
   }
+
+  // 2. United States, Canada, Guam, North America
+  if (
+    code === 'US' ||
+    code === 'CA' ||
+    code === 'GU' ||
+    name.includes('미국') ||
+    name.includes('캐나다') ||
+    name.includes('괌')
+  ) {
+    return '/assets/travel_wallet/background/us_wallet.png';
+  }
+
+  // 3. United Kingdom
+  if (
+    code === 'GB' ||
+    code === 'UK' ||
+    name.includes('영국') ||
+    name.includes('잉글랜드') ||
+    name.includes('런던')
+  ) {
+    return '/assets/travel_wallet/background/uk_wallet.png';
+  }
+
+  // 4. Spain
+  if (code === 'ES' || name.includes('스페인')) {
+    return '/assets/travel_wallet/background/spain_wallet.png';
+  }
+
+  // 5. Europe (France, Italy, Germany, Switzerland, Netherlands, Austria, Czech, etc.)
+  if (
+    code === 'FR' ||
+    code === 'IT' ||
+    code === 'DE' ||
+    code === 'CH' ||
+    code === 'NL' ||
+    code === 'AT' ||
+    code === 'CZ' ||
+    code === 'EU' ||
+    name.includes('프랑스') ||
+    name.includes('이탈리아') ||
+    name.includes('독일') ||
+    name.includes('스위스') ||
+    name.includes('네덜란드') ||
+    name.includes('오스트리아') ||
+    name.includes('체코') ||
+    name.includes('유럽')
+  ) {
+    return '/assets/travel_wallet/background/europe_wallet.png';
+  }
+
+  // 6. Russia
+  if (code === 'RU' || name.includes('러시아')) {
+    return '/assets/travel_wallet/background/russia_wallet.png';
+  }
+
+  // 7. China, Taiwan, Hong Kong, Macau
   if (
     code === 'CN' ||
+    code === 'TW' ||
     code === 'HK' ||
     code === 'MO' ||
-    code === 'TW' ||
     name.includes('중국') ||
-    name.includes('대만')
+    name.includes('대만') ||
+    name.includes('홍콩') ||
+    name.includes('마카오')
   ) {
     return '/assets/travel_wallet/background/china_wallet.png';
   }
-  if (code === 'TH' || name.includes('태국')) {
+
+  // 8. South America (Brazil, Argentina, Chile, Peru, Colombia, etc.)
+  if (
+    code === 'BR' ||
+    code === 'AR' ||
+    code === 'CL' ||
+    code === 'PE' ||
+    code === 'CO' ||
+    name.includes('남미') ||
+    name.includes('브라질') ||
+    name.includes('아르헨티나') ||
+    name.includes('칠레') ||
+    name.includes('페루')
+  ) {
+    return '/assets/travel_wallet/background/south_america_wallet.png';
+  }
+
+  // 9. Africa (Egypt, South Africa, Kenya, Tanzania, Morocco, etc.)
+  if (
+    code === 'ZA' ||
+    code === 'EG' ||
+    code === 'KE' ||
+    code === 'TZ' ||
+    code === 'MA' ||
+    name.includes('아프리카') ||
+    name.includes('이집트') ||
+    name.includes('남아공') ||
+    name.includes('케냐') ||
+    name.includes('모로코')
+  ) {
+    return '/assets/travel_wallet/background/africa.png';
+  }
+
+  // 10. Southeast Asia & Tropical (Thailand, Vietnam, Philippines, Indonesia/Bali, Malaysia, Singapore, Australia)
+  if (
+    code === 'TH' ||
+    code === 'VN' ||
+    code === 'PH' ||
+    code === 'ID' ||
+    code === 'MY' ||
+    code === 'SG' ||
+    code === 'AU' ||
+    name.includes('태국') ||
+    name.includes('베트남') ||
+    name.includes('필리핀') ||
+    name.includes('인도네시아') ||
+    name.includes('발리') ||
+    name.includes('말레이시아') ||
+    name.includes('싱가포르') ||
+    name.includes('호주')
+  ) {
     return '/assets/travel_wallet/background/thailand_wallet.png';
   }
+
+  // Korea fallback: East Asia aesthetic
+  if (code === 'KR' || name.includes('한국') || name.includes('대한민국')) {
+    return '/assets/travel_wallet/background/japan_wallet.png';
+  }
+
+  // Default fallback
   return '/assets/travel_wallet/background/thailand_wallet.png';
 };
 
